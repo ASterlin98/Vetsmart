@@ -1,0 +1,228 @@
+<?php
+// app/models/Cita.php
+class Cita {
+    private $db;
+
+    public function __construct($pdo) {
+        $this->db = $pdo;
+    }
+
+    // Crear nueva cita
+    public function crear(array $data) {
+        $sql = "INSERT INTO citas (
+                    cliente_id, mascota_id, empleado_id, servicio_id,
+                    fecha, duracion_min, estado, notas, creado_por, creado_en
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            $data['cliente_id'],
+            $data['mascota_id'],
+            $data['empleado_id'],
+            $data['servicio_id'],
+            $data['fecha'],              
+            $data['duracion_min'] ?? 30,
+            $data['estado'] ?? 'programada',
+            $data['notas'] ?? null,
+            $data['creado_por'] ?? ($_SESSION['user']['id'] ?? null)
+        ]);
+        return $this->db->lastInsertId();
+    }
+
+    // Obtener citas de un veterinario (para el calendario)
+    public function getPorVeterinario($veterinario_id) {
+        $sql = "SELECT c.id, c.fecha, c.mascota_id, m.nombre AS nombre_mascota, c.servicio_id
+                FROM citas c
+                JOIN mascotas m ON c.mascota_id = m.id
+                WHERE c.empleado_id = ?
+                ORDER BY c.fecha ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$veterinario_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Obtener una cita por id (API)
+    public function getById($id) {
+        $sql = "SELECT c.*, m.nombre AS nombre_mascota, u.nombre AS cliente_nombre, u.apellido AS cliente_apellido
+                FROM citas c
+                LEFT JOIN mascotas m ON c.mascota_id = m.id
+                LEFT JOIN usuarios u ON c.cliente_id = u.id
+                WHERE c.id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Actualizar cita
+    public function actualizar($id, array $data) {
+        $sql = "UPDATE citas SET mascota_id = ?, servicio_id = ?, fecha = ?, duracion_min = ?, estado = ?, notas = ?
+                WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            $data['mascota_id'],
+            $data['servicio_id'],
+            $data['fecha'],
+            $data['duracion_min'] ?? 30,
+            $data['estado'] ?? 'programada',
+            $data['notas'] ?? null,
+            $id
+        ]);
+    }
+
+    // Eliminar cita
+public function eliminar($id)
+{
+    $stmt = $this->db->prepare("DELETE FROM citas WHERE id = :id");
+    return $stmt->execute([':id' => $id]);
+}
+
+    // Historial por mascota
+    public function getHistorialPorVeterinario($veterinario_id, $desde = null, $hasta = null) {
+        $sql = "SELECT c.*, 
+                    m.nombre AS nombre_mascota,
+                    u.nombre AS cliente_nombre,
+                    u.apellido AS cliente_apellido,
+                    s.nombre AS nombre_servicio
+                FROM citas c
+                JOIN mascotas m ON c.mascota_id = m.id
+                JOIN usuarios u ON c.cliente_id = u.id
+                JOIN servicios s ON c.servicio_id = s.id
+                WHERE c.empleado_id = ?";
+        
+        $params = [$veterinario_id];
+
+        if ($desde) {
+            $sql .= " AND c.fecha >= ?";
+            $params[] = $desde;
+        }
+
+        if ($hasta) {
+            $sql .= " AND c.fecha <= ?";
+            $params[] = $hasta;
+        }
+
+        $sql .= " ORDER BY c.fecha DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+public function countUpcomingByVeterinario($veterinarioId) {
+    $stmt = $this->db->prepare("SELECT COUNT(*) FROM citas WHERE empleado_id = :id AND fecha >= NOW()");
+    $stmt->execute([':id' => $veterinarioId]);
+    return $stmt->fetchColumn();
+}
+
+public function getTodayByVeterinario($veterinarioId) {
+    $sql = "
+        SELECT c.*, m.nombre AS nombre_mascota, u.nombre AS cliente_nombre, u.apellido AS cliente_apellido
+        FROM citas c
+        INNER JOIN mascotas m ON c.mascota_id = m.id
+        INNER JOIN usuarios u ON c.cliente_id = u.id
+        WHERE c.empleado_id = :id AND DATE(c.fecha) = CURDATE()
+        ORDER BY c.fecha ASC
+    ";
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute([':id' => $veterinarioId]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function getUpcomingByVeterinario($veterinarioId, $limite = 8) {
+    $sql = "
+        SELECT c.*, m.nombre AS nombre_mascota,
+               u.nombre AS cliente_nombre, u.apellido AS cliente_apellido,
+               s.nombre AS servicio
+        FROM citas c
+        INNER JOIN mascotas m ON c.mascota_id = m.id
+        INNER JOIN usuarios u ON c.cliente_id = u.id
+        INNER JOIN servicios s ON c.servicio_id = s.id
+        WHERE c.empleado_id = :id AND c.fecha >= NOW()
+        ORDER BY c.fecha ASC
+        LIMIT :limite
+    ";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindValue(':id', $veterinarioId, PDO::PARAM_INT);
+    $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+    // Total citas
+    public function contarPorVeterinario($veterinario_id) {
+        $sql = "SELECT COUNT(*) FROM citas WHERE empleado_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$veterinario_id]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    // Mascotas únicas
+    public function contarMascotasUnicas($veterinario_id) {
+        $sql = "SELECT COUNT(DISTINCT mascota_id) FROM citas WHERE empleado_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$veterinario_id]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    // Servicios más usados
+    public function topServiciosPorVeterinario($veterinario_id) {
+        $sql = "SELECT s.nombre, COUNT(*) AS total
+                FROM citas c
+                JOIN servicios s ON c.servicio_id = s.id
+                WHERE c.empleado_id = ?
+                GROUP BY s.nombre
+                ORDER BY total DESC
+                LIMIT 5";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$veterinario_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countByVeterinario($id) {
+        $sql = "SELECT COUNT(*) FROM citas WHERE empleado_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function countMascotasAtendidas($id) {
+        $sql = "SELECT COUNT(DISTINCT mascota_id) FROM citas WHERE empleado_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function sumIngresosPorVeterinario($id) {
+        $sql = "SELECT SUM(s.precio) 
+                FROM citas c
+                JOIN servicios s ON c.servicio_id = s.id
+                WHERE c.empleado_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+        return (int) $stmt->fetchColumn();
+    }
+
+public function getPorMascota(int $mascotaId): array {
+
+    try {
+        $sql = "
+            SELECT c.*,
+                   m.nombre AS nombre_mascota,
+                   u.nombre AS cliente_nombre, u.apellido AS cliente_apellido,
+                   s.nombre AS nombre_servicio
+            FROM citas c
+            LEFT JOIN mascotas m ON c.mascota_id = m.id
+            LEFT JOIN usuarios u ON c.cliente_id = u.id
+            LEFT JOIN servicios s ON c.servicio_id = s.id
+            WHERE c.mascota_id = ?
+            ORDER BY c.fecha DESC
+        ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([(int)$mascotaId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $rows ?: [];
+    } catch (PDOException $e) {
+        error_log("Cita::getHistorialPorMascota error: " . $e->getMessage());
+        return [];
+    }
+}
+}

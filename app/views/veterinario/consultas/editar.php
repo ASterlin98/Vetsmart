@@ -1,0 +1,48 @@
+<?php
+// app/views/veterinario/consultas/editar.php
+$consulta = $consulta ?? null;
+if (!$consulta) { echo "<div class='container py-4'>Consulta no encontrada.</div>"; return; }
+?>
+<div class="container py-4">
+  <h2>Editar Consulta #<?= htmlspecialchars($consulta['id']) ?></h2>
+
+  <form action="/vetsmart/veterinario/consultas/actualizar/<?= $consulta['id'] ?>" method="POST">
+    <div class="mb-3">
+      <label> Mascota</label>
+      <input class="form-control" value="<?= htmlspecialchars($consulta['nombre_mascota'] ?? '-') ?>" disabled>
+    </div>
+
+    <div class="mb-3">
+      <label>Motivo</label>
+      <textarea name="motivo" class="form-control" rows="2"><?= htmlspecialchars($consulta['motivo'] ?? '') ?></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label>Examen</label>
+      <textarea name="examen" class="form-control" rows="3"><?= htmlspecialchars($consulta['examen'] ?? '') ?></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label>Diagnóstico</label>
+      <textarea name="diagnostico" class="form-control" rows="2"><?= htmlspecialchars($consulta['diagnostico'] ?? '') ?></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label>Tratamiento</label>
+      <textarea name="tratamiento" class="form-control" rows="2"><?= htmlspecialchars($consulta['tratamiento'] ?? '') ?></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label>Recomendaciones</label>
+      <textarea name="recomendaciones" class="form-control" rows="2"><?= htmlspecialchars($consulta['recomendaciones'] ?? '') ?></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label>Notas</label>
+      <textarea name="notas" class="form-control" rows="2"><?= htmlspecialchars($consulta['notas'] ?? '') ?></textarea>
+    </div>
+
+    <button class="btn btn-primary">Guardar cambios</button>
+    <a href="/vetsmart/veterinario/consultas/ver/<?= $consulta['id'] ?>" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>

@@ -1,0 +1,109 @@
+<?php
+// app/models/Consulta.php
+class Consulta {
+    private $db;
+
+    public function __construct($pdo) {
+        $this->db = $pdo;
+    }
+
+    public function crear(array $data) {
+        $sql = "INSERT INTO consultas
+                (mascota_id, empleado_id, motivo, examen, diagnostico, tratamiento, recomendaciones, notas, creado_por, creado_en)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            $data['mascota_id'],
+            $data['empleado_id'] ?? null,
+            $data['motivo'] ?? null,
+            $data['examen'] ?? null,
+            $data['diagnostico'] ?? null,
+            $data['tratamiento'] ?? null,
+            $data['recomendaciones'] ?? null,
+            $data['notas'] ?? null,
+            $data['creado_por'] ?? null
+        ]);
+        return $this->db->lastInsertId();
+    }
+
+    public function getById($id) {
+        $sql = "SELECT c.*, m.nombre AS nombre_mascota, u.nombre AS nombre_empleado, u.apellido AS apellido_empleado
+                FROM consultas c
+                LEFT JOIN mascotas m ON c.mascota_id = m.id
+                LEFT JOIN usuarios u ON c.empleado_id = u.id
+                WHERE c.id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getByMascota($mascota_id) {
+        $sql = "SELECT c.*, u.nombre AS nombre_empleado, u.apellido AS apellido_empleado
+                FROM consultas c
+                LEFT JOIN usuarios u ON c.empleado_id = u.id
+                WHERE c.mascota_id = ?
+                ORDER BY c.creado_en DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$mascota_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getByVeterinario($id, $desde = null, $hasta = null) {
+        $sql = "SELECT c.*, 
+                    m.nombre AS nombre_mascota, 
+                    CONCAT(u.nombre, ' ', u.apellido) AS nombre_veterinario
+                FROM consultas c
+                JOIN mascotas m ON c.mascota_id = m.id
+                LEFT JOIN usuarios u ON c.empleado_id = u.id
+                WHERE c.empleado_id = ?";
+        
+        $params = [$id];
+
+        if ($desde) {
+            $sql .= " AND c.creado_en >= ?";
+            $params[] = $desde;
+        }
+
+        if ($hasta) {
+            $sql .= " AND c.creado_en <= ?";
+            $params[] = $hasta;
+        }
+
+        $sql .= " ORDER BY c.creado_en DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    public function actualizar($id, array $data) {
+        $sql = "UPDATE consultas SET motivo=?, examen=?, diagnostico=?, tratamiento=?, recomendaciones=?, notas=? WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            $data['motivo'] ?? null,
+            $data['examen'] ?? null,
+            $data['diagnostico'] ?? null,
+            $data['tratamiento'] ?? null,
+            $data['recomendaciones'] ?? null,
+            $data['notas'] ?? null,
+            $id
+        ]);
+    }
+
+    public function eliminar($id) {
+        $stmt = $this->db->prepare("DELETE FROM consultas WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    public function getLatest($limit = 10) {
+        $sql = "SELECT c.*, m.nombre AS nombre_mascota
+                FROM consultas c
+                LEFT JOIN mascotas m ON c.mascota_id = m.id
+                ORDER BY c.creado_en DESC
+                LIMIT ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([(int)$limit]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
