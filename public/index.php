@@ -376,11 +376,34 @@ if (preg_match('#^/veterinario/consultas/actualizar/(\d+)$#', $path, $m) && $_SE
     exit;
 }
 
-if (preg_match('#^/veterinario/consultas/eliminar/(\d+)$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+// Ver consulta
+if (preg_match('#^/veterinario/consultas/(\d+)/ver$#', $path, $m)) {
+    $controller = new ConsultasController($pdo);
+    $controller->ver($m[1]);
+    exit;
+}
+
+// Editar consulta
+if (preg_match('#^/veterinario/consultas/(\d+)/editar$#', $path, $m)) {
+    $controller = new ConsultasController($pdo);
+    $controller->editar($m[1]);
+    exit;
+}
+
+// Actualizar consulta (POST)
+if (preg_match('#^/veterinario/consultas/actualizar/(\d+)$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new ConsultasController($pdo);
+    $controller->actualizar($m[1]);
+    exit;
+}
+
+// Eliminar consulta
+if (preg_match('#^/veterinario/consultas/(\d+)/eliminar$#', $path, $m)) {
     $controller = new ConsultasController($pdo);
     $controller->eliminar($m[1]);
     exit;
 }
+
 
 // Servicios
 
