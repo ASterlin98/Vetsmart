@@ -1,36 +1,48 @@
 <?php
 // app/views/veterinario/consultas/ver.php
 $consulta = $consulta ?? null;
-if (!$consulta) { echo "<div class='container py-4'>Consulta no encontrada.</div>"; return; }
+if (!$consulta) {
+  echo "<div class='p-3'>Consulta no encontrada.</div>";
+  return;
+}
 ?>
-<div class="container py-4">
-  <h2>Consulta #<?= htmlspecialchars($consulta['id']) ?></h2>
-  <p><strong>Mascota:</strong> <?= htmlspecialchars($consulta['nombre_mascota'] ?? '-') ?></p>
+<div class="modal-header">
+  <h5 class="modal-title">Consulta #<?= htmlspecialchars($consulta['id']) ?> - <?= htmlspecialchars($consulta['nombre_mascota'] ?? '-') ?></h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+</div>
+
+<div class="modal-body">
   <p><strong>Fecha:</strong> <?= htmlspecialchars($consulta['creado_en']) ?></p>
-  <hr>
-  <h5>Motivo</h5>
+
+  <hr class="my-2">
+  <h6>Motivo</h6>
   <p><?= nl2br(htmlspecialchars($consulta['motivo'] ?? '-')) ?></p>
 
-  <h5>Examen</h5>
+  <h6>Examen</h6>
   <p><?= nl2br(htmlspecialchars($consulta['examen'] ?? '-')) ?></p>
 
-  <h5>Diagnóstico</h5>
+  <h6>Diagnóstico</h6>
   <p><?= nl2br(htmlspecialchars($consulta['diagnostico'] ?? '-')) ?></p>
 
-  <h5>Tratamiento</h5>
+  <h6>Tratamiento</h6>
   <p><?= nl2br(htmlspecialchars($consulta['tratamiento'] ?? '-')) ?></p>
 
-  <h5>Recomendaciones</h5>
+  <h6>Recomendaciones</h6>
   <p><?= nl2br(htmlspecialchars($consulta['recomendaciones'] ?? '-')) ?></p>
 
-  <h5>Notas</h5>
+  <h6>Notas</h6>
   <p><?= nl2br(htmlspecialchars($consulta['notas'] ?? '-')) ?></p>
+</div>
 
-  <div class="mt-3">
-    <a href="/vetsmart/veterinario/consultas/editar/<?= $consulta['id'] ?>" class="btn btn-warning">Editar</a>
-    <form action="/vetsmart/veterinario/consultas/eliminar/<?= $consulta['id'] ?>" method="POST" style="display:inline" onsubmit="return confirm('Eliminar consulta?')">
-      <button class="btn btn-danger">Eliminar</button>
-    </form>
-    <a href="/vetsmart/veterinario/consultas" class="btn btn-secondary">Volver</a>
-  </div>
+<div class="modal-footer">
+  <a href="/vetsmart/veterinario/consultas/<?= $consulta['id'] ?>/editar"
+     class="btn btn-warning btn-editar-consulta"
+     data-id="<?= $consulta['id'] ?>">Editar</a>
+
+  <form action="/vetsmart/veterinario/consultas/<?= $consulta['id'] ?>/eliminar" method="POST"
+        onsubmit="return confirm('¿Eliminar esta consulta?');" style="display:inline">
+    <button class="btn btn-danger">Eliminar</button>
+  </form>
+
+  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
 </div>

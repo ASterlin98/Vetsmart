@@ -719,4 +719,32 @@ public function guardarEdicionNotaRapida($mascotaId, $notaId) {
     exit;
 }
 
+public function verConsulta($id)
+{
+    $consultaModel = new Consulta($this->db);
+    $consulta = $consultaModel->getById($id);
+
+    // Detectar si la solicitud viene por AJAX
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+    $this->view('veterinario/consultas/ver', [
+        'consulta' => $consulta
+    ], $isAjax ? null : 'main_veterinario');
+}
+
+
+public function editarConsulta($id)
+{
+    $consultaModel = new Consulta($this->db);
+    $consulta = $consultaModel->getById($id);
+
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+    $this->view('veterinario/consultas/editar', [
+        'consulta' => $consulta
+    ], $isAjax ? null : 'main_veterinario');
+}
+
 }

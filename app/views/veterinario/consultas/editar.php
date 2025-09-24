@@ -1,14 +1,21 @@
 <?php
 // app/views/veterinario/consultas/editar.php
 $consulta = $consulta ?? null;
-if (!$consulta) { echo "<div class='container py-4'>Consulta no encontrada.</div>"; return; }
+if (!$consulta) {
+  echo "<div class='p-3'>Consulta no encontrada.</div>";
+  return;
+}
 ?>
-<div class="container py-4">
-  <h2>Editar Consulta #<?= htmlspecialchars($consulta['id']) ?></h2>
 
-  <form action="/vetsmart/veterinario/consultas/actualizar/<?= $consulta['id'] ?>" method="POST">
+<div class="modal-header">
+  <h5 class="modal-title">Editar Consulta #<?= htmlspecialchars($consulta['id']) ?></h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+</div>
+
+<form action="/vetsmart/veterinario/consultas/actualizar/<?= $consulta['id'] ?>" method="POST">
+  <div class="modal-body">
     <div class="mb-3">
-      <label> Mascota</label>
+      <label>Mascota</label>
       <input class="form-control" value="<?= htmlspecialchars($consulta['nombre_mascota'] ?? '-') ?>" disabled>
     </div>
 
@@ -41,8 +48,10 @@ if (!$consulta) { echo "<div class='container py-4'>Consulta no encontrada.</div
       <label>Notas</label>
       <textarea name="notas" class="form-control" rows="2"><?= htmlspecialchars($consulta['notas'] ?? '') ?></textarea>
     </div>
+  </div>
 
+  <div class="modal-footer">
     <button class="btn btn-primary">Guardar cambios</button>
-    <a href="/vetsmart/veterinario/consultas/ver/<?= $consulta['id'] ?>" class="btn btn-secondary">Cancelar</a>
-  </form>
-</div>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+  </div>
+</form>
