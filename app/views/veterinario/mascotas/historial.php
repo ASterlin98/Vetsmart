@@ -118,10 +118,7 @@ $foto = $mascota['foto'] ?? null;
                       <td><?= htmlspecialchars($c['estado'] ?? '-') ?></td>
                       <td style="max-width:280px; white-space:pre-wrap;"><?= nl2br(htmlspecialchars($c['notas'] ?? '')) ?></td>
                       <td>
-                        <a href="/vetsmart/veterinario/citas/<?= $c['id'] ?>/editar" class="btn btn-sm btn-warning mb-1">Editar</a>
-                        <form action="/vetsmart/veterinario/citas/<?= $c['id'] ?>/eliminar" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar cita?')">
-                          <button class="btn btn-sm btn-danger">Eliminar</button>
-                        </form>
+                        <a href="/vetsmart/veterinario/consultas/crear/<?= $mascota['id'] ?>" class="btn btn-success">🩺 Crear Consulta</a>
                       </td>
                     </tr>
                   <?php endforeach; ?>

@@ -202,27 +202,37 @@ public function getUpcomingByVeterinario($veterinarioId, $limite = 8) {
     }
 
 public function getPorMascota(int $mascotaId): array {
-
     try {
         $sql = "
-            SELECT c.*,
-                   m.nombre AS nombre_mascota,
-                   u.nombre AS cliente_nombre, u.apellido AS cliente_apellido,
-                   s.nombre AS nombre_servicio
+            SELECT 
+                c.id, c.fecha, c.estado, c.notas,
+                c.mascota_id, c.cliente_id, c.empleado_id, c.servicio_id,
+                m.nombre AS nombre_mascota,
+                u_cliente.nombre AS cliente_nombre, u_cliente.apellido AS cliente_apellido,
+                s.nombre AS servicio,
+                u_vet.nombre AS vet_nombre, u_vet.apellido AS vet_apellido
             FROM citas c
             LEFT JOIN mascotas m ON c.mascota_id = m.id
-            LEFT JOIN usuarios u ON c.cliente_id = u.id
+            LEFT JOIN usuarios u_cliente ON c.cliente_id = u_cliente.id
             LEFT JOIN servicios s ON c.servicio_id = s.id
+            LEFT JOIN usuarios u_vet ON c.empleado_id = u_vet.id
             WHERE c.mascota_id = ?
             ORDER BY c.fecha DESC
         ";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([(int)$mascotaId]);
+        $stmt->execute([$mascotaId]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Armar campo "veterinario" para la vista
+        foreach ($rows as &$r) {
+            $r['veterinario'] = trim(($r['vet_nombre'] ?? '') . ' ' . ($r['vet_apellido'] ?? ''));
+        }
+
         return $rows ?: [];
     } catch (PDOException $e) {
-        error_log("Cita::getHistorialPorMascota error: " . $e->getMessage());
+        error_log("Cita::getPorMascota error: " . $e->getMessage());
         return [];
     }
 }
+
 }

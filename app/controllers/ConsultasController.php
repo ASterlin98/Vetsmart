@@ -57,49 +57,52 @@ class ConsultasController extends Controller {
         exit;
     }
 
-    public function ver($id) {
-        $consulta = $this->consultaModel->getById($id);
-        if (!$consulta) {
-            echo "Consulta no encontrada.";
-            return;
-        }
-        $this->view('veterinario/consultas/ver', ['consulta' => $consulta], 'main_veterinario');
+public function ver($id) {
+    $consultaModel = new Consulta($this->db);
+    $consulta = $consultaModel->getById($id);
+
+    if (!$consulta) {
+        die('Consulta no encontrada.');
     }
 
-    public function editar($id) {
-        $consulta = $this->consultaModel->getById($id);
-        if (!$consulta) {
-            echo "Consulta no encontrada.";
-            return;
-        }
-        $this->view('veterinario/consultas/editar', ['consulta' => $consulta], 'main_veterinario');
+    $this->view('veterinario/consultas/ver', ['consulta' => $consulta], 'main_veterinario');
+}
+
+
+public function editar($id) {
+    $consultaModel = new Consulta($this->db);
+    $consulta = $consultaModel->getById($id);
+
+    if (!$consulta) {
+        die('Consulta no encontrada.');
     }
 
-    public function actualizar($id) {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /vetsmart/veterinario/consultas');
-            exit;
-        }
-        $data = [
-            'motivo' => $_POST['motivo'] ?? null,
-            'examen' => $_POST['examen'] ?? null,
-            'diagnostico' => $_POST['diagnostico'] ?? null,
-            'tratamiento' => $_POST['tratamiento'] ?? null,
-            'recomendaciones' => $_POST['recomendaciones'] ?? null,
-            'notas' => $_POST['notas'] ?? null
-        ];
-        $this->consultaModel->actualizar($id, $data);
-        header('Location: /vetsmart/veterinario/consultas/ver/' . $id);
-        exit;
-    }
+    $this->view('veterinario/consultas/editar', ['consulta' => $consulta], 'main_veterinario');
+}
 
-    public function eliminar($id) {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->consultaModel->eliminar($id);
-            header('Location: /vetsmart/veterinario/consultas');
-            exit;
-        }
-        header('Location: /vetsmart/veterinario/consultas');
-        exit;
-    }
+
+public function actualizar($id) {
+    $consultaModel = new Consulta($this->db);
+
+    $data = [
+        'motivo' => $_POST['motivo'] ?? '',
+        'diagnostico' => $_POST['diagnostico'] ?? '',
+        'tratamiento' => $_POST['tratamiento'] ?? ''
+    ];
+
+    $consultaModel->actualizar($id, $data);
+
+    header('Location: /vetsmart/veterinario/consultas');
+    exit;
+}
+
+public function eliminar($id) {
+    $consultaModel = new Consulta($this->db);
+    $consultaModel->eliminar($id);
+    
+    $_SESSION['flash_success'] = 'Consulta eliminada correctamente.';
+    header('Location: /vetsmart/veterinario/consultas');
+    exit;
+}
+
 }
