@@ -378,15 +378,15 @@ if (preg_match('#^/veterinario/consultas/actualizar/(\d+)$#', $path, $m) && $_SE
 
 // Ver consulta
 if (preg_match('#^/veterinario/consultas/(\d+)/ver$#', $path, $m)) {
-    $controller = new ConsultasController($pdo);
-    $controller->ver($m[1]);
+    $controller = new VeterinarioController($pdo);
+    $controller->verConsulta($m[1]);
     exit;
 }
 
 // Editar consulta
 if (preg_match('#^/veterinario/consultas/(\d+)/editar$#', $path, $m)) {
-    $controller = new ConsultasController($pdo);
-    $controller->editar($m[1]);
+    $controller = new VeterinarioController($pdo);
+    $controller->editarConsulta($m[1]);
     exit;
 }
 

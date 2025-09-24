@@ -16,10 +16,8 @@ $foto = $mascota['foto'] ?? null;
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Historial clínico — <?= htmlspecialchars($mascota['nombre'] ?? 'Mascota') ?></h2>
     <div>
-      <a href="/vetsmart/veterinario/mascotas/<?= $mascota['id'] ?>/vacunas" class="btn btn-warning">💉 Ver Vacunas</a>
+      <a href="/vetsmart/veterinario/mascotas/<?= $mascota['id'] ?>/vacunas" class="btn btn-warning">💉 Ver Vacunas</a> 
       <a href="/vetsmart/veterinario/pacientes" class="btn btn-secondary">🔙 Volver a Pacientes</a>
-      <a href="/vetsmart/veterinario/mascotas/<?= $mascota['id'] ?>/agendar" class="btn btn-primary">➕ Agendar Cita</a>
-      <button class="btn btn-outline-secondary" onclick="window.print()">🖨️ Imprimir</button>
     </div>
   </div>
 

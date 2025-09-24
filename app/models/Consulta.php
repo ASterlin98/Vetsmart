@@ -76,15 +76,19 @@ public function getById($id) {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-public function actualizar($id, $data) {
-    $sql = "UPDATE consultas SET motivo = ?, diagnostico = ?, tratamiento = ?, actualizado_en = NOW() WHERE id = ?";
+public function actualizar($id, array $data)
+{
+    $campos = [];
+    $params = [':id' => $id];
+
+    foreach ($data as $campo => $valor) {
+        $campos[] = "$campo = :$campo";
+        $params[":$campo"] = $valor;
+    }
+
+    $sql = "UPDATE consultas SET " . implode(', ', $campos) . " WHERE id = :id";
     $stmt = $this->db->prepare($sql);
-    return $stmt->execute([
-        $data['motivo'],
-        $data['diagnostico'],
-        $data['tratamiento'],
-        $id
-    ]);
+    return $stmt->execute($params);
 }
 
 public function eliminar($id) {
