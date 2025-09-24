@@ -1,16 +1,23 @@
 <?php
 // app/core/Controller.php
 
-
 class Controller {
-    protected $db; // ✅ conexión PDO disponible en controladores hijos
+    protected $db;
 
     public function __construct($pdo = null)
     {
         $this->db = $pdo;
     }
 
-    public function view(string $view, array $data = [], string $layout = 'main')
+    /**
+     * Render a view.
+     * If $layout is null or empty string, it will render the view only (no layout).
+     *
+     * @param string $view    path relative to app/views without .php
+     * @param array  $data    variables to extract in view
+     * @param string|null $layout layout name in app/views/layouts (or null/'' for no layout)
+     */
+    public function view(string $view, array $data = [], ?string $layout = 'main')
     {
         $viewFile = __DIR__ . "/../views/{$view}.php";
 
@@ -23,14 +30,15 @@ class Controller {
         }
         $content = ob_get_clean();
 
-        // Si el layout es null o vacío, mostrar solo el contenido
-        if (empty($layout)) {
+        // Si layout es null o vacío -> render parcial (solo la vista)
+        if ($layout === null || $layout === '') {
             echo $content;
             return;
         }
 
         $layoutFile = __DIR__ . "/../views/layouts/{$layout}.php";
         if (file_exists($layoutFile)) {
+            // el layout puede usar la variable $content
             extract($data);
             require $layoutFile;
         } else {
@@ -38,3 +46,4 @@ class Controller {
         }
     }
 }
+
