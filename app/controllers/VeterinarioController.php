@@ -57,8 +57,6 @@ public function verHistorial($idMascota) {
     ], 'main_veterinario');
 }
 
-
-    // Mostrar formulario de agendar (preselección por mascota)
 // app/controllers/VeterinarioController.php (dentro de la clase)
 public function agendar($idMascota)
 {
@@ -745,6 +743,117 @@ public function editarConsulta($id)
     $this->view('veterinario/consultas/editar', [
         'consulta' => $consulta
     ], $isAjax ? null : 'main_veterinario');
+}
+
+// dentro de la clase VeterinarioController (o MascotaController)
+public function actualizarFoto($idMascota)
+{
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        exit;
+    }
+
+    if (empty($_FILES['foto']) || $_FILES['foto']['error'] !== UPLOAD_ERR_OK) {
+        $_SESSION['flash_error'] = 'Error al subir archivo.';
+        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        exit;
+    }
+
+    $file = $_FILES['foto'];
+
+    // Validaciones básicas
+    $maxBytes = 2 * 1024 * 1024; // 2 MB
+    $allowed = ['image/jpeg', 'image/png', 'image/webp'];
+
+    if ($file['size'] > $maxBytes) {
+        $_SESSION['flash_error'] = 'Imagen demasiado grande (máx 2MB).';
+        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        exit;
+    }
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+
+    if (!in_array($mime, $allowed)) {
+        $_SESSION['flash_error'] = 'Tipo de archivo no permitido. Usa JPG, PNG o WEBP.';
+        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        exit;
+    }
+
+    // Generar nombre seguro
+    $ext = '';
+    switch ($mime) {
+        case 'image/jpeg': $ext = 'jpg'; break;
+        case 'image/png': $ext = 'png'; break;
+        case 'image/webp': $ext = 'webp'; break;
+    }
+
+    $uploadsDir = __DIR__ . '/../../public/uploads/mascotas';
+    if (!is_dir($uploadsDir)) mkdir($uploadsDir, 0755, true);
+
+    $filename = 'mascota_' . (int)$idMascota . '_' . time() . '.' . $ext;
+    $dest = $uploadsDir . '/' . $filename;
+
+    if (!move_uploaded_file($file['tmp_name'], $dest)) {
+        $_SESSION['flash_error'] = 'No se pudo mover el archivo subido.';
+        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        exit;
+    }
+
+    // Opcional: eliminar foto anterior (si existe)
+    $stmt = $this->db->prepare('SELECT foto FROM mascotas WHERE id = ?');
+    $stmt->execute([(int)$idMascota]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($row && !empty($row['foto'])) {
+        $old = $row['foto'];
+        // normalizar path a filesystem
+        $possible = $_SERVER['DOCUMENT_ROOT'] . '/' . ltrim($old, '/');
+        $possible2 = realpath(__DIR__ . '/../../public/' . ltrim($old, '/'));
+        if ($possible && is_file($possible) && strpos(realpath($possible), realpath(__DIR__ . '/../../public')) === 0) {
+            @unlink($possible);
+        } elseif ($possible2 && is_file($possible2)) {
+            @unlink($possible2);
+        }
+    }
+
+    // Guardar en DB la ruta pública relativa (sin domain): uploads/mascotas/xxx.jpg
+    $publicPath = 'uploads/mascotas/' . $filename;
+    $upd = $this->db->prepare('UPDATE mascotas SET foto = :foto WHERE id = :id');
+    $upd->execute([':foto' => $publicPath, ':id' => (int)$idMascota]);
+
+    $_SESSION['flash_success'] = 'Foto actualizada correctamente.';
+    header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+    exit;
+}
+
+public function eliminarFoto($idMascota)
+{
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        exit;
+    }
+
+    $stmt = $this->db->prepare('SELECT foto FROM mascotas WHERE id = ?');
+    $stmt->execute([(int)$idMascota]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($row && !empty($row['foto'])) {
+        $old = $row['foto'];
+        $possible = $_SERVER['DOCUMENT_ROOT'] . '/' . ltrim($old, '/');
+        $possible2 = realpath(__DIR__ . '/../../public/' . ltrim($old, '/'));
+        if ($possible && is_file($possible) && strpos(realpath($possible), realpath(__DIR__ . '/../../public')) === 0) {
+            @unlink($possible);
+        } elseif ($possible2 && is_file($possible2)) {
+            @unlink($possible2);
+        }
+    }
+
+    $upd = $this->db->prepare('UPDATE mascotas SET foto = NULL WHERE id = ?');
+    $upd->execute([(int)$idMascota]);
+
+    $_SESSION['flash_success'] = 'Foto eliminada.';
+    header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+    exit;
 }
 
 }

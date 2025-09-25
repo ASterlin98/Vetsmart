@@ -332,6 +332,20 @@ if (preg_match('#^/veterinario/mascotas/(\d+)/notas/(\d+)/guardar_edicion$#', $p
     exit;
 }
 
+// Subir / actualizar foto
+if (preg_match('#^/veterinario/mascotas/(\d+)/actualizar-foto$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new VeterinarioController($pdo);
+    $controller->actualizarFoto($m[1]);
+    exit;
+}
+
+// Eliminar foto
+if (preg_match('#^/veterinario/mascotas/(\d+)/eliminar-foto$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new VeterinarioController($pdo);
+    $controller->eliminarFoto($m[1]);
+    exit;
+}
+
 // Consultas veterinario
 if ($path === '/veterinario/consultas') {
     $controller = new ConsultasController($pdo);
@@ -403,7 +417,6 @@ if (preg_match('#^/veterinario/consultas/(\d+)/eliminar$#', $path, $m)) {
     $controller->eliminar($m[1]);
     exit;
 }
-
 
 // Servicios
 

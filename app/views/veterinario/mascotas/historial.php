@@ -10,6 +10,38 @@ $ownerFull = trim("$ownerNombre $ownerApellido");
 $ownerTelefono = $mascota['telefono_dueno'] ?? '';
 $ownerEmail = $mascota['email_dueno'] ?? '';
 $foto = $mascota['foto'] ?? null;
+
+$basePublic = '/vetsmart'; // <-- si tu app vive en localhost/vetsmart
+// Construir URL pública segura para la imagen
+$fotoDb = $foto ?? null;
+$fotoUrl = null;
+$fotoFsExists = false;
+if (!empty($fotoDb)) {
+    // si ya guardaste en BD la ruta con /vetsmart/... usa tal cual, si guardaste 'uploads/mascotas/...' lo arreglamos
+    if (strpos($fotoDb, $basePublic) === 0) {
+        $fotoUrl = $fotoDb;
+        $relPath = substr($fotoDb, strlen($basePublic)); // /uploads/...
+    } else {
+        $fotoUrl = $basePublic . '/' . ltrim($fotoDb, '/');
+        $relPath = '/' . ltrim($fotoDb, '/');
+    }
+
+    // Comprobar existencia física (ruta de servidor)
+    // asumimos que tu public folder está en DOCUMENT_ROOT/vetsmart (o ajusta si es distinto)
+    $docRoot = rtrim($_SERVER['DOCUMENT_ROOT'], '/\\');
+    $fsPath = realpath($docRoot . $relPath);
+    if ($fsPath && is_file($fsPath)) {
+        $fotoFsExists = true;
+    } else {
+        // fallback: intentar buscar en public/uploads/mascotas
+        $try = realpath(__DIR__ . '/../../../public' . $relPath);
+        if ($try && is_file($try)) {
+            $fotoFsExists = true;
+        } else {
+            $fotoFsExists = false;
+        }
+    }
+}
 ?>
 
 <div class="container py-4">
@@ -24,21 +56,42 @@ $foto = $mascota['foto'] ?? null;
   <div class="row mb-4">
     <div class="col-md-4">
       <!-- Tarjeta de la mascota -->
-      <div class="card">
-        <div class="card-body text-center">
-          <?php if ($foto): ?>
-            <img src="<?= htmlspecialchars($foto) ?>" alt="Foto mascota" class="img-fluid rounded mb-2" style="max-height:180px;">
-          <?php else: ?>
-            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height:180px;">
-              <span class="text-muted">Sin foto</span>
-            </div>
-          <?php endif; ?>
-          <h4 class="mt-3 mb-0"><?= htmlspecialchars($mascota['nombre'] ?? '-') ?></h4>
-          <p class="mb-1 text-muted"><?= htmlspecialchars($mascota['especie'] ?? '-') ?> — <?= htmlspecialchars($mascota['raza'] ?? '-') ?></p>
-          <p class="small text-muted mb-0">Edad: <?= htmlspecialchars($mascota['edad'] ?? '-') ?> años</p>
-          <p class="small text-muted">Peso: <?= htmlspecialchars($mascota['peso'] ?? '-') ?> kg</p>
-        </div>
+<div class="card">
+  <div class="card-body text-center">
+    <?php if (!empty($fotoUrl) && $fotoFsExists): ?>
+      <img src="<?= htmlspecialchars($fotoUrl) ?>" alt="Foto mascota" class="img-fluid rounded mb-2" style="max-height:180px;">
+    <?php else: ?>
+      <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height:180px;">
+        <span class="text-muted">Sin foto</span>
       </div>
+    <?php endif; ?>
+
+    <h4 class="mt-3 mb-0"><?= htmlspecialchars($mascota['nombre'] ?? '-') ?></h4>
+    <p class="mb-1 text-muted"><?= htmlspecialchars($mascota['especie'] ?? '-') ?> — <?= htmlspecialchars($mascota['raza'] ?? '-') ?></p>
+    <p class="small text-muted mb-0">Edad: <?= htmlspecialchars($mascota['edad'] ?? '-') ?> años</p>
+    <p class="small text-muted">Peso: <?= htmlspecialchars($mascota['peso'] ?? '-') ?> kg</p>
+
+    <hr>
+
+    <!-- Formulario para subir/cambiar foto -->
+    <form action="/vetsmart/veterinario/mascotas/<?= (int)$mascota['id'] ?>/actualizar-foto" method="POST" enctype="multipart/form-data">
+      <div class="mb-2">
+        <input type="file" name="foto" accept="image/*" class="form-control form-control-sm" required>
+      </div>
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-sm btn-primary">
+          📸 <?= $fotoFsExists ? 'Cambiar Foto' : 'Subir Foto' ?>
+        </button>
+      </div>
+    </form>
+
+    <?php if (!empty($fotoUrl) && $fotoFsExists): ?>
+      <form action="/vetsmart/veterinario/mascotas/<?= (int)$mascota['id'] ?>/eliminar-foto" method="POST" onsubmit="return confirm('¿Eliminar la foto actual?');" class="mt-2">
+        <button type="submit" class="btn btn-sm btn-danger w-100">🗑️ Eliminar Foto</button>
+      </form>
+    <?php endif; ?>
+  </div>
+</div>
 
       <!-- Tarjeta de dueño -->
       <div class="card mt-3">
