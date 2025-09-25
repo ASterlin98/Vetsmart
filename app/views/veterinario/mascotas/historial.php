@@ -1,5 +1,5 @@
 <?php
-// app/views/veterinario/mascotas/historial.php (versión visual mejorada)
+// app/views/veterinario/mascotas/historial.php (versión visual mejorada y robusta)
 $mascota = $mascota ?? [];
 $citas = $citas ?? [];
 $notasRapidas = $notasRapidas ?? [];
@@ -11,30 +11,84 @@ $ownerTelefono = $mascota['telefono_dueno'] ?? '';
 $ownerEmail = $mascota['email_dueno'] ?? '';
 $foto = $mascota['foto'] ?? null;
 
+// Base pública (ruta prefix de tu app). Si tu app usa otro prefijo ajústalo.
 $basePublic = '/vetsmart';
-$fotoDb = $foto ?? null;
+
+// APP_ROOT fallback (intenta resolver si no está definido)
+$appRoot = defined('APP_ROOT') ? rtrim(APP_ROOT, '/\\') : realpath(__DIR__ . '/../../../..');
+$publicDir = rtrim($appRoot, '/\\') . '/public';
+
+// Helper para unir URLs sin duplicar slashes
+function join_url($base, $path) {
+    $base = rtrim($base, '/');
+    $path = ltrim($path, '/');
+    if ($base === '') return '/' . $path;
+    return $base . '/' . $path;
+}
+
+// Resolver foto: puede ser
+// - nombre de archivo (ej: foto.jpg)
+// - ruta relativa a public (ej: uploads/mascotas/foto.jpg)
+// - ruta con slash inicial (ej: /uploads/mascotas/foto.jpg o /vetsmart/uploads/mascotas/foto.jpg)
+// - ya contener el basePublic (ej: /vetsmart/uploads/mascotas/foto.jpg)
+// - URL absoluta http(s)://...
+$fotoDb = trim((string)$foto);
 $fotoUrl = null;
+$fotoFsPath = null;
 $fotoFsExists = false;
-if (!empty($fotoDb)) {
-    if (strpos($fotoDb, $basePublic) === 0) {
+
+if ($fotoDb !== '') {
+    // URL absoluta
+    if (preg_match('#^https?://#i', $fotoDb)) {
         $fotoUrl = $fotoDb;
-        $relPath = substr($fotoDb, strlen($basePublic));
-    } else {
-        $fotoUrl = $basePublic . '/' . ltrim($fotoDb, '/');
-        $relPath = '/' . ltrim($fotoDb, '/');
+        $fotoFsPath = null;
+    }
+    // comienza con slash
+    elseif (strpos($fotoDb, '/') === 0) {
+        // si ya incluye el basePublic, usamos tal cual para la URL
+        if ($basePublic !== '' && strpos($fotoDb, $basePublic) === 0) {
+            $fotoUrl = $fotoDb;
+            $rel = ltrim(substr($fotoDb, strlen($basePublic)), '/\\'); // ruta relativa a public
+            $fotoFsPath = realpath($publicDir . '/' . $rel) ?: null;
+        } else {
+            // ej: /uploads/mascotas/xxx.jpg -> URL: /vetsmart/uploads/mascotas/xxx.jpg
+            $fotoUrl = join_url($basePublic, $fotoDb);
+            $rel = ltrim($fotoDb, '/\\');
+            $fotoFsPath = realpath($publicDir . '/' . $rel) ?: null;
+        }
+    }
+    // no comienza con slash
+    else {
+        // si parece "uploads/..." o "uploads/mascotas/..."
+        if (preg_match('#^uploads/#i', $fotoDb)) {
+            $fotoUrl = join_url($basePublic, $fotoDb);
+            $fotoFsPath = realpath($publicDir . '/' . $fotoDb) ?: null;
+        } else {
+            // asumimos que es solo el nombre del archivo guardado en uploads/mascotas
+            $rel = 'uploads/mascotas/' . ltrim($fotoDb, '/\\');
+            $fotoUrl = join_url($basePublic, $rel);
+            $fotoFsPath = realpath($publicDir . '/' . $rel) ?: null;
+        }
     }
 
-    $docRoot = rtrim($_SERVER['DOCUMENT_ROOT'], '/\\');
-    $fsPath = realpath($docRoot . $relPath);
-    if ($fsPath && is_file($fsPath)) {
+    // si $fotoDb era una ruta absoluta en servidor y está dentro de public -> convertir a URL
+    if (empty($fotoFsPath) && (strpos($fotoDb, DIRECTORY_SEPARATOR) === 0 || preg_match('#^[A-Z]:\\\\#i', $fotoDb))) {
+        $real = realpath($fotoDb);
+        if ($real && $publicDir && strpos($real, realpath($publicDir)) === 0) {
+            $relToPublic = ltrim(str_replace(realpath($publicDir), '', $real), '/\\');
+            $fotoUrl = join_url($basePublic, str_replace(DIRECTORY_SEPARATOR, '/', $relToPublic));
+            $fotoFsPath = $real;
+        } else {
+            // no podemos mapear a URL, pero dejamos $fotoFsPath para debug
+            $fotoFsPath = $real ?: null;
+        }
+    }
+
+    // existencia en disco (si logramos una ruta fs)
+    if ($fotoFsPath && is_file($fotoFsPath)) {
         $fotoFsExists = true;
     } else {
-        $try = realpath(__DIR__ . '/../../../public' . $relPath);
-        if ($try && is_file($try)) {
-            $fotoFsExists = true;
-        } else {
-            $fotoFsExists = false;
-        }
+        $fotoFsExists = false;
     }
 }
 ?>
@@ -76,13 +130,19 @@ if (!empty($fotoDb)) {
   <div class="row g-4">
     <div class="col-lg-4">
       <div class="card card-hero p-3 text-center">
-        <?php if (!empty($fotoUrl) && $fotoFsExists): ?>
-          <img src="<?= htmlspecialchars($fotoUrl) ?>" alt="Foto mascota" class="avatar mx-auto mb-3">
-        <?php else: ?>
-          <div class="avatar bg-light d-flex align-items-center justify-content-center mx-auto mb-3">
+
+        <!-- Avatar: mostramos img si hay fotoUrl; si falla el load JS ocultará la img y mostrará el fallback -->
+        <div id="avatarWrap" class="mx-auto mb-3">
+          <?php if (!empty($fotoUrl)): ?>
+            <img id="avatarImg" src="<?= htmlspecialchars($fotoUrl) ?>" alt="Foto mascota" class="avatar mx-auto mb-3">
+          <?php else: ?>
+            <img id="avatarImg" src="" alt="Foto mascota" class="avatar mx-auto mb-3 d-none">
+          <?php endif; ?>
+
+          <div id="avatarFallback" class="avatar bg-light d-flex align-items-center justify-content-center mx-auto mb-3 <?= !empty($fotoUrl) && $fotoFsExists ? 'd-none' : '' ?>">
             <span class="fs-1 text-secondary"><?= htmlspecialchars(substr($mascota['nombre'] ?? 'M', 0, 1)) ?></span>
           </div>
-        <?php endif; ?>
+        </div>
 
         <h4 class="mb-0"><?= htmlspecialchars($mascota['nombre'] ?? '-') ?></h4>
         <div class="small-muted mb-2"><?= htmlspecialchars($mascota['especie'] ?? '-') ?> • <?= htmlspecialchars($mascota['raza'] ?? '-') ?></div>
@@ -108,16 +168,16 @@ if (!empty($fotoDb)) {
         </div>
 
         <div class="mt-3">
-          <form action="/vetsmart/veterinario/mascotas/<?= (int)$mascota['id'] ?>/actualizar-foto" method="POST" enctype="multipart/form-data">
+          <form id="fotoForm" action="/vetsmart/veterinario/mascotas/<?= (int)$mascota['id'] ?>/actualizar-foto" method="POST" enctype="multipart/form-data">
             <div class="mb-2">
-              <input type="file" name="foto" accept="image/*" class="form-control form-control-sm">
+              <input id="fileInput" type="file" name="foto" accept="image/*" class="form-control form-control-sm">
             </div>
             <div class="d-grid">
               <button type="submit" class="btn btn-primary btn-sm">📸 <?= $fotoFsExists ? 'Cambiar foto' : 'Subir foto' ?></button>
             </div>
           </form>
 
-          <?php if (!empty($fotoUrl) && $fotoFsExists): ?>
+          <?php if (!empty($fotoUrl)): ?>
             <form action="/vetsmart/veterinario/mascotas/<?= (int)$mascota['id'] ?>/eliminar-foto" method="POST" onsubmit="return confirm('¿Eliminar la foto actual?');" class="mt-2">
               <button type="submit" class="btn btn-outline-danger btn-sm w-100">🗑️ Eliminar foto</button>
             </form>
@@ -227,6 +287,51 @@ if (!empty($fotoDb)) {
   </div>
 </div>
 
+<!-- DEBUG: deja información en el HTML para que puedas inspeccionar la URL y la ruta de archivo -->
+<!-- FOTO URL: <?= htmlspecialchars($fotoUrl ?? 'NULL') ?> -->
+<!-- FOTO FS PATH: <?= htmlspecialchars($fotoFsPath ?? 'NULL') ?> -->
+<!-- FOTO FS EXISTS: <?= $fotoFsExists ? '1' : '0' ?> -->
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Preview cliente y fallback si la imagen no carga
+  (function(){
+    const fileInput = document.getElementById('fileInput');
+    const avatarImg = document.getElementById('avatarImg');
+    const avatarFallback = document.getElementById('avatarFallback');
+
+    // Si la imagen remota falla (404), ocultamos y mostramos fallback
+    if (avatarImg) {
+      avatarImg.onerror = function() {
+        avatarImg.classList.add('d-none');
+        if (avatarFallback) avatarFallback.classList.remove('d-none');
+      };
+      avatarImg.onload = function() {
+        // Si carga correctamente, esconder el fallback
+        if (avatarFallback) avatarFallback.classList.add('d-none');
+        avatarImg.classList.remove('d-none');
+      };
+      // si src vacío, ocultar
+      if (!avatarImg.src) {
+        avatarImg.classList.add('d-none');
+      }
+    }
+
+    if (!fileInput) return;
+    fileInput.addEventListener('change', function(e){
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = function(ev){
+        if (avatarImg) {
+          avatarImg.src = ev.target.result;
+          avatarImg.classList.remove('d-none');
+        }
+        if (avatarFallback) avatarFallback.classList.add('d-none');
+      };
+      reader.readAsDataURL(f);
+    });
+  })();
+</script>
 </body>
 </html>

@@ -753,18 +753,31 @@ public function actualizarFoto($idMascota)
         exit;
     }
 
-    if (empty($_FILES['foto']) || $_FILES['foto']['error'] !== UPLOAD_ERR_OK) {
-        $_SESSION['flash_error'] = 'Error al subir archivo.';
+    if (empty($_FILES['foto'])) {
+        $_SESSION['flash_error'] = 'No se detectó archivo.';
         header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
         exit;
     }
 
     $file = $_FILES['foto'];
 
-    // Validaciones básicas
-    $maxBytes = 2 * 1024 * 1024; // 2 MB
-    $allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    // Errores PHP de upload
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $msg = 'Error al subir archivo. Código: ' . $file['error'];
+        // Mensaje legible
+        switch ($file['error']) {
+            case UPLOAD_ERR_INI_SIZE: $msg = 'El archivo excede upload_max_filesize en php.ini.'; break;
+            case UPLOAD_ERR_FORM_SIZE: $msg = 'El archivo excede el tamaño permitido por el formulario.'; break;
+            case UPLOAD_ERR_PARTIAL: $msg = 'Subida incompleta.'; break;
+            case UPLOAD_ERR_NO_FILE: $msg = 'No se seleccionó archivo.'; break;
+        }
+        $_SESSION['flash_error'] = $msg;
+        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        exit;
+    }
 
+    // Validaciones básicas
+    $maxBytes = 2 * 1024 * 1024; // 2MB - ajusta si quieres más
     if ($file['size'] > $maxBytes) {
         $_SESSION['flash_error'] = 'Imagen demasiado grande (máx 2MB).';
         header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
@@ -775,49 +788,57 @@ public function actualizarFoto($idMascota)
     $mime = finfo_file($finfo, $file['tmp_name']);
     finfo_close($finfo);
 
-    if (!in_array($mime, $allowed)) {
+    $allowed = [
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/webp' => 'webp'
+    ];
+    if (!array_key_exists($mime, $allowed)) {
         $_SESSION['flash_error'] = 'Tipo de archivo no permitido. Usa JPG, PNG o WEBP.';
         header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
         exit;
     }
 
-    // Generar nombre seguro
-    $ext = '';
-    switch ($mime) {
-        case 'image/jpeg': $ext = 'jpg'; break;
-        case 'image/png': $ext = 'png'; break;
-        case 'image/webp': $ext = 'webp'; break;
+    // Directorio donde guardamos (ruta absoluta)
+    $uploadsDir = rtrim(APP_ROOT, '/\\') . '/public/uploads/mascotas';
+    if (!is_dir($uploadsDir)) {
+        if (!mkdir($uploadsDir, 0755, true)) {
+            $_SESSION['flash_error'] = 'No se pudo crear la carpeta de uploads.';
+            header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+            exit;
+        }
     }
 
-    $uploadsDir = __DIR__ . '/../../public/uploads/mascotas';
-    if (!is_dir($uploadsDir)) mkdir($uploadsDir, 0755, true);
-
+    // Nombre seguro
+    $ext = $allowed[$mime];
     $filename = 'mascota_' . (int)$idMascota . '_' . time() . '.' . $ext;
     $dest = $uploadsDir . '/' . $filename;
 
     if (!move_uploaded_file($file['tmp_name'], $dest)) {
         $_SESSION['flash_error'] = 'No se pudo mover el archivo subido.';
+        // logging para debugging
+        error_log('move_uploaded_file falló. tmp: ' . $file['tmp_name'] . ' dest: ' . $dest);
         header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
         exit;
     }
 
-    // Opcional: eliminar foto anterior (si existe)
-    $stmt = $this->db->prepare('SELECT foto FROM mascotas WHERE id = ?');
-    $stmt->execute([(int)$idMascota]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($row && !empty($row['foto'])) {
-        $old = $row['foto'];
-        // normalizar path a filesystem
-        $possible = $_SERVER['DOCUMENT_ROOT'] . '/' . ltrim($old, '/');
-        $possible2 = realpath(__DIR__ . '/../../public/' . ltrim($old, '/'));
-        if ($possible && is_file($possible) && strpos(realpath($possible), realpath(__DIR__ . '/../../public')) === 0) {
-            @unlink($possible);
-        } elseif ($possible2 && is_file($possible2)) {
-            @unlink($possible2);
+    // Borra foto anterior si existe (opcional)
+    try {
+        $stmt = $this->db->prepare('SELECT foto FROM mascotas WHERE id = ?');
+        $stmt->execute([(int)$idMascota]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row && !empty($row['foto'])) {
+            $oldRel = ltrim($row['foto'], '/');
+            $oldFs = rtrim(APP_ROOT, '/\\') . '/public/' . $oldRel;
+            if (is_file($oldFs) && strpos(realpath($oldFs), realpath(rtrim(APP_ROOT, '/\\') . '/public')) === 0) {
+                @unlink($oldFs);
+            }
         }
+    } catch (Exception $e) {
+        error_log('Error borrando foto antigua: ' . $e->getMessage());
     }
 
-    // Guardar en DB la ruta pública relativa (sin domain): uploads/mascotas/xxx.jpg
+    // Guardar en DB la ruta relativa dentro de public: uploads/mascotas/archivo.jpg
     $publicPath = 'uploads/mascotas/' . $filename;
     $upd = $this->db->prepare('UPDATE mascotas SET foto = :foto WHERE id = :id');
     $upd->execute([':foto' => $publicPath, ':id' => (int)$idMascota]);
@@ -826,6 +847,7 @@ public function actualizarFoto($idMascota)
     header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
     exit;
 }
+
 
 public function eliminarFoto($idMascota)
 {
