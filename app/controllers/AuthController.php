@@ -109,7 +109,7 @@ class AuthController extends Controller
             $mail->Host = 'smtp.gmail.com'; 
             $mail->SMTPAuth = true;
             $mail->Username = 'andres.rojast98@gmail.com'; // tu correo
-            $mail->Password = 'lzkzjjmrmbjssflb'; // clave de aplicación (no la clave normal)
+            $mail->Password = 'pcmasukjpxvmsyvg'; // clave de aplicación (no la clave normal)
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             $mail->Port = 465;
             $mail->SMTPOptions = [
