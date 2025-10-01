@@ -25,10 +25,6 @@
             <td><?php echo htmlspecialchars($m['edad']); ?> años</td>
             <td><?php echo htmlspecialchars($m['peso']); ?> kg</td>
             <td>
-                <!-- Ver -->
-                <a href="/vetsmart/admin/clientes/<?php echo $cliente['id']; ?>/mascotas/<?php echo $m['id']; ?>" 
-                   class="btn btn-sm btn-info">👁️ Ver</a>
-
                 <!-- Editar -->
                 <a href="/vetsmart/admin/clientes/<?php echo $cliente['id']; ?>/mascotas/<?php echo $m['id']; ?>/editar" 
                    class="btn btn-sm btn-warning">✏️ Editar</a>
