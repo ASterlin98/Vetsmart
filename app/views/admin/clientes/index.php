@@ -274,7 +274,7 @@ function avatar_color_for($text) {
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
-        <dl class="row mb-3">
+        <dl class="row mb-1">
           <dt class="col-5 dl-key">Nombre</dt>
           <dd class="col-7" id="view_nombre">-</dd>
 
@@ -288,7 +288,7 @@ function avatar_color_for($text) {
           <dd class="col-7" id="view_email">-</dd>
 
           <dt class="col-5 dl-key">Teléfono</dt>
-          <dd class="col-" id="view_telefono">-</dd>
+          <dd class="col-7" id="view_telefono">-</dd>
 
           <dt class="col-5 dl-key">Dirección</dt>
           <dd class="col-7" id="view_direccion">-</dd>
@@ -377,6 +377,7 @@ function avatar_color_for($text) {
       const email = this.getAttribute('data-email') || '';
       const telefono = this.getAttribute('data-telefono') || '';
       const ciudad = this.getAttribute('data-ciudad') || '';
+      const direccion = this.getAttribute('data-direccion') || '';
 
       document.getElementById('edit_id').value = id;
       document.getElementById('edit_nombre').value = nombre;
@@ -385,6 +386,7 @@ function avatar_color_for($text) {
       document.getElementById('edit_email').value = email;
       document.getElementById('edit_telefono').value = telefono;
       document.getElementById('edit_ciudad').value = ciudad;
+      document.getElementById('edit_direccion').value = direccion;
 
       const formEditar = document.getElementById('formEditarCliente');
       formEditar.action = '/vetsmart/admin/clientes/' + encodeURIComponent(id) + '/actualizar';
@@ -428,7 +430,6 @@ function avatar_color_for($text) {
       // boton agregar mascota
       if (addPetBtn) addPetBtn.href = '/vetsmart/admin/clientes/' + encodeURIComponent(id) + '/mascotas/crear';
 
-      // cargar mascotas via API
       // cargar mascotas via API
 if (mascotasContainer) {
   mascotasContainer.innerHTML = '<div class="text-muted small">Cargando mascotas...</div>';
@@ -514,7 +515,6 @@ if (mascotasContainer) {
         '<div class="text-danger small">Error cargando mascotas.</div>';
     });
 }
-
 
       verModal.show();
     });
