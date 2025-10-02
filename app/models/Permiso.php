@@ -45,4 +45,21 @@ class Permiso {
 
         $this->db->commit();
     }
+
+        public function solicitar($idusu, $fecha, $motivo){
+        $sql = "INSERT INTO permisos (idusu, fecha, motivo, estado) VALUES (?, ?, ?, 'pendiente')";
+        return $this->db->prepare($sql)->execute([$idusu, $fecha, $motivo]);
+    }
+
+    public function listarPorEmpleado($idusu){
+        $sql = "SELECT * FROM permisos WHERE idusu=?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$idusu]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function actualizarEstado($idperm, $estado){
+        $sql = "UPDATE permisos SET estado=? WHERE idperm=?";
+        return $this->db->prepare($sql)->execute([$estado, $idperm]);
+    }
 }

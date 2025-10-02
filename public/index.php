@@ -32,6 +32,9 @@ require __DIR__ . '/../app/controllers/VeterinarioController.php';
 require __DIR__ . '/../app/controllers/ServiciosController.php';
 require_once APP_ROOT . '/controllers/ConsultasController.php';
 
+// <-- AÑADIDO: AdminController (necesario para gestión empleados) -->
+require_once APP_ROOT . '/controllers/AdminController.php';
+
 // Detectar base path (subcarpeta donde vive la app)
 $basePath = '/vetsmart';
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -59,7 +62,6 @@ $callPreferred = function ($obj, array $methods) {
     throw new RuntimeException('Método ninguno de los esperados existe en el controlador: ' . implode(',', $methods));
 };
 
-// Router mínimo (rutas públicas / auth)
 try {
     if ($path === '/' || ($path === '/login' && $_SERVER['REQUEST_METHOD'] === 'GET')) {
         // Mostrar login
@@ -610,6 +612,56 @@ try {
         echo json_encode($citaModel->getById($id));
         exit;
     }
+
+// ==================== EMPLEADOS ====================
+if ($path === '/admin/empleados' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    require_once APP_ROOT . '/controllers/AdminController.php';
+    $controller = new AdminController($pdo);
+    // tu método se llama empleadosIndex()
+    $controller->empleadosIndex();
+    exit;
+}
+
+if ($path === '/admin/empleados/crear' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    require_once APP_ROOT . '/controllers/AdminController.php';
+    $controller = new AdminController($pdo);
+    // tu método se llama crearEmpleado()
+    $controller->crearEmpleado();
+    exit;
+}
+
+if ($path === '/admin/empleados/guardar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_once APP_ROOT . '/controllers/AdminController.php';
+    $controller = new AdminController($pdo);
+    // tu método se llama guardarEmpleado()
+    $controller->guardarEmpleado();
+    exit;
+}
+
+if (preg_match('#^/admin/empleados/(\d+)/editar$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    require_once APP_ROOT . '/controllers/AdminController.php';
+    $controller = new AdminController($pdo);
+    // tu método se llama editarEmpleado($id)
+    $controller->editarEmpleado($m[1]);
+    exit;
+}
+
+if (preg_match('#^/admin/empleados/(\d+)/actualizar$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_once APP_ROOT . '/controllers/AdminController.php';
+    $controller = new AdminController($pdo);
+    // tu método se llama actualizarEmpleado($id)
+    $controller->actualizarEmpleado($m[1]);
+    exit;
+}
+
+if (preg_match('#^/admin/empleados/(\d+)/eliminar$#', $path, $m)) {
+    require_once APP_ROOT . '/controllers/AdminController.php';
+    $controller = new AdminController($pdo);
+    // tu método se llama eliminarEmpleado($id)
+    $controller->eliminarEmpleado($m[1]);
+    exit;
+}
+
 
     // Si nada coincide -> 404
     http_response_code(404);

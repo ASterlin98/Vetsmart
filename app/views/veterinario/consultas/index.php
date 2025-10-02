@@ -29,10 +29,6 @@ $consultas = $consultas ?? [];
       <h3 class="mb-0"><i class="bi bi-journal-medical me-2"></i> Consultas registradas</h3>
       <small class="text-muted">Historial de consultas clínicas</small>
     </div>
-    <div class="d-flex gap-2">
-      <a href="/vetsmart/veterinario/consultas/crear" class="btn btn-success"><i class="bi bi-plus-lg"></i> Nueva consulta</a>
-      <button id="exportCsv" class="btn btn-outline-secondary"><i class="bi bi-download"></i> Exportar CSV</button>
-    </div>
   </div>
 
   <div class="card card-list">
@@ -67,12 +63,6 @@ $consultas = $consultas ?? [];
                          class="btn btn-sm btn-outline-primary btn-action btn-ver-consulta" 
                          data-id="<?= htmlspecialchars($consulta['id']) ?>" data-bs-toggle="tooltip" title="Ver">
                         <i class="bi bi-eye"></i>
-                      </a>
-
-                      <a href="/vetsmart/veterinario/consultas/<?= htmlspecialchars($consulta['id']) ?>/editar" 
-                         class="btn btn-sm btn-outline-warning btn-action btn-editar-consulta" 
-                         data-id="<?= htmlspecialchars($consulta['id']) ?>" data-bs-toggle="tooltip" title="Editar">
-                        <i class="bi bi-pencil"></i>
                       </a>
 
                       <form action="/vetsmart/veterinario/consultas/<?= htmlspecialchars($consulta['id']) ?>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar esta consulta?');">

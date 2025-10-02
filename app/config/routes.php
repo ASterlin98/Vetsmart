@@ -5,23 +5,35 @@
 
 return [
     'GET' => [
-        ''                      => 'HomeController@index',    // /vetsmart/
-        'auth/login'            => 'AuthController@showLogin',// /vetsmart/auth/login
-        'auth/forgot'           => 'AuthController@forgot',   // /vetsmart/auth/forgot
-        'auth/reset'            => 'AuthController@reset',    // /vetsmart/auth/reset?token=...
-        'auth/logout'           => 'AuthController@logout',
+        ''                       => 'HomeController@index',     // /vetsmart/
+        'auth/login'             => 'AuthController@showLogin', // /vetsmart/auth/login
+        'auth/forgot'            => 'AuthController@forgot',    // /vetsmart/auth/forgot
+        'auth/reset'             => 'AuthController@reset',     // /vetsmart/auth/reset?token=...
+        'auth/logout'            => 'AuthController@logout',
 
-        // dashboards (ejemplo)
-        'veterinario/dashboard' => 'VeterinarioController@dashboard',
+        // dashboards
+        'veterinario/dashboard'  => 'VeterinarioController@dashboard',
         'recepcionista/dashboard'=> 'RecepcionController@dashboard',
         'cliente/dashboard'      => 'ClienteController@dashboard',
-        // ... añade las que necesites
+        'admin/dashboard'        => 'AdminController@dashboard',
+
+        // ================= EMPLEADOS (Admin) =================
+// dentro del array 'GET' =>
+'admin/empleados'                     => 'AdminController@empleadosIndex',
+'admin/empleados/crear'               => 'AdminController@crearEmpleado',
+'admin/empleados/{id}/editar'         => 'AdminController@editarEmpleado',
+'admin/empleados/{id}/eliminar'       => 'AdminController@eliminarEmpleado',
+
     ],
 
     'POST' => [
-        'auth/login'            => 'AuthController@login',            // formulario de login
-        'auth/sendResetLink'    => 'AuthController@sendResetLink',    // formulario forgot (envío email)
-        'auth/updatePassword'   => 'AuthController@updatePassword',   // formulario reset (guardar nueva pass)
-        // ... otras POST
+        'auth/login'             => 'AuthController@login',
+        'auth/sendResetLink'     => 'AuthController@sendResetLink',
+        'auth/updatePassword'    => 'AuthController@updatePassword',
+
+        // ================= EMPLEADOS (Admin) =================
+'admin/empleados/guardar'             => 'AdminController@guardarEmpleado',
+'admin/empleados/{id}/actualizar'     => 'AdminController@actualizarEmpleado',
+
     ],
 ];
