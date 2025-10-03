@@ -22,11 +22,12 @@ class EmpDet {
         $this->pdo->beginTransaction();
         try {
             // Crear usuario
-            $stmt = $this->pdo->prepare("INSERT INTO usuarios (nombre, apellido, email, telefono, role_id, password) 
-                                         VALUES (:nombre, :apellido, :email, :telefono, :role_id, :password)");
+            $stmt = $this->pdo->prepare("INSERT INTO usuarios (nombre, apellido, docusu, email, telefono, role_id, password) 
+                                         VALUES (:nombre, :apellido, :docsu, :email, :telefono, :role_id, :password)");
             $stmt->execute([
                 ':nombre' => $data['nombre'],
                 ':apellido' => $data['apellido'],
+                ':docsu' => $data['docusu'] ?? null,
                 ':email' => $data['email'],
                 ':telefono' => $data['telefono'],
                 ':role_id' => $data['role_id'],

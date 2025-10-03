@@ -26,7 +26,7 @@ class AdminController extends Controller
     {
         // Seleccionamos telefono y nombre del rol; excluimos super_admin (1) y cliente (6)
         $sql = "
-            SELECT u.id, u.nombre, u.apellido, u.email, u.telefono, u.role_id, r.nombre AS rol,
+            SELECT u.id, u.nombre, u.apellido, u.docusu, u.email, u.telefono, u.role_id, r.nombre AS rol,
                    e.especialidad, e.salario, e.fecha_ingreso, e.activo
             FROM usuarios u
             JOIN roles r ON u.role_id = r.id
@@ -63,6 +63,7 @@ class AdminController extends Controller
             // Validaciones mínimas (puedes expandir)
             $nombre = trim($_POST['nombre'] ?? '');
             $apellido = trim($_POST['apellido'] ?? '');
+            $docusu = trim($_POST['docusu'] ?? '');
             $email = trim($_POST['email'] ?? '');
             $password = $_POST['password'] ?? '';
             $role_id = (int)($_POST['role_id'] ?? 0);
@@ -73,12 +74,13 @@ class AdminController extends Controller
 
             // Insert en usuarios (incluye telefono si existe)
             $stmt = $this->pdo->prepare("
-                INSERT INTO usuarios (nombre, apellido, email, password, role_id, telefono)
-                VALUES (:nombre, :apellido, :email, :password, :role_id, :telefono)
+                INSERT INTO usuarios (nombre, apellido, docusu, email, password, role_id, telefono)
+                VALUES (:nombre, :apellido, :docusu, :email, :password, :role_id, :telefono)
             ");
             $stmt->execute([
                 ':nombre'   => $nombre,
                 ':apellido' => $apellido,
+                ':docusu'   => $_POST['docusu'] ?? null,
                 ':email'    => $email,
                 ':password' => password_hash($password, PASSWORD_DEFAULT),
                 ':role_id'  => $role_id,
@@ -113,7 +115,7 @@ class AdminController extends Controller
     public function editarEmpleado($id)
     {
         $stmt = $this->pdo->prepare("
-            SELECT u.id, u.nombre, u.apellido, u.email, u.telefono, u.role_id,
+            SELECT u.id, u.nombre, u.apellido, u.docusu, u.email, u.telefono, u.role_id,
                    e.especialidad, e.salario, e.fecha_ingreso, e.activo
             FROM usuarios u
             LEFT JOIN emp_det e ON u.id = e.usuario_id
@@ -147,6 +149,7 @@ class AdminController extends Controller
                 UPDATE usuarios
                 SET nombre = :nombre,
                     apellido = :apellido,
+                    docusu = :docsu,
                     email = :email,
                     role_id = :role_id,
                     telefono = :telefono
@@ -155,6 +158,7 @@ class AdminController extends Controller
             $stmt->execute([
                 ':nombre'   => $_POST['nombre'] ?? '',
                 ':apellido' => $_POST['apellido'] ?? '',
+                ':docusu'   => $_POST['docusu'] ?? null,
                 ':email'    => $_POST['email'] ?? '',
                 ':role_id'  => (int)($_POST['role_id'] ?? 0),
                 ':telefono' => trim($_POST['telefono'] ?? ''),

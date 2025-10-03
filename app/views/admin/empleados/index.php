@@ -92,6 +92,11 @@ $roles = $roles ?? [];
           </div>
 
           <div class="col-md-6">
+            <label class="form-label">DNI</label>
+            <input type="text" class="form-control" name="docusu" id="empleado_dni">
+          </div>
+
+          <div class="col-md-6">
             <label class="form-label">Email</label>
             <input type="email" class="form-control" name="email" id="empleado_email" required>
           </div>
@@ -153,6 +158,7 @@ function openCrearEmpleado() {
     document.getElementById("empleado_id").value = "";
     document.getElementById("empleado_nombre").value = "";
     document.getElementById("empleado_apellido").value = "";
+    document.getElementById("empleado_dni").value = "";
     document.getElementById("empleado_email").value = "";
     document.getElementById("empleado_telefono").value = "";
     document.getElementById("empleado_role_id").value = "";
@@ -171,6 +177,7 @@ function openEditarEmpleado(e) {
     document.getElementById("empleado_nombre").value = e.nombre;
     document.getElementById("empleado_apellido").value = e.apellido;
     document.getElementById("empleado_email").value = e.email;
+    document.getElementById("empleado_dni").value = e.docusu || "";
     document.getElementById("empleado_telefono").value = e.telefono || "";
     document.getElementById("empleado_role_id").value = e.role_id;
     document.getElementById("empleado_especialidad").value = e.especialidad || "";

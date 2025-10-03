@@ -669,45 +669,81 @@ if ($path === '/admin/horarios' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 
+/* ------- SEMANALES ------- */
+// Guardar
 if ($path === '/admin/horarios/guardar-semana' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new AdminController($pdo);
     $controller->guardarHorarioSemana();
     exit;
 }
-
-if ($path === '/admin/horarios/eliminarSemana' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+// Editar
+if (preg_match('#^/admin/horarios/(\d+)/editar-semana$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $controller = new AdminController($pdo);
-    $controller->eliminarSemana();
+    $controller->editarSemana($m[1]);
+    exit;
+}
+// Actualizar
+if (preg_match('#^/admin/horarios/(\d+)/actualizarSemana$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new AdminController($pdo);
+    $controller->actualizarSemana((int)$m[1]);
+    exit;
+}
+// Eliminar
+if (preg_match('#^/admin/horarios/(\d+)/eliminarSemana$#', $path, $m)) {
+    $controller = new AdminController($pdo);
+    $controller->eliminarSemana((int)$m[1]);
     exit;
 }
 
-if ($path === '/admin/horarios/actualizarSemana' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new AdminController($pdo);
-    $controller->actualizarSemana();
-    exit;
-}
-
+/* ------- TURNOS EXTRA ------- */
+// Guardar
 if ($path === '/admin/horarios/guardar-turno' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new AdminController($pdo);
     $controller->guardarTurno();
     exit;
 }
-
-if ($path === '/admin/horarios/eliminar-turno' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+// Editar
+if (preg_match('#^/admin/horarios/(\d+)/editar-turno$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $controller = new AdminController($pdo);
-    $controller->eliminarTurno();
+    $controller->editarTurno($m[1]);
+    exit;
+}
+// Actualizar
+if (preg_match('#^/admin/horarios/(\d+)/actualizarTurno$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new AdminController($pdo);
+    $controller->actualizarTurno((int)$m[1]);
+    exit;
+}
+// Eliminar
+if (preg_match('#^/admin/horarios/(\d+)/eliminarTurno$#', $path, $m)) {
+    $controller = new AdminController($pdo);
+    $controller->eliminarTurno((int)$m[1]);
     exit;
 }
 
+/* ------- SOLICITUDES ------- */
+// Guardar
 if ($path === '/admin/horarios/guardar-solicitud' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new AdminController($pdo);
     $controller->guardarSolicitud();
     exit;
 }
-
-if ($path === '/admin/horarios/eliminar-solicitud' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+// Editar
+if (preg_match('#^/admin/horarios/(\d+)/editar-solicitud$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $controller = new AdminController($pdo);
-    $controller->eliminarSolicitud();
+    $controller->editarSolicitud($m[1]);
+    exit;
+}
+// Actualizar
+if (preg_match('#^/admin/horarios/(\d+)/actualizarSolicitud$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new AdminController($pdo);
+    $controller->actualizarSolicitud((int)$m[1]);
+    exit;
+}
+// Eliminar
+if (preg_match('#^/admin/horarios/(\d+)/eliminarSolicitud$#', $path, $m)) {
+    $controller = new AdminController($pdo);
+    $controller->eliminarSolicitud((int)$m[1]);
     exit;
 }
 

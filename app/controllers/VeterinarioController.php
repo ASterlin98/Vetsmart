@@ -345,61 +345,69 @@ public function misCitas()
 }
 
 
-    public function listarCitasJson()
-    {
-        $start = $_GET['start'] ?? null;
-        $end = $_GET['end'] ?? null;
+public function listarCitasJson()
+{
+    $start = $_GET['start'] ?? null;
+    $end = $_GET['end'] ?? null;
+    $vetId = $_SESSION['user']['id'] ?? null; // 🔑 ID del veterinario logueado
 
-        try {
-            $sql = "
-                SELECT ci.*,
-                    m.nombre AS nombre_mascota,
-                    u_cliente.nombre AS cliente_nombre, u_cliente.apellido AS cliente_apellido,
-                    s.nombre AS nombre_servicio
-                FROM citas ci
-                LEFT JOIN mascotas m ON ci.mascota_id = m.id
-                LEFT JOIN usuarios u_cliente ON ci.cliente_id = u_cliente.id
-                LEFT JOIN servicios s ON ci.servicio_id = s.id
-            ";
-
-            if ($start && $end) {
-                $sql .= " WHERE DATE(ci.fecha) BETWEEN :start AND :end ";
-                $sql .= " ORDER BY ci.fecha ASC ";
-                $stmt = $this->db->prepare($sql);
-                $stmt->execute([':start' => $start, ':end' => $end]);
-            } else {
-                $sql .= " ORDER BY ci.fecha ASC ";
-                $stmt = $this->db->query($sql);
-            }
-
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            // Map a formato FullCalendar (start = fecha)
-            $out = array_map(function($r){
-                return [
-                    'id' => $r['id'],
-                    'title' => ($r['nombre_mascota'] ?? 'Cita') . (isset($r['nombre_servicio']) ? " — {$r['nombre_servicio']}" : ''),
-                    'start' => $r['fecha'],
-                    'allDay' => false,
-                    // incluir propiedades extendidas para el modal
-                    'nombre_mascota' => $r['nombre_mascota'] ?? null,
-                    'mascota_id' => $r['mascota_id'] ?? null,
-                    'cliente_id' => $r['cliente_id'] ?? null,
-                    'servicio_id' => $r['servicio_id'] ?? null,
-                    'notas' => $r['notas'] ?? null,
-                    'nombre_servicio' => $r['nombre_servicio'] ?? null,
-                    'estado' => $r['estado'] ?? 'programada',
-                ];
-            }, $rows);
-
-            header('Content-Type: application/json');
-            echo json_encode($out);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['error' => 'Error DB', 'msg' => $e->getMessage()]);
-        }
+    if (!$vetId) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Usuario no autenticado']);
         exit;
     }
+
+    try {
+        $sql = "
+            SELECT ci.*,
+                   m.nombre AS nombre_mascota,
+                   u_cliente.nombre AS cliente_nombre, u_cliente.apellido AS cliente_apellido,
+                   s.nombre AS nombre_servicio
+            FROM citas ci
+            LEFT JOIN mascotas m ON ci.mascota_id = m.id
+            LEFT JOIN usuarios u_cliente ON ci.cliente_id = u_cliente.id
+            LEFT JOIN servicios s ON ci.servicio_id = s.id
+            WHERE ci.empleado_id = :vetId
+        ";
+
+        $params = [':vetId' => $vetId];
+
+        if ($start && $end) {
+            $sql .= " AND DATE(ci.fecha) BETWEEN :start AND :end ";
+            $params[':start'] = $start;
+            $params[':end'] = $end;
+        }
+
+        $sql .= " ORDER BY ci.fecha ASC ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $out = array_map(function($r){
+            return [
+                'id' => $r['id'],
+                'title' => ($r['nombre_mascota'] ?? 'Cita') 
+                         . (isset($r['nombre_servicio']) ? " — {$r['nombre_servicio']}" : ''),
+                'start' => $r['fecha'],
+                'allDay' => false,
+                'mascota_id' => $r['mascota_id'] ?? null,
+                'cliente_id' => $r['cliente_id'] ?? null,
+                'servicio_id' => $r['servicio_id'] ?? null,
+                'notas' => $r['notas'] ?? null,
+                'estado' => $r['estado'] ?? 'programada',
+            ];
+        }, $rows);
+
+        header('Content-Type: application/json');
+        echo json_encode($out);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Error DB', 'msg' => $e->getMessage()]);
+    }
+    exit;
+}
+
 
     public function dashboard()
     {
