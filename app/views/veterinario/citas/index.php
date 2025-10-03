@@ -310,54 +310,75 @@ $csrf = $_SESSION['csrf_token'];
   function resetForm(){ citaForm.reset(); citaIdInput.value = ''; mascotaSelect.innerHTML = '<option value="">-- Seleccione mascota --</option>'; deleteBtn.classList.add('d-none'); }
 
   citaForm.addEventListener('submit', function(e){
-    e.preventDefault();
-    const id = citaIdInput.value || null;
-    const cliente_id = clienteSelect.value || '';
-    const mascota_id = mascotaSelect.value || '';
-    const servicio_id = servicioSelect.value || '';
-    const fecha_date = fechaInput.value;
-    const hora_time = horaInput.value;
-    const notas = notasInput.value;
-    const estado = estadoSelect.value;
+  e.preventDefault();
+  const id = citaIdInput.value || null;
+  const cliente_id = clienteSelect.value || '';
+  const mascota_id = mascotaSelect.value || '';
+  const servicio_id = servicioSelect.value || '';
+  const fecha_date = fechaInput.value;
+  const hora_time = horaInput.value;
+  const notas = notasInput.value;
+  const estado = estadoSelect.value;
 
-    if (!mascota_id || !servicio_id || !fecha_date || !hora_time){ toastBootstrap('Por favor completa mascota, servicio, fecha y hora.', 'error'); return; }
+  if (!mascota_id || !servicio_id || !fecha_date || !hora_time){
+    toastBootstrap('Por favor completa mascota, servicio, fecha y hora.', 'error');
+    return;
+  }
 
-    const params = new URLSearchParams();
-    if (cliente_id) params.append('cliente_id', cliente_id);
-    params.append('mascota_id', mascota_id);
-    params.append('servicio_id', servicio_id);
-    params.append('fecha_date', fecha_date);
-    params.append('hora_time', hora_time);
-    params.append('notas', notas);
-    params.append('estado', estado);
-
-    const isCreate = !id;
-    const url = isCreate ? `${basePath}/veterinario/citas/guardar` : `${basePath}/veterinario/citas/actualizar`;
-    if (!isCreate) params.append('id', id);
-
-    fetchWithCsrf(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 'X-Requested-With': 'XMLHttpRequest' },
-      body: params.toString()
-    })
+  // ⚠️ Verificar disponibilidad del veterinario antes de enviar
+  fetch(`${basePath}/api/disponibilidad-veterinario?veterinario_id=${<?=$_SESSION['user']['id'] ?? '0'?>}&fecha=${fecha_date}&hora=${hora_time}`)
     .then(r => r.json())
     .then(data => {
-      if (data.success){ toastBootstrap('Cita guardada correctamente.', 'success'); calendar.refetchEvents(); bootstrapModal.hide(); resetForm(); }
-      else toastBootstrap(data.message || 'Error al guardar.', 'error');
-    })
-    .catch(err => { console.error('Error guardando cita', err); toastBootstrap('Error interno al guardar cita.', 'error'); });
-  });
+      if (!data.disponible){
+        toastBootstrap('❌ No puedes agendar en esta fecha/hora, ya está bloqueada o no está en horario.', 'error');
+        return; // Detener aquí
+      }
 
-  deleteBtn.addEventListener('click', async function(){
-    if (!confirm('¿Deseas eliminar esta cita?')) return;
-    const id = citaIdInput.value; if (!id) return toastBootstrap('ID de cita no encontrado.', 'error');
-    try {
-      const resp = await fetchWithCsrf(`${basePath}/veterinario/citas/${id}/eliminar`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 'X-Requested-With': 'XMLHttpRequest' }, body: new URLSearchParams({ id }).toString() });
-      const text = await resp.text();
-      try { const data = JSON.parse(text); if (data.success){ toastBootstrap('Cita eliminada', 'success'); calendar.refetchEvents(); bootstrapModal.hide(); resetForm(); } else toastBootstrap(data.message || 'No se pudo eliminar', 'error'); }
-      catch (err) { console.error('Respuesta del servidor no es JSON al eliminar:', err); toastBootstrap('Error interno al eliminar (ver consola).', 'error', 6000); }
-    } catch (err) { console.error('Error fetch eliminar:', err); toastBootstrap('Error interno al eliminar', 'error'); }
-  });
+      // si está disponible, continuamos guardando
+      const params = new URLSearchParams();
+      if (cliente_id) params.append('cliente_id', cliente_id);
+      params.append('mascota_id', mascota_id);
+      params.append('servicio_id', servicio_id);
+      params.append('fecha_date', fecha_date);
+      params.append('hora_time', hora_time);
+      params.append('notas', notas);
+      params.append('estado', estado);
+
+      const isCreate = !id;
+      const url = isCreate ? `${basePath}/veterinario/citas/guardar` : `${basePath}/veterinario/citas/actualizar`;
+      if (!isCreate) params.append('id', id);
+
+      fetchWithCsrf(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: params.toString()
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success){
+          toastBootstrap('✅ Cita guardada correctamente.', 'success');
+          calendar.refetchEvents();
+          bootstrapModal.hide();
+          resetForm();
+        } else {
+          toastBootstrap(data.message || 'Error al guardar.', 'error');
+        }
+      })
+      .catch(err => {
+        console.error('Error guardando cita', err);
+        toastBootstrap('Error interno al guardar cita.', 'error');
+      });
+
+    })
+    .catch(err => {
+      console.error('Error verificando disponibilidad', err);
+      toastBootstrap('Error verificando disponibilidad del veterinario.', 'error');
+    });
+});
+
 
 })();
 </script>

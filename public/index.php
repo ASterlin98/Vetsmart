@@ -662,6 +662,123 @@ if (preg_match('#^/admin/empleados/(\d+)/eliminar$#', $path, $m)) {
     exit;
 }
 
+// ==================== HORARIOS ====================
+if ($path === '/admin/horarios' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new AdminController($pdo);
+    $controller->horariosIndex();
+    exit;
+}
+
+if ($path === '/admin/horarios/guardar-semana' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new AdminController($pdo);
+    $controller->guardarHorarioSemana();
+    exit;
+}
+
+if ($path === '/admin/horarios/eliminarSemana' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new AdminController($pdo);
+    $controller->eliminarSemana();
+    exit;
+}
+
+if ($path === '/admin/horarios/actualizarSemana' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new AdminController($pdo);
+    $controller->actualizarSemana();
+    exit;
+}
+
+if ($path === '/admin/horarios/guardar-turno' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new AdminController($pdo);
+    $controller->guardarTurno();
+    exit;
+}
+
+if ($path === '/admin/horarios/eliminar-turno' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new AdminController($pdo);
+    $controller->eliminarTurno();
+    exit;
+}
+
+if ($path === '/admin/horarios/guardar-solicitud' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new AdminController($pdo);
+    $controller->guardarSolicitud();
+    exit;
+}
+
+if ($path === '/admin/horarios/eliminar-solicitud' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new AdminController($pdo);
+    $controller->eliminarSolicitud();
+    exit;
+}
+
+// ==================== API: DISPONIBILIDAD ====================
+if ($path === '/api/disponibilidad' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    header('Content-Type: application/json; charset=utf-8');
+    try {
+        $empleadoId = $_GET['empleado_id'] ?? null;
+        $fecha      = $_GET['fecha'] ?? null;
+        $hora       = $_GET['hora'] ?? null;
+
+        if (!$empleadoId || !$fecha || !$hora) {
+            echo json_encode(['disponible' => false, 'msg' => 'Parámetros incompletos']);
+            exit;
+        }
+
+        // Lógica básica: verificar si el empleado tiene horario ese día y hora
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) 
+            FROM horarios_semana
+            WHERE empleado_id = :eid
+              AND dia = DAYOFWEEK(:fecha) - 1
+              AND :hora BETWEEN hora_inicio AND hora_fin
+        ");
+        $stmt->execute([
+            ':eid'   => $empleadoId,
+            ':fecha' => $fecha,
+            ':hora'  => $hora
+        ]);
+        $enHorario = $stmt->fetchColumn() > 0;
+
+        // Verificar si tiene turno que bloquee
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*)
+            FROM turnos_empleado
+            WHERE empleado_id = :eid
+              AND :fechaHora BETWEEN inicio AND fin
+        ");
+        $stmt->execute([
+            ':eid'       => $empleadoId,
+            ':fechaHora' => $fecha . ' ' . $hora
+        ]);
+        $enTurno = $stmt->fetchColumn() > 0;
+
+        // Verificar si hay solicitud (permiso, vacaciones, incapacidad)
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*)
+            FROM solicitudes
+            WHERE usuario_id = :eid
+              AND :fecha BETWEEN fecha_inicio AND fecha_fin
+        ");
+        $stmt->execute([
+            ':eid'   => $empleadoId,
+            ':fecha' => $fecha
+        ]);
+        $enSolicitud = $stmt->fetchColumn() > 0;
+
+        $disponible = $enHorario && !$enTurno && !$enSolicitud;
+
+        echo json_encode([
+            'disponible' => $disponible,
+            'enHorario'  => $enHorario,
+            'enTurno'    => $enTurno,
+            'enSolicitud'=> $enSolicitud
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+    exit;
+}
 
     // Si nada coincide -> 404
     http_response_code(404);

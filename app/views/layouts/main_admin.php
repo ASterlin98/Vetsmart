@@ -19,7 +19,6 @@
       position: fixed;
       top: 0;
       left: 0;
-
     }
     .header h1 {
       font-size: 1.25rem;
@@ -72,9 +71,6 @@
       color: #666;
     }
   </style>
-  <!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
 </head>
 <body>
 
@@ -90,9 +86,10 @@
               <?= htmlspecialchars($_SESSION['user']['nombre'] ?? '') ?>
               <?= htmlspecialchars($_SESSION['user']['apellido'] ?? '') ?>.
             </h2>
-            <a href="/vetsmart/admin/dashboard" class="active">🏠 Dashboard</a>
+            <a href="/vetsmart/admin/dashboard">🏠 Dashboard</a>
             <a href="/vetsmart/admin/empleados">👥 Gestión de Empleados</a>
             <a href="/vetsmart/admin/agenda">📅 Agenda General</a>
+            <a href="/vetsmart/admin/horarios" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/horarios') !== false ? 'active' : '' ?>">⏰ Gestión de Horarios</a>
             <a href="/vetsmart/admin/clientes">🐶 Gestión de Clientes</a>
             <a href="/vetsmart/admin/servicios" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/servicios') !== false ? 'active' : '' ?>">🛠️ Gestión de Servicios</a>
             <a href="/vetsmart/admin/finanzas">💰 Finanzas</a>
@@ -109,8 +106,25 @@
             </footer>
         </div>
     </div>
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Script para verificar disponibilidad del empleado -->
+<script>
+function verificarDisponibilidad(empleadoId, fecha, hora) {
+    fetch(`/vetsmart/api/disponibilidad?empleado_id=${empleadoId}&fecha=${fecha}&hora=${hora}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.disponible) {
+                alert("✅ El empleado está disponible.");
+            } else {
+                alert("⚠️ El empleado NO está disponible en ese horario.");
+            }
+        })
+        .catch(err => console.error("Error consultando disponibilidad", err));
+}
+</script>
 
 </body>
 </html>
