@@ -84,140 +84,255 @@ public function agendar($idMascota)
     ], 'main_veterinario');
 }
 
+// Asegúrate en el constructor: $this->db = $pdo;
 
-    // Guardar cita (desde modal o formulario)
- public function guardarCita()
+public function guardarCita()
 {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-        if ($base === '' || $base === '.') $base = '';
-        header('Location: ' . $base . '/veterinario/mis-citas');
-        exit;
-    }
-
-    // detectar AJAX
-    $isAjax = (
-        (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
-        || (strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false)
-    );
-
-    // prevenir que warnings rompan JSON
-    ini_set('display_errors', 0);
-
-    $cliente_id   = $_POST['cliente_id'] ?? null;
-    $mascota_id   = $_POST['mascota_id'] ?? null;
-    $servicio_id  = $_POST['servicio_id'] ?? null;
-    $empleado_id  = $_POST['empleado_id'] ?? ($_SESSION['user']['id'] ?? null);
-    $notas        = $_POST['notas'] ?? null;
-
-    // Fecha: aceptar datetime-local o fecha+hora separados
-    if (!empty($_POST['fecha'])) {
-        $fechaHora = date('Y-m-d H:i:s', strtotime($_POST['fecha']));
-    } elseif (!empty($_POST['fecha_date']) && !empty($_POST['hora_time'])) {
-        $fechaHora = date('Y-m-d H:i:s', strtotime($_POST['fecha_date'] . ' ' . $_POST['hora_time']));
-    } else {
-        $fechaHora = null;
-    }
-
-    // Si no viene cliente_id, intentar obtenerlo desde la mascota
-    if (empty($cliente_id) && !empty($mascota_id)) {
-        try {
-            $masc = null;
-            if (method_exists($this->mascotaModel, 'getById')) {
-                $masc = $this->mascotaModel->getById($mascota_id);
-            } else {
-                $stmt = $this->db->prepare("SELECT * FROM mascotas WHERE id = ?");
-                $stmt->execute([(int)$mascota_id]);
-                $masc = $stmt->fetch(PDO::FETCH_ASSOC);
-            }
-            if ($masc) {
-                // posibles nombres de columna en tu BD
-                $cliente_id = $masc['cliente_id'] ?? $masc['dueño_id'] ?? $masc['dueno_id'] ?? $masc['owner_id'] ?? $cliente_id;
-            }
-        } catch (Exception $e) {
-            error_log("guardarCita: no se pudo obtener mascota: " . $e->getMessage());
-        }
-    }
-
-    // validación mínima
-    if (empty($mascota_id) || empty($servicio_id) || empty($fechaHora)) {
-        $msg = 'Faltan campos obligatorios (mascota, servicio o fecha).';
-        if ($isAjax) {
-            header('Content-Type: application/json; charset=utf-8', true, 400);
-            echo json_encode(['success' => false, 'message' => $msg]);
-            exit;
-        } else {
-            $_SESSION['flash_error'] = $msg;
-            $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-            if ($base === '' || $base === '.') $base = '';
-            header('Location: ' . $base . '/veterinario/mascotas/' . (int)$mascota_id . '/agendar');
-            exit;
-        }
-    }
-
-    // preparar data para el modelo
-    $data = [
-        'cliente_id'   => $cliente_id,
-        'mascota_id'   => $mascota_id,
-        'empleado_id'  => $empleado_id,
-        'servicio_id'  => $servicio_id,
-        'fecha'        => $fechaHora,
-        'duracion_min' => $_POST['duracion_min'] ?? null, // opcional
-        'estado'       => $_POST['estado'] ?? 'programada',
-        'notas'        => $notas,
-        'creado_por'   => $_SESSION['user']['id'] ?? null
-    ];
+    // Esta versión acepta solicitudes AJAX (XMLHttpRequest / fetch) y devuelve JSON,
+    // y también sigue funcionando para formularios normales con redirect.
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
     try {
-        if (method_exists($this->citaModel, 'crear')) {
-            $newId = $this->citaModel->crear($data);
-            if (empty($newId) && isset($this->db) && $this->db instanceof PDO) {
-                $newId = $this->db->lastInsertId();
-            }
+        $db = $this->db ?? $this->pdo ?? ($GLOBALS['pdo'] ?? null);
+        if (!$db instanceof PDO) throw new Exception("No hay conexión PDO disponible.");
+
+        // aceptar distintos nombres de campo (frontend envía fecha_date + hora_time)
+        $cliente_id  = $_POST['cliente_id'] ?? null;
+        $mascota_id  = $_POST['mascota_id'] ?? null;
+        $empleado_id = $_POST['empleado_id'] ?? ($_SESSION['user']['id'] ?? null);
+        $servicio_id = $_POST['servicio_id'] ?? null;
+        $notas       = $_POST['notas'] ?? null;
+        $estado      = $_POST['estado'] ?? 'programada';
+
+        // Fecha/hora: aceptar fecha+hora por separado o campo combinado
+        if (!empty($_POST['fecha_date']) && !empty($_POST['hora_time'])) {
+            $fecha_date = $_POST['fecha_date'];
+            $hora_time  = $_POST['hora_time'];
+        } elseif (!empty($_POST['fecha']) && !empty($_POST['hora'])) {
+            $fecha_date = $_POST['fecha'];
+            $hora_time  = $_POST['hora'];
         } else {
-            $stmt = $this->db->prepare("INSERT INTO citas (cliente_id, mascota_id, empleado_id, servicio_id, fecha, duracion_min, estado, notas, creado_por, creado_en) VALUES (:cliente_id, :mascota_id, :empleado_id, :servicio_id, :fecha, :duracion_min, :estado, :notas, :creado_por, NOW())");
-            $stmt->execute([
-                ':cliente_id'   => $data['cliente_id'],
-                ':mascota_id'   => $data['mascota_id'],
-                ':empleado_id'  => $data['empleado_id'],
-                ':servicio_id'  => $data['servicio_id'],
-                ':fecha'        => $data['fecha'],
-                ':duracion_min' => $data['duracion_min'],
-                ':estado'       => $data['estado'],
-                ':notas'        => $data['notas'],
-                ':creado_por'   => $data['creado_por']
-            ]);
-            $newId = $this->db->lastInsertId();
+            throw new Exception("Faltan fecha/hora.");
         }
 
-        // RESPUESTA
+        // validaciones básicas
+        if (!$mascota_id || !$servicio_id || !$fecha_date || !$hora_time) {
+            throw new Exception("Faltan datos obligatorios (mascota, servicio, fecha o hora).");
+        }
+
+        // obtener duración del servicio (si existe) - fallback 30 min
+        $duracion = 30;
+        $stmt = $db->prepare("SELECT duracion_min FROM servicios WHERE id = :id LIMIT 1");
+        $stmt->execute([':id' => $servicio_id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row && !empty($row['duracion_min'])) $duracion = (int)$row['duracion_min'];
+
+        // Normalizar hora (acepta "09:00", "9:00", "09:00:00")
+        $hora_time = trim($hora_time);
+        if (strlen($hora_time) === 5) $hora_time .= ':00';
+
+        $dtInicio = DateTime::createFromFormat('Y-m-d H:i:s', $fecha_date . ' ' . $hora_time);
+        if (!$dtInicio) {
+            // fallback a strtotime
+            $ts = strtotime($fecha_date . ' ' . $hora_time);
+            if ($ts === false) throw new Exception("Fecha/hora inválida.");
+            $dtInicio = new DateTime();
+            $dtInicio->setTimestamp($ts);
+        }
+        $dtFin = (clone $dtInicio)->modify("+{$duracion} minutes");
+
+        // --- 1) validar horario semanal del empleado ---
+        $stmt = $db->prepare("SELECT * FROM horarios_semana WHERE empleado_id = :id");
+        $stmt->execute([':id' => $empleado_id]);
+        $horarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // normalizador simple: quitar acentos y minúsculas
+        $normalize = function($s) {
+            $s = mb_strtolower(trim($s));
+            $s = iconv('UTF-8', 'ASCII//TRANSLIT', $s);
+            $s = preg_replace('/[^a-z0-9\s]/', '', $s);
+            return trim($s);
+        };
+
+        $mapDias = [1=>'Lunes',2=>'Martes',3=>'Miércoles',4=>'Jueves',5=>'Viernes',6=>'Sábado',7=>'Domingo'];
+        $diaNum = (int)$dtInicio->format('N');
+        $diaNombre = $mapDias[$diaNum] ?? $dtInicio->format('l');
+        $diaNorm = $normalize($diaNombre);
+
+        $inicioTime = $dtInicio->format('H:i:s');
+        $finTime = $dtFin->format('H:i:s');
+
+        $enHorario = false;
+        foreach ($horarios as $h) {
+            if (!isset($h['dia']) || !isset($h['hora_inicio']) || !isset($h['hora_fin'])) continue;
+            if ($normalize($h['dia']) !== $diaNorm) continue;
+            if ($h['hora_inicio'] <= $inicioTime && $h['hora_fin'] >= $finTime) { $enHorario = true; break; }
+        }
+        if (!$enHorario) throw new Exception("El veterinario no trabaja en ese día/hora.");
+
+        // --- 2) validar solapamiento con otras citas ---
+        $inicioStr = $dtInicio->format('Y-m-d H:i:s');
+        $finStr = $dtFin->format('Y-m-d H:i:s');
+
+        $stmt = $db->prepare("
+            SELECT COUNT(*) AS cnt FROM citas
+            WHERE empleado_id = :id
+              AND NOT (
+                (fecha + INTERVAL duracion_min MINUTE) <= :inicioNew
+                OR fecha >= :finNew
+              )
+        ");
+        $stmt->execute([':id' => $empleado_id, ':inicioNew' => $inicioStr, ':finNew' => $finStr]);
+        $cnt = (int)$stmt->fetchColumn();
+        if ($cnt > 0) throw new Exception("El veterinario ya tiene otra cita en ese rango horario.");
+
+        // --- 3) insertar ---
+        $stmt = $db->prepare("INSERT INTO citas (cliente_id, mascota_id, empleado_id, servicio_id, fecha, duracion_min, estado, notas, creado_por, creado_en)
+                              VALUES (:cliente_id, :mascota_id, :empleado_id, :servicio_id, :fecha, :duracion_min, :estado, :notas, :creado_por, NOW())");
+        $stmt->execute([
+            ':cliente_id'   => $cliente_id,
+            ':mascota_id'   => $mascota_id,
+            ':empleado_id'  => $empleado_id,
+            ':servicio_id'  => $servicio_id,
+            ':fecha'        => $inicioStr,
+            ':duracion_min' => $duracion,
+            ':estado'       => $estado,
+            ':notas'        => $notas,
+            ':creado_por'   => $_SESSION['user']['id'] ?? null
+        ]);
+
         if ($isAjax) {
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode(['success' => true, 'id' => $newId]);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'message' => 'Cita creada']);
             exit;
         } else {
-            $_SESSION['flash_success'] = 'Cita creada correctamente.';
-            $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-            if ($base === '' || $base === '.') $base = '';
-            header('Location: ' . $base . '/veterinario/mis-citas');
+            $_SESSION['flash_success'] = "Cita creada correctamente.";
+            header("Location: /vetsmart/veterinario/mis-citas");
             exit;
         }
 
-    } catch (PDOException $e) {
-        error_log("ERROR guardarCita: " . $e->getMessage() . " | SQLSTATE: " . $e->getCode());
+    } catch (Exception $e) {
+        error_log("guardarCita error: " . $e->getMessage());
         if ($isAjax) {
-            header('Content-Type: application/json; charset=utf-8', true, 500);
-            echo json_encode(['success' => false, 'message' => 'Error interno al guardar la cita.']);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             exit;
         } else {
-            $_SESSION['flash_error'] = 'Error guardando la cita (revise logs).';
-            $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-            if ($base === '' || $base === '.') $base = '';
-            header('Location: ' . $base . '/veterinario/mascotas/' . (int)$mascota_id . '/agendar');
+            $_SESSION['flash_error'] = "Error: " . $e->getMessage();
+            header("Location: /vetsmart/veterinario/mis-citas");
             exit;
         }
     }
 }
+
+/**
+ * Endpoint JSON para comprobar disponibilidad sin crear la cita.
+ * RUTA SUGERIDA: /api/disponibilidad-veterinario
+ * Parámetros GET: veterinario_id, fecha (YYYY-mm-dd), hora (HH:MM), servicio_id (opcional)
+ */
+// Sustituir o actualizar la función existencia en app/controllers/VeterinarioController.php
+public function disponibilidadVeterinario()
+{
+    header('Content-Type: application/json; charset=utf-8');
+    try {
+        $db = $this->db ?? $this->pdo ?? ($GLOBALS['pdo'] ?? null);
+        if (!$db instanceof PDO) throw new Exception("No hay conexión PDO.");
+
+        // permitir vet id desde GET o desde sesión (si el usuario es el veterinario)
+        $vetId = $_GET['veterinario_id'] ?? ($_SESSION['user']['id'] ?? null);
+
+        // aceptar distintos nombres de campo (compatibilidad con tu modal)
+        $fecha  = $_GET['fecha'] ?? $_GET['fecha_date'] ?? null;
+        $hora   = $_GET['hora'] ?? $_GET['hora_time'] ?? null;
+        $servicio_id = $_GET['servicio_id'] ?? null;
+
+        if (!$vetId || !$fecha || !$hora) {
+            throw new Exception("Faltan parámetros requeridos: veterinario_id, fecha o hora.");
+        }
+
+        // duración por servicio (fallback 30)
+        $duracion = 30;
+        if ($servicio_id) {
+            $stmt = $db->prepare("SELECT duracion_min FROM servicios WHERE id = :id LIMIT 1");
+            $stmt->execute([':id' => $servicio_id]);
+            $r = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($r && !empty($r['duracion_min'])) $duracion = (int)$r['duracion_min'];
+        }
+
+        if (strlen($hora) === 5) $hora .= ':00';
+        $dtInicio = DateTime::createFromFormat('Y-m-d H:i:s', $fecha . ' ' . $hora);
+        if (!$dtInicio) {
+            $ts = strtotime($fecha . ' ' . $hora);
+            if ($ts === false) throw new Exception("Fecha/hora inválida.");
+            $dtInicio = new DateTime(); $dtInicio->setTimestamp($ts);
+        }
+        $dtFin = (clone $dtInicio)->modify("+{$duracion} minutes");
+
+        // obtener horarios_semana del vet
+        $stmt = $db->prepare("SELECT * FROM horarios_semana WHERE empleado_id = :id");
+        $stmt->execute([':id' => $vetId]);
+        $horarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($horarios)) {
+            // Si como política deben configurarse en admin, devolver no disponible
+            echo json_encode(['disponible' => false, 'reason' => 'Sin horarios configurados para este veterinario.']);
+            exit;
+        }
+
+        // normalizador simple (mismo enfoque que usabas)
+        $normalize = function($s) {
+            $s = mb_strtolower(trim($s));
+            $s = iconv('UTF-8', 'ASCII//TRANSLIT', $s);
+            $s = preg_replace('/[^a-z0-9\s]/', '', $s);
+            return trim($s);
+        };
+
+        $mapDias = [1=>'Lunes',2=>'Martes',3=>'Miércoles',4=>'Jueves',5=>'Viernes',6=>'Sábado',7=>'Domingo'];
+        $diaNum = (int)$dtInicio->format('N');
+        $diaNombre = $mapDias[$diaNum] ?? $dtInicio->format('l');
+        $diaNorm = $normalize($diaNombre);
+
+        $inicioTime = $dtInicio->format('H:i:s');
+        $finTime = $dtFin->format('H:i:s');
+
+        $enHorario = false;
+        foreach ($horarios as $h) {
+            if (!isset($h['dia']) || !isset($h['hora_inicio']) || !isset($h['hora_fin'])) continue;
+            if ($normalize($h['dia']) !== $diaNorm) continue;
+            if ($h['hora_inicio'] <= $inicioTime && $h['hora_fin'] >= $finTime) { $enHorario = true; break; }
+        }
+        if (!$enHorario) {
+            echo json_encode(['disponible' => false, 'reason' => 'Fuera de horario laboral']);
+            exit;
+        }
+
+        // comprobar solapamiento con otras citas
+        $stmt = $db->prepare("
+            SELECT COUNT(*) AS cnt FROM citas
+            WHERE empleado_id = :id
+              AND NOT (
+                    (fecha + INTERVAL duracion_min MINUTE) <= :inicioNew
+                    OR fecha >= :finNew
+              )
+        ");
+        $stmt->execute([':id' => $vetId, ':inicioNew' => $dtInicio->format('Y-m-d H:i:s'), ':finNew' => $dtFin->format('Y-m-d H:i:s')]);
+        $cnt = (int)$stmt->fetchColumn();
+        if ($cnt > 0) {
+            echo json_encode(['disponible' => false, 'reason' => 'Solapamiento con otra cita']);
+            exit;
+        }
+
+        echo json_encode(['disponible' => true]);
+        exit;
+
+    } catch (Exception $e) {
+        error_log("disponibilidadVeterinario error: " . $e->getMessage());
+        echo json_encode(['disponible' => false, 'reason' => $e->getMessage()]);
+        exit;
+    }
+}
+
 
 
     // Calendario / Mis citas del veterinario

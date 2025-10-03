@@ -1,5 +1,5 @@
 <?php
-// app/views/veterinario/citas/index.php (versión mejorada visualmente)
+// app/views/veterinario/citas/index.php (versión completa y lista para usar)
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (empty($_SESSION['csrf_token'])) $_SESSION['csrf_token'] = bin2hex(random_bytes(16));
 $csrf = $_SESSION['csrf_token'];
@@ -9,7 +9,7 @@ $csrf = $_SESSION['csrf_token'];
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="csrf-token" content="<?= htmlspecialchars($csrf) ?>">
+  <meta name="csrf-token" content="<?= htmlspecialchars($csrf, ENT_QUOTES | ENT_SUBSTITUTE) ?>">
   <title>Calendario de Citas</title>
 
   <!-- Bootstrap CSS & Icons -->
@@ -34,33 +34,33 @@ $csrf = $_SESSION['csrf_token'];
 
     .card-calendar { border: none; box-shadow: var(--shadow); border-radius: 12px; }
 
-    /* legend (status) */
     .legend { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
     .legend .item { display:flex; gap:.5rem; align-items:center; font-size:.9rem; color:var(--muted); }
     .legend .dot { width:12px; height:12px; border-radius:50%; display:inline-block; }
 
-    /* improve FullCalendar event appearance */
     .fc .fc-event { border: 0; border-radius: 8px; padding:6px 8px; font-size:0.9rem; }
 
-    /* responsive adjustments */
     @media (max-width: 867px) {
       #calendar { height: 500px !important; }
     }
+
+    /* small tweak for modal z-index if fullcalendar popovers overlap */
+    .modal { z-index: 1200; }
   </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container py-4">
   <?php if (!empty($_SESSION['flash_success'])): ?>
     <div class="alert alert-success" role="alert">
-      <?= htmlspecialchars($_SESSION['flash_success']) ?>
+      <?= htmlspecialchars($_SESSION['flash_success'], ENT_QUOTES | ENT_SUBSTITUTE) ?>
     </div>
     <?php unset($_SESSION['flash_success']); ?>
   <?php endif; ?>
 
   <?php if (!empty($_SESSION['flash_error'])): ?>
     <div class="alert alert-danger" role="alert">
-      <?= htmlspecialchars($_SESSION['flash_error']) ?>
+      <?= htmlspecialchars($_SESSION['flash_error'], ENT_QUOTES | ENT_SUBSTITUTE) ?>
     </div>
     <?php unset($_SESSION['flash_error']); ?>
   <?php endif; ?>
@@ -84,13 +84,14 @@ $csrf = $_SESSION['csrf_token'];
     </div>
   </div>
 
-        <div class="col-lg-12">
-          <div id="calendar"></div>
-        </div>
-
+  <div class="row">
+    <div class="col-12">
+      <div id="calendar" class="card-calendar"></div>
+    </div>
+  </div>
 </div>
 
-<!-- Modal: usamos Bootstrap para accesibilidad y UX consistente -->
+<!-- Modal -->
 <div class="modal fade" id="citaModalBootstrap" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
@@ -144,7 +145,7 @@ $csrf = $_SESSION['csrf_token'];
             </div>
             <div class="col-md-6">
               <label for="horaInput" class="form-label">Hora</label>
-              <input id="horaInput" name="hora_time" type="time" class="form-control">
+              <input id="horaInput" name="hora_time" type="time" class="form-control" step="60">
             </div>
             <div class="col-12">
               <label for="notasInput" class="form-label">Notas</label>
@@ -163,16 +164,18 @@ $csrf = $_SESSION['csrf_token'];
   </div>
 </div>
 
-<!-- Bootstrap JS, FullCalendar -->
+<!-- Bootstrap JS & FullCalendar -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
 <script>
 (function(){
+  // Ajusta basePath si tu aplicación no está en /vetsmart
   const basePath = '/vetsmart';
   const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  const VET_ID = <?= json_encode($_SESSION['user']['id'] ?? null) ?>;
 
-  // pequeñas utilidades
+  // utilidades
   function toastBootstrap(message, type = 'info', delay = 3500){
     const containerId = 'bs-toast-container';
     let container = document.getElementById(containerId);
@@ -207,7 +210,7 @@ $csrf = $_SESSION['csrf_token'];
     return fetch(url, opts);
   }
 
-  // DOM references
+  // referencias DOM
   const calendarEl = document.getElementById('calendar');
   const clienteSelect = document.getElementById('clienteSelect');
   const mascotaSelect = document.getElementById('mascotaSelect');
@@ -224,13 +227,12 @@ $csrf = $_SESSION['csrf_token'];
   const bootstrapModal = new bootstrap.Modal(citaModalEl, { backdrop: 'static' });
 
   document.getElementById('btnCrearCita').addEventListener('click', ()=> openCreateModal(new Date().toISOString().slice(0,10)));
-
   clienteSelect.addEventListener('change', function(){ loadMascotasByCliente(this.value); });
 
   function loadMascotasByCliente(clienteId, selectedMascota = null){
     mascotaSelect.innerHTML = '<option value="">Cargando...</option>';
     if (!clienteId) { mascotaSelect.innerHTML = '<option value="">-- Seleccione mascota --</option>'; return; }
-    fetch(`${basePath}/api/clientes/${clienteId}/mascotas`, { credentials: 'same-origin' })
+    fetch(`${basePath}/api/clientes/${encodeURIComponent(clienteId)}/mascotas`, { credentials: 'same-origin' })
       .then(r => r.json())
       .then(data => {
         mascotaSelect.innerHTML = '<option value="">-- Seleccione mascota --</option>';
@@ -249,7 +251,7 @@ $csrf = $_SESSION['csrf_token'];
     headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
     selectable: true, height: 680,
     events: function(fetchInfo, successCallback, failureCallback) {
-      const url = `${basePath}/veterinario/citas/listar?start=${fetchInfo.startStr}&end=${fetchInfo.endStr}`;
+      const url = `${basePath}/veterinario/citas/listar?start=${encodeURIComponent(fetchInfo.startStr)}&end=${encodeURIComponent(fetchInfo.endStr)}`;
       fetch(url, { credentials: 'same-origin' })
         .then(r => r.json())
         .then(data => successCallback(data))
@@ -259,11 +261,9 @@ $csrf = $_SESSION['csrf_token'];
     eventClick: function(info){ openEditModal(info.event); },
     eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
     eventDidMount: function(info){
-      // colorear evento segun estado
       const estado = info.event.extendedProps.estado || 'programada';
       if (estado === 'confirmada') info.el.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--success') || '#198754';
       if (estado === 'cancelada') info.el.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--danger') || '#dc3545';
-      // mostrar tooltip nativo (title) con info rapida
       const servicio = info.event.extendedProps.servicio_nombre || '';
       const mascota = info.event.extendedProps.nombre_mascota || '';
       info.el.setAttribute('title', `${info.event.title}\n${mascota} • ${servicio}`);
@@ -310,28 +310,38 @@ $csrf = $_SESSION['csrf_token'];
   function resetForm(){ citaForm.reset(); citaIdInput.value = ''; mascotaSelect.innerHTML = '<option value="">-- Seleccione mascota --</option>'; deleteBtn.classList.add('d-none'); }
 
   citaForm.addEventListener('submit', function(e){
-  e.preventDefault();
-  const id = citaIdInput.value || null;
-  const cliente_id = clienteSelect.value || '';
-  const mascota_id = mascotaSelect.value || '';
-  const servicio_id = servicioSelect.value || '';
-  const fecha_date = fechaInput.value;
-  const hora_time = horaInput.value;
-  const notas = notasInput.value;
-  const estado = estadoSelect.value;
+    e.preventDefault();
+    const id = citaIdInput.value || null;
+    const cliente_id = clienteSelect.value || '';
+    const mascota_id = mascotaSelect.value || '';
+    const servicio_id = servicioSelect.value || '';
+    const fecha_date = fechaInput.value;
+    const hora_time = horaInput.value;
+    const notas = notasInput.value;
+    const estado = estadoSelect.value;
 
-  if (!mascota_id || !servicio_id || !fecha_date || !hora_time){
-    toastBootstrap('Por favor completa mascota, servicio, fecha y hora.', 'error');
-    return;
-  }
+    if (!mascota_id || !servicio_id || !fecha_date || !hora_time){
+      toastBootstrap('Por favor completa mascota, servicio, fecha y hora.', 'error');
+      return;
+    }
 
-  // ⚠️ Verificar disponibilidad del veterinario antes de enviar
-  fetch(`${basePath}/api/disponibilidad-veterinario?veterinario_id=${<?=$_SESSION['user']['id'] ?? '0'?>}&fecha=${fecha_date}&hora=${hora_time}`)
+    // Verificar disponibilidad con CSRF y enviando servicio_id y vet_id
+    const paramsCheck = new URLSearchParams();
+    if (VET_ID) paramsCheck.append('veterinario_id', VET_ID);
+    paramsCheck.append('fecha', fecha_date);
+    paramsCheck.append('hora', hora_time);
+    if (servicio_id) paramsCheck.append('servicio_id', servicio_id);
+
+    fetchWithCsrf(`${basePath}/api/disponibilidad-veterinario?${paramsCheck.toString()}`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    })
     .then(r => r.json())
     .then(data => {
-      if (!data.disponible){
-        toastBootstrap('❌ No puedes agendar en esta fecha/hora, ya está bloqueada o no está en horario.', 'error');
-        return; // Detener aquí
+      if (!data || data.disponible !== true) {
+        const why = (data && data.reason) ? (': ' + data.reason) : '.';
+        toastBootstrap('❌ No puedes agendar en esta fecha/hora' + why, 'error');
+        return;
       }
 
       // si está disponible, continuamos guardando
@@ -357,28 +367,26 @@ $csrf = $_SESSION['csrf_token'];
         body: params.toString()
       })
       .then(r => r.json())
-      .then(data => {
-        if (data.success){
+      .then(resp => {
+        if (resp && resp.success){
           toastBootstrap('✅ Cita guardada correctamente.', 'success');
           calendar.refetchEvents();
           bootstrapModal.hide();
           resetForm();
         } else {
-          toastBootstrap(data.message || 'Error al guardar.', 'error');
+          toastBootstrap((resp && resp.message) ? resp.message : 'Error al guardar.', 'error');
         }
       })
       .catch(err => {
         console.error('Error guardando cita', err);
         toastBootstrap('Error interno al guardar cita.', 'error');
       });
-
     })
     .catch(err => {
       console.error('Error verificando disponibilidad', err);
       toastBootstrap('Error verificando disponibilidad del veterinario.', 'error');
     });
-});
-
+  });
 
 })();
 </script>

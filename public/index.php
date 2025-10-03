@@ -747,6 +747,12 @@ if (preg_match('#^/admin/horarios/(\d+)/eliminarSolicitud$#', $path, $m)) {
     exit;
 }
 
+if ($path === '/api/disponibilidad-veterinario' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new VeterinarioController($pdo);
+    $controller->disponibilidadVeterinario();
+    exit;
+}
+
 // ==================== API: DISPONIBILIDAD ====================
 if ($path === '/api/disponibilidad' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     header('Content-Type: application/json; charset=utf-8');
