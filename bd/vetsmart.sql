@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 24-09-2025 a las 04:40:26
+-- Tiempo de generación: 03-10-2025 a las 04:38:21
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -11,15 +11,8 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Base de datos: `vetsmart`
---
+CREATE DATABASE vetsmart;
+USE vetsmart;
 
 DELIMITER $$
 --
@@ -119,7 +112,10 @@ CREATE TABLE `citas` (
 INSERT INTO `citas` (`id`, `cliente_id`, `mascota_id`, `empleado_id`, `servicio_id`, `fecha`, `duracion_min`, `estado`, `notas`, `creado_por`, `creado_en`) VALUES
 (8, 18, 1, 3, 1, '2025-09-01 07:12:00', 30, '', 'asdas', 3, '2025-09-20 00:07:40'),
 (9, 18, 1, 3, 1, '2025-09-19 10:10:00', 30, '', 'daws', 3, '2025-09-20 00:10:26'),
-(35, 18, 1, 3, 1, '2025-09-23 09:00:00', 30, 'confirmada', '', 3, '2025-09-24 01:19:43');
+(35, 18, 1, 3, 1, '2025-09-23 09:00:00', 30, 'confirmada', '', 3, '2025-09-24 01:19:43'),
+(37, 18, 1, 3, 1, '2025-09-26 00:00:00', 30, 'confirmada', '', 3, '2025-09-25 00:18:21'),
+(40, 18, 1, NULL, 1, '2025-09-29 09:00:00', 30, 'confirmada', '', 3, '2025-09-25 00:54:58'),
+(41, 20, 2, NULL, 2, '2025-09-11 09:00:00', 30, 'confirmada', '', 3, '2025-10-02 00:51:34');
 
 -- --------------------------------------------------------
 
@@ -142,7 +138,9 @@ CREATE TABLE `cliente_detalles` (
 
 INSERT INTO `cliente_detalles` (`id`, `idusu`, `telefono`, `direccion`, `ciudad`, `fecha_registro`) VALUES
 (3, 9, '3144928505', NULL, NULL, '2025-09-09 02:50:02'),
-(8, 18, '654321596', 'cr 2 # 2 - 2', 'Bogota', '2025-09-12 23:25:35');
+(8, 18, '654321596', 'casa pin pin', 'Bogota', '2025-09-12 23:25:35'),
+(9, 20, '3144928505', 'Cr 7 #6-67', 'Cundinamarca', '2025-10-01 00:19:46'),
+(10, 21, '3124285749', 'Pollo rico 32', 'Bogota', '2025-10-01 00:28:22');
 
 -- --------------------------------------------------------
 
@@ -182,7 +180,7 @@ CREATE TABLE `consultas` (
 --
 
 INSERT INTO `consultas` (`id`, `mascota_id`, `empleado_id`, `motivo`, `examen`, `diagnostico`, `tratamiento`, `recomendaciones`, `notas`, `creado_por`, `creado_en`) VALUES
-(1, 1, 3, 'diarrea', 'asdasd', 'asfdas', 'asdasd', 'asdasd', 'asd', 3, '2025-09-16 22:59:17');
+(1, 1, 3, 'diarrea', 'asdasd', 'diarrea cronica', 'diarrea SS', 'asdasd', 'asd', 3, '2025-09-16 22:59:17');
 
 -- --------------------------------------------------------
 
@@ -198,6 +196,17 @@ CREATE TABLE `emp_det` (
   `fecha_ingreso` date DEFAULT NULL,
   `activo` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `emp_det`
+--
+
+INSERT INTO `emp_det` (`id`, `usuario_id`, `especialidad`, `salario`, `fecha_ingreso`, `activo`) VALUES
+(4, 9, 'Veterinario', 3500000.00, '2023-09-01', 1),
+(5, 5, 'Peluquero', 1200000.00, '2024-01-15', 1),
+(6, 4, 'Recepcionista', 1200000.00, '2024-03-01', 1),
+(7, 3, 'Administrador', 2500000.00, '2022-06-01', 1),
+(10, 25, 'Operaciones', 3000000.00, '2025-10-02', 1);
 
 -- --------------------------------------------------------
 
@@ -243,10 +252,18 @@ CREATE TABLE `historial_medico` (
 CREATE TABLE `horarios_semana` (
   `id` int(11) NOT NULL,
   `empleado_id` int(11) NOT NULL,
-  `dia` enum('lun','mar','mie','jue','vie','sab','dom') NOT NULL,
+  `dia` varchar(15) NOT NULL,
   `hora_inicio` time NOT NULL,
   `hora_fin` time NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `horarios_semana`
+--
+
+INSERT INTO `horarios_semana` (`id`, `empleado_id`, `dia`, `hora_inicio`, `hora_fin`) VALUES
+(1, 3, 'Jueves', '08:26:00', '15:26:00'),
+(3, 3, 'Sábado', '06:30:00', '14:30:00');
 
 -- --------------------------------------------------------
 
@@ -417,6 +434,7 @@ CREATE TABLE `mascotas` (
   `raza` varchar(100) DEFAULT NULL,
   `edad` int(11) DEFAULT NULL,
   `peso` decimal(6,2) DEFAULT NULL,
+  `notas` text DEFAULT NULL,
   `foto` varchar(255) DEFAULT NULL,
   `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -425,8 +443,10 @@ CREATE TABLE `mascotas` (
 -- Volcado de datos para la tabla `mascotas`
 --
 
-INSERT INTO `mascotas` (`id`, `dueño_id`, `nombre`, `especie`, `raza`, `edad`, `peso`, `foto`, `creado_en`) VALUES
-(1, 18, 'Tommy', 'Perro', 'Bulldog', 2, 45.00, '/uploads/mascotas/mascota-1-1758503558.jpg', '2025-09-12 23:33:54');
+INSERT INTO `mascotas` (`id`, `dueño_id`, `nombre`, `especie`, `raza`, `edad`, `peso`, `notas`, `foto`, `creado_en`) VALUES
+(1, 18, 'Tommy', 'Perro', 'Bulldog', 2, 45.00, NULL, 'uploads/mascotas/mascota_1_1758770429.png', '2025-09-12 23:33:54'),
+(2, 20, 'Hanibal', 'Gato', 'Criollo', 5, 6.00, '2\r\n', NULL, '2025-10-01 01:07:53'),
+(3, 20, 'Winnie', 'Ave', 'criolla', 2, 1.00, 'qwe', NULL, '2025-10-01 01:15:36');
 
 -- --------------------------------------------------------
 
@@ -474,7 +494,8 @@ CREATE TABLE `notas_mascotas` (
 --
 
 INSERT INTO `notas_mascotas` (`id`, `mascota_id`, `veterinario_id`, `nota`, `creado_en`, `actualizado_en`) VALUES
-(4, 1, 3, 'El estado de la mascota se encuentra perfectamentea', '2025-09-23 19:41:45', '2025-09-23 20:12:56');
+(4, 1, 3, 'El estado de la mascota se encuentra perfectamente', '2025-09-23 19:41:45', '2025-09-24 21:54:59'),
+(6, 2, 3, 'Esta es la prueba para notas', '2025-10-01 19:55:52', '2025-10-01 19:55:52');
 
 -- --------------------------------------------------------
 
@@ -869,7 +890,30 @@ CREATE TABLE `servicios` (
 --
 
 INSERT INTO `servicios` (`id`, `nombre`, `descripcion`, `precio`, `duracion_min`, `activo`, `creado_en`) VALUES
-(1, 'Peluqueria', 'Hacer baño a la mascota', 45000.00, 30, 1, '2025-09-13 00:40:17');
+(1, 'Peluqueria', 'Hacer baño a la mascota', 45000.00, 30, 1, '2025-09-13 00:40:17'),
+(2, 'Baño y Cortes', 'buena', 67000.00, 34, 1, '2025-10-01 02:29:06');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `solicitudes`
+--
+
+CREATE TABLE `solicitudes` (
+  `id` int(11) NOT NULL,
+  `usuario_id` int(11) NOT NULL,
+  `tipo` enum('permiso','vacaciones','incapacidad') NOT NULL,
+  `fecha_inicio` date NOT NULL,
+  `fecha_fin` date NOT NULL,
+  `motivo` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `solicitudes`
+--
+
+INSERT INTO `solicitudes` (`id`, `usuario_id`, `tipo`, `fecha_inicio`, `fecha_fin`, `motivo`) VALUES
+(2, 5, 'incapacidad', '2025-10-02', '2025-10-30', 'Incapacidad justificada');
 
 -- --------------------------------------------------------
 
@@ -882,10 +926,20 @@ CREATE TABLE `turnos_empleado` (
   `empleado_id` int(11) NOT NULL,
   `inicio` datetime NOT NULL,
   `fin` datetime NOT NULL,
-  `tipo` enum('turno','vacacion','excepcion') DEFAULT 'turno',
+  `tipo` varchar(15) DEFAULT 'turno',
   `notas` text DEFAULT NULL,
   `creado_por` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `turnos_empleado`
+--
+
+INSERT INTO `turnos_empleado` (`id`, `empleado_id`, `inicio`, `fin`, `tipo`, `notas`, `creado_por`) VALUES
+(1, 3, '2025-10-02 18:30:00', '2025-10-03 06:31:00', 'Emergencia', 'Nota prueba 333', 9),
+(4, 4, '2025-10-02 06:38:00', '2025-10-03 18:38:00', 'Extras', 'prueba tres\r\n', 9),
+(5, 9, '2025-10-02 06:40:00', '2025-10-03 18:40:00', 'Extras', 'preuba', 9),
+(7, 9, '2025-10-02 09:52:00', '2025-10-02 06:52:00', 'Nocturno', 'Prueba final?', 9);
 
 -- --------------------------------------------------------
 
@@ -913,12 +967,15 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `docusu`, `nombre`, `apellido`, `email`, `telefono`, `password`, `role_id`, `estado`, `creado_en`, `reset_token`, `reset_expira`) VALUES
-(1, '0000000001', 'Super', 'Admin', 'andres.rojast98@gmail.com', NULL, '$2y$10$lwMd/LLTWZor40qWE9nnGugkeBg3LtNGu3YTVZ2s535E492W13lMe', 1, 1, '2025-09-07 04:07:20', '0eb38f66d3e84ab5ea4149670dae5fa1df97ae026a2b826a9bcb200a303dcf67', '2025-09-09 06:09:08'),
-(3, '0000000003', 'Andres', 'Rojas', 'andres_rojast9@outlook.com', NULL, '$2y$10$NRlwUgWy2YLDciO4nard/uA2Lyr38A13B4.MXSoOzyQEK8KiFPvOW', 4, 1, '2025-09-07 04:07:20', '', NULL),
-(4, '0000000004', 'Recepcion', 'Prueba', 'recepcion@vetsmart.test', NULL, '$2b$12$SVWcXtiXWXzaQgOaKFTBM.XOpui0aB96ScYWR9TZGfdmYXCsqpU4.', 3, 1, '2025-09-07 04:07:20', '0', '0000-00-00 00:00:00'),
-(5, '0000000005', 'Peluquero', 'Prueba', 'peluquero@vetsmart.test', NULL, '$2b$12$C6/ANKFcycDsIGX5iM9stu2ZIGSDGxJnjbGUbt.B/gjf4ZiuttpOC', 5, 1, '2025-09-07 04:07:20', '0', '0000-00-00 00:00:00'),
-(9, '1073715080', 'Heyder', 'Sterlin', 'andres@prueba.com', NULL, '$2y$10$3b1zN67p.pUPWdm4dDbMSuess8EOMuTFqivGRcfRbYo3Sbvm/KkyK', 2, 1, '2025-09-09 02:50:02', '', NULL),
-(18, '987654321', 'paula', 'Rea', 'paula@prueba.com', '654321596', '$2y$10$6Acda2HFqvmYyKQ.iAW85eU7F7PdoSf25JLcQFcSg6G.ZnechUgUC', 6, 1, '2025-09-12 23:25:35', '', NULL);
+(1, '0000000001', 'Super', 'Admin', 'andres.rojast98@gmail.com', NULL, '$2y$10$tl9ee/EuUcY6JBbJHjooY.bhoBjsgzAgHPo7liYyF0iI9I7AfdSpG', 1, 1, '2025-09-07 04:07:20', '7e9361722c5a938319871bd551397c6ee595a07e801d64d25cf621da84529cd4', '2025-09-25 05:35:44'),
+(3, '0000000003', 'Andres', 'Rojas', 'andres_rojast9@outlook.com', '3105551234', '$2y$10$NRlwUgWy2YLDciO4nard/uA2Lyr38A13B4.MXSoOzyQEK8KiFPvOW', 4, 1, '2025-09-07 04:07:20', '4f26bf98b6bb2b8b77d91d837bf7bba33b66292bc667fea994d98c05c5671eb3', '2025-09-25 04:26:56'),
+(4, '0000000004', 'Recepcion', 'Prueba', 'recepcion@vetsmart.test', '3218765432', '$2b$12$SVWcXtiXWXzaQgOaKFTBM.XOpui0aB96ScYWR9TZGfdmYXCsqpU4.', 3, 1, '2025-09-07 04:07:20', '0', '0000-00-00 00:00:00'),
+(5, '0000000005', 'Peluquero', 'Prueba', 'peluquero@vetsmart.test', '3009900011', '$2b$12$C6/ANKFcycDsIGX5iM9stu2ZIGSDGxJnjbGUbt.B/gjf4ZiuttpOC', 5, 1, '2025-09-07 04:07:20', '0', '0000-00-00 00:00:00'),
+(9, '1073715080', 'Heyder', 'Sterlin', 'andres@prueba.com', '3154448877', '$2y$10$3b1zN67p.pUPWdm4dDbMSuess8EOMuTFqivGRcfRbYo3Sbvm/KkyK', 2, 1, '2025-09-09 02:50:02', '', NULL),
+(18, '987654321', 'paula', 'Real', 'paula@prueba.com', '654321596', '$2y$10$6Acda2HFqvmYyKQ.iAW85eU7F7PdoSf25JLcQFcSg6G.ZnechUgUC', 6, 1, '2025-09-12 23:25:35', '', NULL),
+(20, '49876321', 'Andres', 'Rojas Sterlin', 'segunda@prueba.com', '3144928505', '$2y$10$6uM4.6Sv82unVdTeb3EphedyHBBcaPxQowVsmIG376blrKkpAvQzS', 6, 1, '2025-10-01 00:19:46', '', NULL),
+(21, '98765132', 'Yakeline', 'Sterlin', 'peyahe-77@outlook.com', '3124285749', '$2y$10$Alhov8AGbeVuSTDSn0/yEur9xBoPicIsiJXkFHxtjgb9jIdgCLRs6', 6, 1, '2025-10-01 00:28:22', '', NULL),
+(25, '741852963', 'Luis', 'Arevalo', 'luis@example.com', '951847623', '$2y$10$4INL.cpc3ESrncuamkwvZ.Bmq8DNekB2K4vVrJXvLAEq0sdfAa4oC', 4, 1, '2025-10-03 02:02:39', '', NULL);
 
 -- --------------------------------------------------------
 
@@ -943,7 +1000,8 @@ CREATE TABLE `vacunas` (
 
 INSERT INTO `vacunas` (`id`, `mascota_id`, `nombre`, `descripcion`, `fecha_aplicacion`, `proxima_dosis`, `veterinario_id`, `creado_en`) VALUES
 (4, 1, 'Laura Gómez', 'cxsacasc', '2025-09-02', '2025-09-30', NULL, '2025-09-16 23:37:35'),
-(5, 1, 'Baño y Cortes', 'c', '2025-09-03', '2025-09-30', NULL, '2025-09-20 00:30:18');
+(5, 1, 'Baño y Cortes', 'c', '2025-09-03', '2025-09-30', NULL, '2025-09-20 00:30:18'),
+(6, 2, 'Parvo', NULL, '2025-10-01', '2025-10-29', NULL, '2025-10-02 00:20:38');
 
 -- --------------------------------------------------------
 
@@ -1170,6 +1228,13 @@ ALTER TABLE `servicios`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indices de la tabla `solicitudes`
+--
+ALTER TABLE `solicitudes`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `usuario_id` (`usuario_id`);
+
+--
 -- Indices de la tabla `turnos_empleado`
 --
 ALTER TABLE `turnos_empleado`
@@ -1214,13 +1279,13 @@ ALTER TABLE `bloqueos`
 -- AUTO_INCREMENT de la tabla `citas`
 --
 ALTER TABLE `citas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT de la tabla `cliente_detalles`
 --
 ALTER TABLE `cliente_detalles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT de la tabla `config`
@@ -1232,13 +1297,13 @@ ALTER TABLE `config`
 -- AUTO_INCREMENT de la tabla `consultas`
 --
 ALTER TABLE `consultas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `emp_det`
 --
 ALTER TABLE `emp_det`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `historial_citas`
@@ -1256,7 +1321,7 @@ ALTER TABLE `historial_medico`
 -- AUTO_INCREMENT de la tabla `horarios_semana`
 --
 ALTER TABLE `horarios_semana`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `login_intentos`
@@ -1274,7 +1339,7 @@ ALTER TABLE `logs_actividad`
 -- AUTO_INCREMENT de la tabla `mascotas`
 --
 ALTER TABLE `mascotas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `modulos`
@@ -1286,7 +1351,7 @@ ALTER TABLE `modulos`
 -- AUTO_INCREMENT de la tabla `notas_mascotas`
 --
 ALTER TABLE `notas_mascotas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `notificaciones`
@@ -1328,25 +1393,31 @@ ALTER TABLE `rol_permisos`
 -- AUTO_INCREMENT de la tabla `servicios`
 --
 ALTER TABLE `servicios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT de la tabla `solicitudes`
+--
+ALTER TABLE `solicitudes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `turnos_empleado`
 --
 ALTER TABLE `turnos_empleado`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT de la tabla `vacunas`
 --
 ALTER TABLE `vacunas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Restricciones para tablas volcadas
@@ -1467,6 +1538,12 @@ ALTER TABLE `rol_permisos`
   ADD CONSTRAINT `fk_rol_permisos_usuario` FOREIGN KEY (`concedido_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
 
 --
+-- Filtros para la tabla `solicitudes`
+--
+ALTER TABLE `solicitudes`
+  ADD CONSTRAINT `solicitudes_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE;
+
+--
 -- Filtros para la tabla `turnos_empleado`
 --
 ALTER TABLE `turnos_empleado`
@@ -1479,7 +1556,3 @@ ALTER TABLE `turnos_empleado`
 ALTER TABLE `usuarios`
   ADD CONSTRAINT `usuarios_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
 COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

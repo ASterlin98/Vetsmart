@@ -20,8 +20,12 @@ class ServiciosController extends Controller {
 
     public function guardar() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Forzar activo (checkbox)
+            $_POST['activo'] = isset($_POST['activo']) ? 1 : 0;
+
             $this->servicioModel->crear($_POST);
             header('Location: /vetsmart/admin/servicios');
+            exit;
         }
     }
 
@@ -32,13 +36,18 @@ class ServiciosController extends Controller {
 
     public function actualizar($id) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Forzar activo (checkbox)
+            $_POST['activo'] = isset($_POST['activo']) ? 1 : 0;
+
             $this->servicioModel->actualizar($id, $_POST);
             header('Location: /vetsmart/admin/servicios');
+            exit;
         }
     }
 
     public function eliminar($id) {
         $this->servicioModel->eliminar($id);
         header('Location: /vetsmart/admin/servicios');
+        exit;
     }
 }

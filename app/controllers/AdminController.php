@@ -149,7 +149,7 @@ class AdminController extends Controller
                 UPDATE usuarios
                 SET nombre = :nombre,
                     apellido = :apellido,
-                    docusu = :docsu,
+                    docusu = :docusu,
                     email = :email,
                     role_id = :role_id,
                     telefono = :telefono

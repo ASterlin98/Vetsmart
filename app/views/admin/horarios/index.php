@@ -7,13 +7,19 @@
   <!-- Nav Tabs -->
   <ul class="nav nav-tabs" id="horariosTabs" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="semana-tab" data-bs-toggle="tab" data-bs-target="#semana" type="button" role="tab">Horarios Semanales</button>
+      <button class="nav-link active fw-bold" id="semana-tab" data-bs-toggle="tab" data-bs-target="#semana" type="button" role="tab">
+        📆 Horarios Semanales
+      </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="turnos-tab" data-bs-toggle="tab" data-bs-target="#turnos" type="button" role="tab">Turnos Extras</button>
+      <button class="nav-link fw-bold" id="turnos-tab" data-bs-toggle="tab" data-bs-target="#turnos" type="button" role="tab">
+        ⏰ Turnos Extras
+      </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="solicitudes-tab" data-bs-toggle="tab" data-bs-target="#solicitudes" type="button" role="tab">Solicitudes</button>
+      <button class="nav-link fw-bold" id="solicitudes-tab" data-bs-toggle="tab" data-bs-target="#solicitudes" type="button" role="tab">
+        📝 Solicitudes
+      </button>
     </li>
   </ul>
 
@@ -22,24 +28,28 @@
 
     <!-- ================= HORARIOS SEMANALES ================= -->
     <div class="tab-pane fade show active" id="semana" role="tabpanel">
-      <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalHorarioSemana">➕ Nuevo Horario Semanal</button>
+      <button class="btn btn-success mb-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalHorarioSemana">
+        ➕ Nuevo Horario Semanal
+      </button>
 
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Empleado</th>
-            <th>Día</th>
-            <th>Hora Inicio</th>
-            <th>Hora Fin</th>
-          </tr>
-        </thead>
-        <tbody>
+      <div class="table-responsive shadow-sm rounded">
+        <table class="table table-hover align-middle">
+          <thead class="table-success text-dark text-center">
+            <tr>
+              <th>👨‍⚕️ Empleado</th>
+              <th>📅 Día</th>
+              <th>⏱ Inicio</th>
+              <th>⏱ Fin</th>
+              <th>⚙️ Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
             <?php foreach ($horariosSemana as $h): ?>
             <tr>
-            <td><?= htmlspecialchars($h['empleado']) ?></td>
-            <td><?= htmlspecialchars($h['dia']) ?></td>
-            <td><?= htmlspecialchars($h['hora_inicio']) ?></td>
-            <td><?= htmlspecialchars($h['hora_fin']) ?></td>
+              <td><?= htmlspecialchars($h['empleado']) ?></td>
+              <td><span class="badge bg-info text-dark"><?= htmlspecialchars($h['dia']) ?></span></td>
+              <td><?= htmlspecialchars($h['hora_inicio']) ?></td>
+              <td><?= htmlspecialchars($h['hora_fin']) ?></td>
             <td>
                 <!-- Editar -->
                 <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editarSemana<?= $h['id'] ?>">✏️</button>
@@ -85,33 +95,42 @@
             </div>
             </div>
             <?php endforeach; ?>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- ================= TURNOS EXTRAS ================= -->
     <div class="tab-pane fade" id="turnos" role="tabpanel">
-      <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalTurno">➕ Nuevo Turno Extra</button>
+      <button class="btn btn-primary mb-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTurno">
+        ➕ Nuevo Turno Extra
+      </button>
 
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Empleado</th>
-            <th>Inicio</th>
-            <th>Fin</th>
-            <th>Tipo</th>
-            <th>Notas</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($turnos as $t): ?>
+      <div class="table-responsive shadow-sm rounded">
+        <table class="table table-hover align-middle">
+          <thead class="table-primary text-center">
             <tr>
-            <td><?= htmlspecialchars($t['empleado']) ?></td>
-            <td><?= htmlspecialchars($t['inicio']) ?></td>
-            <td><?= htmlspecialchars($t['fin']) ?></td>
-            <td><?= htmlspecialchars($t['tipo']) ?></td>
-            <td><?= htmlspecialchars($t['notas']) ?></td>
-            <td>
+              <th>Empleado</th>
+              <th>Inicio</th>
+              <th>Fin</th>
+              <th>Tipo</th>
+              <th>Notas</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($turnos as $t): ?>
+            <tr>
+              <td><?= htmlspecialchars($t['empleado']) ?></td>
+              <td><?= htmlspecialchars($t['inicio']) ?></td>
+              <td><?= htmlspecialchars($t['fin']) ?></td>
+              <td>
+                <span class="badge <?= $t['tipo']=="Emergencia" ? 'bg-danger' : ($t['tipo']=="Nocturno" ? 'bg-dark' : 'bg-info text-dark') ?>">
+                  <?= htmlspecialchars($t['tipo']) ?>
+                </span>
+              </td>
+              <td><?= htmlspecialchars($t['notas']) ?></td>
+              <td>
                 <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editarTurno<?= $t['id'] ?>">✏️</button>
                 <a href="/vetsmart/admin/horarios/<?= $t['id'] ?>/eliminarTurno" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este turno?')">🗑️</a>
             </td>
@@ -156,34 +175,42 @@
             </div>
             </div>
             <?php endforeach; ?>
-
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- ================= SOLICITUDES ================= -->
     <div class="tab-pane fade" id="solicitudes" role="tabpanel">
-      <button class="btn btn-warning mb-3" data-bs-toggle="modal" data-bs-target="#modalSolicitud">➕ Nueva Solicitud</button>
+      <button class="btn btn-warning mb-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSolicitud">
+        ➕ Nueva Solicitud
+      </button>
 
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Empleado</th>
-            <th>Tipo</th>
-            <th>Desde</th>
-            <th>Hasta</th>
-            <th>Motivo</th>
-          </tr>
-        </thead>
-        <tbody>
+      <div class="table-responsive shadow-sm rounded">
+        <table class="table table-hover align-middle">
+          <thead class="table-warning text-center">
+            <tr>
+              <th>Empleado</th>
+              <th>Tipo</th>
+              <th>Desde</th>
+              <th>Hasta</th>
+              <th>Motivo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
             <?php foreach ($solicitudes as $s): ?>
             <tr>
-            <td><?= htmlspecialchars($s['empleado']) ?></td>
-            <td><?= htmlspecialchars($s['tipo']) ?></td>
-            <td><?= htmlspecialchars($s['fecha_inicio']) ?></td>
-            <td><?= htmlspecialchars($s['fecha_fin']) ?></td>
-            <td><?= htmlspecialchars($s['motivo']) ?></td>
-            <td>
+              <td><?= htmlspecialchars($s['empleado']) ?></td>
+              <td>
+                <span class="badge <?= $s['tipo']=="vacaciones" ? 'bg-success' : ($s['tipo']=="incapacidad" ? 'bg-danger' : 'bg-secondary') ?>">
+                  <?= ucfirst($s['tipo']) ?>
+                </span>
+              </td>
+              <td><?= htmlspecialchars($s['fecha_inicio']) ?></td>
+              <td><?= htmlspecialchars($s['fecha_fin']) ?></td>
+              <td><?= htmlspecialchars($s['motivo']) ?></td>
+<td>
                 <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editarSolicitud<?= $s['id'] ?>">✏️</button>
                 <a href="/vetsmart/admin/horarios/<?= $s['id'] ?>/eliminarSolicitud" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar esta solicitud?')">🗑️</a>
             </td>
@@ -230,13 +257,12 @@
             </div>
             </div>
             <?php endforeach; ?>
-
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
-
 <!-- ========== MODALES ========== -->
 
 <!-- Modal Horario Semana -->

@@ -6,76 +6,88 @@ $roles = $roles ?? [];
 ?>
 
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Gestión de Empleados</h2>
-        <!-- Botón para abrir modal Crear -->
-<button class="btn btn-primary" 
-        data-bs-toggle="modal" 
-        data-bs-target="#empleadoModal" 
-        onclick="openCrearEmpleado()">
-    ➕ Nuevo Empleado
-</button>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+        <h2 class="mb-0">👨‍⚕️ Gestión de Empleados</h2>
+
+        <div class="d-flex gap-2">
+            <!-- Search -->
+            <input type="text" id="searchEmpleado" class="form-control" placeholder="🔍 Buscar por nombre o DNI" onkeyup="filtrarEmpleados()">
+
+            <!-- Botón Crear -->
+            <button class="btn btn-primary" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#empleadoModal" 
+                    onclick="openCrearEmpleado()">
+                ➕ Nuevo
+            </button>
+        </div>
     </div>
 
-    <table class="table table-bordered table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>Nombre</th>
-                <th>Rol</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-                <th>Especialidad</th>
-                <th>Salario</th>
-                <th>Ingreso</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (empty($empleados)): ?>
+    <div class="table-responsive shadow-sm rounded">
+        <table class="table table-hover align-middle" id="empleadosTable">
+            <thead class="table-dark text-center">
                 <tr>
-                    <td colspan="9" class="text-center">No hay empleados registrados.</td>
+                    <th>Nombre</th>
+                    <th>Rol</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>DNI</th>
+                    <th>Especialidad</th>
+                    <th>Salario</th>
+                    <th>Ingreso</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                 </tr>
-            <?php else: ?>
-                <?php foreach ($empleados as $e): ?>
+            </thead>
+            <tbody class="text-center">
+                <?php if (empty($empleados)): ?>
                     <tr>
-                        <td><?= htmlspecialchars($e['nombre'].' '.$e['apellido']) ?></td>
-                        <td><?= htmlspecialchars($e['rol'] ?? '-') ?></td>
-                        <td><?= htmlspecialchars($e['email'] ?? '-') ?></td>
-                        <td><?= htmlspecialchars($e['telefono'] ?? '-') ?></td>
-                        <td><?= htmlspecialchars($e['especialidad'] ?? '-') ?></td>
-                        <td><?= $e['salario'] ? number_format($e['salario'], 2) : '-' ?></td>
-                        <td><?= $e['fecha_ingreso'] ?? '-' ?></td>
-                        <td>
-                            <?= $e['activo'] ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-secondary">Inactivo</span>' ?>
-                        </td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" 
-                                data-bs-toggle="modal" data-bs-target="#empleadoModal"
-                                onclick='openEditarEmpleado(<?= json_encode($e) ?>)'>
-                                ✏️
-                            </button>
-                            <a href="/vetsmart/admin/empleados/<?= $e['id'] ?>/eliminar" 
-                               onclick="return confirm('¿Seguro de eliminar este empleado?')" 
-                               class="btn btn-danger btn-sm">
-                                🗑
-                            </a>
-                        </td>
+                        <td colspan="10" class="text-center text-muted">No hay empleados registrados.</td>
                     </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
-    </table>
+                <?php else: ?>
+                    <?php foreach ($empleados as $e): ?>
+                        <tr>
+                            <td class="fw-bold"><?= htmlspecialchars($e['nombre'].' '.$e['apellido']) ?></td>
+                            <td><span class="badge bg-info"><?= htmlspecialchars($e['rol'] ?? '-') ?></span></td>
+                            <td><?= htmlspecialchars($e['email'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($e['telefono'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($e['docusu'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($e['especialidad'] ?? '-') ?></td>
+                            <td><?= $e['salario'] ? '$'.number_format($e['salario'], 2) : '-' ?></td>
+                            <td><?= $e['fecha_ingreso'] ?? '-' ?></td>
+                            <td>
+                                <?= $e['activo'] 
+                                    ? '<span class="badge bg-success">Activo</span>' 
+                                    : '<span class="badge bg-secondary">Inactivo</span>' ?>
+                            </td>
+                            <td>
+                                <button class="btn btn-warning btn-sm" 
+                                    data-bs-toggle="modal" data-bs-target="#empleadoModal"
+                                    onclick='openEditarEmpleado(<?= json_encode($e) ?>)'>
+                                    ✏️
+                                </button>
+                                <a href="/vetsmart/admin/empleados/<?= $e['id'] ?>/eliminar" 
+                                onclick="return confirm('¿Seguro de eliminar este empleado?')" 
+                                class="btn btn-danger btn-sm">
+                                    🗑
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<!-- Modal Crear/Editar -->
+<!-- ========== MODAL Crear/Editar ========== -->
 <div class="modal fade" id="empleadoModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg">
-    <div class="modal-content">
+    <div class="modal-content shadow-lg">
       <form id="empleadoForm" method="POST">
-        <div class="modal-header">
+        <div class="modal-header bg-primary text-white">
           <h5 class="modal-title" id="modalTitle">Nuevo Empleado</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body row g-3">
 
@@ -143,8 +155,8 @@ $roles = $roles ?? [];
 
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Guardar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">💾 Guardar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">❌ Cancelar</button>
         </div>
       </form>
     </div>
@@ -152,21 +164,25 @@ $roles = $roles ?? [];
 </div>
 
 <script>
+// 🔍 Filtro por nombre o documento
+function filtrarEmpleados() {
+    const input = document.getElementById("searchEmpleado").value.toLowerCase();
+    const rows = document.querySelectorAll("#empleadosTable tbody tr");
+    rows.forEach(row => {
+        const nombre = row.cells[0]?.innerText.toLowerCase();
+        const dni = row.cells[4]?.innerText.toLowerCase();
+        if (nombre.includes(input) || dni.includes(input)) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    });
+}
+
 function openCrearEmpleado() {
     document.getElementById("modalTitle").innerText = "Nuevo Empleado";
     document.getElementById("empleadoForm").action = "/vetsmart/admin/empleados/guardar";
-    document.getElementById("empleado_id").value = "";
-    document.getElementById("empleado_nombre").value = "";
-    document.getElementById("empleado_apellido").value = "";
-    document.getElementById("empleado_dni").value = "";
-    document.getElementById("empleado_email").value = "";
-    document.getElementById("empleado_telefono").value = "";
-    document.getElementById("empleado_role_id").value = "";
-    document.getElementById("empleado_especialidad").value = "";
-    document.getElementById("empleado_salario").value = "";
-    document.getElementById("empleado_fecha_ingreso").value = "";
-    document.getElementById("empleado_activo").checked = true;
-    document.getElementById("empleado_password").value = "";
+    document.getElementById("empleadoForm").reset();
     document.getElementById("passwordDiv").style.display = "block";
 }
 
@@ -185,6 +201,6 @@ function openEditarEmpleado(e) {
     document.getElementById("empleado_fecha_ingreso").value = e.fecha_ingreso || "";
     document.getElementById("empleado_activo").checked = e.activo == 1;
     document.getElementById("empleado_password").value = "";
-    document.getElementById("passwordDiv").style.display = "none"; // no pedir pass al editar
+    document.getElementById("passwordDiv").style.display = "none"; 
 }
 </script>
