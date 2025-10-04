@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 03-10-2025 a las 04:38:21
+-- Tiempo de generación: 04-10-2025 a las 04:13:14
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -11,8 +11,15 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
-CREATE DATABASE vetsmart;
-USE vetsmart;
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Base de datos: `vetsmart`
+--
 
 DELIMITER $$
 --
@@ -110,12 +117,17 @@ CREATE TABLE `citas` (
 --
 
 INSERT INTO `citas` (`id`, `cliente_id`, `mascota_id`, `empleado_id`, `servicio_id`, `fecha`, `duracion_min`, `estado`, `notas`, `creado_por`, `creado_en`) VALUES
-(8, 18, 1, 3, 1, '2025-09-01 07:12:00', 30, '', 'asdas', 3, '2025-09-20 00:07:40'),
-(9, 18, 1, 3, 1, '2025-09-19 10:10:00', 30, '', 'daws', 3, '2025-09-20 00:10:26'),
+(8, 18, 1, 3, 1, '2025-09-08 09:12:00', 30, 'confirmada', 'asdas', 3, '2025-09-20 00:07:40'),
+(9, 18, 1, 3, 1, '2025-09-24 10:10:00', 30, 'confirmada', 'daws', 3, '2025-09-20 00:10:26'),
 (35, 18, 1, 3, 1, '2025-09-23 09:00:00', 30, 'confirmada', '', 3, '2025-09-24 01:19:43'),
 (37, 18, 1, 3, 1, '2025-09-26 00:00:00', 30, 'confirmada', '', 3, '2025-09-25 00:18:21'),
-(40, 18, 1, NULL, 1, '2025-09-29 09:00:00', 30, 'confirmada', '', 3, '2025-09-25 00:54:58'),
-(41, 20, 2, NULL, 2, '2025-09-11 09:00:00', 30, 'confirmada', '', 3, '2025-10-02 00:51:34');
+(40, 18, 1, 25, 1, '2025-09-29 09:00:00', 30, 'confirmada', '', 3, '2025-09-25 00:54:58'),
+(41, 20, 2, 25, 2, '2025-09-11 09:00:00', 30, 'confirmada', '', 3, '2025-10-02 00:51:34'),
+(42, 20, 2, 3, 2, '2025-10-16 09:00:00', 34, 'confirmada', '', 3, '2025-10-03 23:32:21'),
+(43, 28, 6, 25, 2, '2025-10-13 09:00:00', 34, 'confirmada', '', 25, '2025-10-03 23:59:10'),
+(44, 20, 2, 25, 1, '2025-10-06 09:00:00', 30, 'confirmada', '', 25, '2025-10-04 01:33:45'),
+(45, 18, 1, 25, 1, '2025-10-07 09:00:00', 30, 'confirmada', '', 25, '2025-10-04 01:34:05'),
+(46, 28, 6, 25, 1, '2025-10-15 09:00:00', 30, 'confirmada', '', 25, '2025-10-04 01:35:01');
 
 -- --------------------------------------------------------
 
@@ -140,7 +152,8 @@ INSERT INTO `cliente_detalles` (`id`, `idusu`, `telefono`, `direccion`, `ciudad`
 (3, 9, '3144928505', NULL, NULL, '2025-09-09 02:50:02'),
 (8, 18, '654321596', 'casa pin pin', 'Bogota', '2025-09-12 23:25:35'),
 (9, 20, '3144928505', 'Cr 7 #6-67', 'Cundinamarca', '2025-10-01 00:19:46'),
-(10, 21, '3124285749', 'Pollo rico 32', 'Bogota', '2025-10-01 00:28:22');
+(10, 21, '3124285749', 'Pollo rico 32', 'Bogota', '2025-10-01 00:28:22'),
+(12, 28, '7589648512', 'Cr 2 # 3 - 4', 'Bogota', '2025-10-04 00:22:57');
 
 -- --------------------------------------------------------
 
@@ -206,7 +219,7 @@ INSERT INTO `emp_det` (`id`, `usuario_id`, `especialidad`, `salario`, `fecha_ing
 (5, 5, 'Peluquero', 1200000.00, '2024-01-15', 1),
 (6, 4, 'Recepcionista', 1200000.00, '2024-03-01', 1),
 (7, 3, 'Administrador', 2500000.00, '2022-06-01', 1),
-(10, 25, 'Operaciones', 3000000.00, '2025-10-02', 1);
+(10, 25, 'Operaciones1', 3000000.00, '2025-10-02', 1);
 
 -- --------------------------------------------------------
 
@@ -262,8 +275,14 @@ CREATE TABLE `horarios_semana` (
 --
 
 INSERT INTO `horarios_semana` (`id`, `empleado_id`, `dia`, `hora_inicio`, `hora_fin`) VALUES
-(1, 3, 'Jueves', '08:26:00', '15:26:00'),
-(3, 3, 'Sábado', '06:30:00', '14:30:00');
+(1, 3, 'Jueves', '08:00:00', '17:00:00'),
+(3, 3, 'Sábado', '06:30:00', '14:30:00'),
+(5, 3, 'Lunes', '08:00:00', '17:00:00'),
+(6, 3, 'Martes', '08:00:00', '17:00:00'),
+(7, 25, 'Lunes', '08:00:00', '17:00:00'),
+(8, 25, 'Martes', '08:00:00', '17:00:00'),
+(9, 3, 'Miércoles', '08:00:00', '17:21:00'),
+(10, 25, 'Miércoles', '08:00:00', '17:33:00');
 
 -- --------------------------------------------------------
 
@@ -446,7 +465,8 @@ CREATE TABLE `mascotas` (
 INSERT INTO `mascotas` (`id`, `dueño_id`, `nombre`, `especie`, `raza`, `edad`, `peso`, `notas`, `foto`, `creado_en`) VALUES
 (1, 18, 'Tommy', 'Perro', 'Bulldog', 2, 45.00, NULL, 'uploads/mascotas/mascota_1_1758770429.png', '2025-09-12 23:33:54'),
 (2, 20, 'Hanibal', 'Gato', 'Criollo', 5, 6.00, '2\r\n', NULL, '2025-10-01 01:07:53'),
-(3, 20, 'Winnie', 'Ave', 'criolla', 2, 1.00, 'qwe', NULL, '2025-10-01 01:15:36');
+(3, 20, 'Winnie', 'Ave', 'criolla', 2, 1.00, 'qwe', NULL, '2025-10-01 01:15:36'),
+(6, 28, 'Puppy', 'Roedor', 'Roedor', 3, 1.00, 'Mera Rata', NULL, '2025-10-04 00:23:29');
 
 -- --------------------------------------------------------
 
@@ -913,7 +933,7 @@ CREATE TABLE `solicitudes` (
 --
 
 INSERT INTO `solicitudes` (`id`, `usuario_id`, `tipo`, `fecha_inicio`, `fecha_fin`, `motivo`) VALUES
-(2, 5, 'incapacidad', '2025-10-02', '2025-10-30', 'Incapacidad justificada');
+(3, 4, 'vacaciones', '2025-10-03', '2025-10-27', '');
 
 -- --------------------------------------------------------
 
@@ -975,7 +995,8 @@ INSERT INTO `usuarios` (`id`, `docusu`, `nombre`, `apellido`, `email`, `telefono
 (18, '987654321', 'paula', 'Real', 'paula@prueba.com', '654321596', '$2y$10$6Acda2HFqvmYyKQ.iAW85eU7F7PdoSf25JLcQFcSg6G.ZnechUgUC', 6, 1, '2025-09-12 23:25:35', '', NULL),
 (20, '49876321', 'Andres', 'Rojas Sterlin', 'segunda@prueba.com', '3144928505', '$2y$10$6uM4.6Sv82unVdTeb3EphedyHBBcaPxQowVsmIG376blrKkpAvQzS', 6, 1, '2025-10-01 00:19:46', '', NULL),
 (21, '98765132', 'Yakeline', 'Sterlin', 'peyahe-77@outlook.com', '3124285749', '$2y$10$Alhov8AGbeVuSTDSn0/yEur9xBoPicIsiJXkFHxtjgb9jIdgCLRs6', 6, 1, '2025-10-01 00:28:22', '', NULL),
-(25, '741852963', 'Luis', 'Arevalo', 'luis@example.com', '951847623', '$2y$10$4INL.cpc3ESrncuamkwvZ.Bmq8DNekB2K4vVrJXvLAEq0sdfAa4oC', 4, 1, '2025-10-03 02:02:39', '', NULL);
+(25, '7418529', 'Luis', 'Arevalo', 'luis@example.com', '951847', '$2y$10$4INL.cpc3ESrncuamkwvZ.Bmq8DNekB2K4vVrJXvLAEq0sdfAa4oC', 4, 1, '2025-10-03 02:02:39', '', NULL),
+(28, '6549873285', 'Chayane', 'ernesto', 'chayanne@ejemplo.com', '7589648512', '$2y$10$LryNrogzbn7H.NS14C023.Jh8CoGXvkLmZVicbirxYQO8WPNt0PMG', 6, 1, '2025-10-04 00:22:57', '', NULL);
 
 -- --------------------------------------------------------
 
@@ -1279,13 +1300,13 @@ ALTER TABLE `bloqueos`
 -- AUTO_INCREMENT de la tabla `citas`
 --
 ALTER TABLE `citas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- AUTO_INCREMENT de la tabla `cliente_detalles`
 --
 ALTER TABLE `cliente_detalles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `config`
@@ -1303,7 +1324,7 @@ ALTER TABLE `consultas`
 -- AUTO_INCREMENT de la tabla `emp_det`
 --
 ALTER TABLE `emp_det`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `historial_citas`
@@ -1321,7 +1342,7 @@ ALTER TABLE `historial_medico`
 -- AUTO_INCREMENT de la tabla `horarios_semana`
 --
 ALTER TABLE `horarios_semana`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `login_intentos`
@@ -1339,7 +1360,7 @@ ALTER TABLE `logs_actividad`
 -- AUTO_INCREMENT de la tabla `mascotas`
 --
 ALTER TABLE `mascotas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `modulos`
@@ -1399,7 +1420,7 @@ ALTER TABLE `servicios`
 -- AUTO_INCREMENT de la tabla `solicitudes`
 --
 ALTER TABLE `solicitudes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `turnos_empleado`
@@ -1411,7 +1432,7 @@ ALTER TABLE `turnos_empleado`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT de la tabla `vacunas`
@@ -1556,3 +1577,7 @@ ALTER TABLE `turnos_empleado`
 ALTER TABLE `usuarios`
   ADD CONSTRAINT `usuarios_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
 COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
