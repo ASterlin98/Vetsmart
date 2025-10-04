@@ -635,6 +635,31 @@ if ($path === '/admin/agenda/exportarExcel' && $_SERVER['REQUEST_METHOD'] === 'G
     exit;
 }
 
+// ==================== FINANZAS ====================
+if ($path === '/admin/finanzas' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->finanzasIndex();
+    exit;
+}
+
+if ($path === '/admin/finanzas/exportarExcel' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->exportarFinanzasExcel(); // 👈 crea este método en AdminController
+    exit;
+}
+// ==================== REPORTES ====================
+if ($path === '/admin/reportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->reportesIndex();
+    exit;
+}
+
+if ($path === '/admin/reportes/exportarExcel' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->exportarReportesExcel(); // 👈 crea este método en AdminController
+    exit;
+}
+
 // ==================== EMPLEADOS ====================
 if ($path === '/admin/empleados' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require_once APP_ROOT . '/controllers/AdminController.php';

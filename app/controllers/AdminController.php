@@ -752,11 +752,13 @@ public function estadisticasAgendaJson()
     try {
         // Totales
         $sqlTotals = "
-            SELECT COUNT(*) AS total_citas, COALESCE(SUM(COALESCE(ci.precio, s.precio, 0)),0) AS total_recaudo,
-                   COALESCE(AVG(COALESCE(ci.precio, s.precio, 0)),0) AS promedio_valor
+            SELECT COUNT(*) AS total_citas, 
+                COALESCE(SUM(s.precio),0) AS total_recaudo,
+                COALESCE(AVG(s.precio),0) AS promedio_valor
             FROM citas ci
             LEFT JOIN servicios s ON ci.servicio_id = s.id
             WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+            AND ci.estado = 'completado'
         ";
         $stmt = $this->pdo->prepare($sqlTotals);
         $stmt->execute([':desde' => $desde, ':hasta' => $hasta]);
@@ -764,10 +766,11 @@ public function estadisticasAgendaJson()
 
         // Top servicios
         $sqlTopServicios = "
-            SELECT s.id, s.nombre, COUNT(*) AS veces, COALESCE(SUM(COALESCE(ci.precio, s.precio, 0)),0) AS total
+            SELECT s.id, s.nombre, COUNT(*) AS veces, COALESCE(SUM(s.precio),0) AS total
             FROM citas ci
             LEFT JOIN servicios s ON ci.servicio_id = s.id
             WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+            AND ci.estado = 'completado'
             GROUP BY s.id, s.nombre
             ORDER BY veces DESC
             LIMIT 8
@@ -782,6 +785,7 @@ public function estadisticasAgendaJson()
             FROM citas ci
             LEFT JOIN mascotas m ON ci.mascota_id = m.id
             WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+            AND ci.estado = 'completado'
             GROUP BY m.raza
             ORDER BY veces DESC
             LIMIT 8
@@ -792,11 +796,12 @@ public function estadisticasAgendaJson()
 
         // Por rol (4 veterinario, 3 recepcionista, 5 peluquero)
         $sqlByRole = "
-            SELECT u.role_id, COUNT(*) AS cnt, COALESCE(SUM(COALESCE(ci.precio, s.precio, 0)),0) AS total
+            SELECT u.role_id, COUNT(*) AS cnt, COALESCE(SUM(s.precio),0) AS total
             FROM citas ci
             LEFT JOIN usuarios u ON ci.empleado_id = u.id
             LEFT JOIN servicios s ON ci.servicio_id = s.id
             WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+            AND ci.estado = 'completado'
             GROUP BY u.role_id
         ";
         $stmt = $this->pdo->prepare($sqlByRole);
@@ -915,6 +920,190 @@ $stmt = $this->db->prepare("
     header("Content-Disposition: attachment; filename=agenda_{$desde}_{$hasta}.xlsx");
     header('Cache-Control: max-age=0');
 
+    $writer = new Xlsx($spreadsheet);
+    $writer->save('php://output');
+    exit;
+}
+
+/* ==================================================
+ *  FINANZAS
+ * ================================================== */
+public function finanzasIndex()
+{
+    $desde = $_GET['desde'] ?? date('Y-m-01');
+    $hasta = $_GET['hasta'] ?? date('Y-m-t');
+
+    $sql = "
+        SELECT 
+            ci.id,
+            DATE(ci.fecha) AS fecha,
+            ci.estado,
+            s.nombre AS servicio,
+            s.precio AS valor,
+            CONCAT(u_cli.nombre,' ',u_cli.apellido) AS cliente,
+            CONCAT(u_emp.nombre,' ',u_emp.apellido) AS empleado
+        FROM citas ci
+        LEFT JOIN servicios s ON ci.servicio_id = s.id
+        LEFT JOIN usuarios u_cli ON ci.cliente_id = u_cli.id
+        LEFT JOIN usuarios u_emp ON ci.empleado_id = u_emp.id
+        WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+          AND ci.estado IN ('completado','confirmada','finalizada')  -- 🔹 aquí ajusta según los estados reales que uses
+        ORDER BY ci.fecha DESC
+    ";
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([':desde'=>$desde, ':hasta'=>$hasta]);
+    $finanzas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Totales (sumar valores de los servicios)
+    $total = array_sum(array_column($finanzas, 'valor'));
+
+    $this->view("admin/finanzas/index", [
+        'finanzas' => $finanzas,
+        'total'    => $total,
+        'desde'    => $desde,
+        'hasta'    => $hasta
+    ], "main_admin");
+}
+
+
+public function exportarFinanzasExcel()
+{
+    $desde = $_GET['desde'] ?? date('Y-m-01');
+    $hasta = $_GET['hasta'] ?? date('Y-m-t');
+
+    $sql = "
+        SELECT ci.id, DATE(ci.fecha) AS fecha, s.nombre AS servicio, 
+            CONCAT(u_cli.nombre,' ',u_cli.apellido) AS cliente,
+            COALESCE(ci.precio, s.precio, 0) AS valor
+        FROM citas ci
+        LEFT JOIN servicios s ON ci.servicio_id = s.id
+        LEFT JOIN usuarios u_cli ON ci.cliente_id = u_cli.id
+        WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+        AND ci.estado = 'completado'
+        ORDER BY ci.fecha ASC
+    ";
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([':desde'=>$desde, ':hasta'=>$hasta]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle("Finanzas");
+
+    $headers = ["ID","Fecha","Servicio","Cliente","Valor"];
+    $col = 'A';
+    foreach ($headers as $h) {
+        $sheet->setCellValue($col.'1', $h);
+        $sheet->getStyle($col.'1')->getFont()->setBold(true);
+        $col++;
+    }
+
+    $row=2;
+    foreach($rows as $r){
+        $sheet->setCellValue('A'.$row,$r['id']);
+        $sheet->setCellValue('B'.$row,$r['fecha']);
+        $sheet->setCellValue('C'.$row,$r['servicio']);
+        $sheet->setCellValue('D'.$row,$r['cliente']);
+        $sheet->setCellValue('E'.$row,$r['valor']);
+        $row++;
+    }
+
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header("Content-Disposition: attachment; filename=finanzas_{$desde}_{$hasta}.xlsx");
+    $writer = new Xlsx($spreadsheet);
+    $writer->save('php://output');
+    exit;
+}
+
+/* ==================================================
+ *  REPORTES
+ * ================================================== */
+public function reportesIndex()
+{
+    $desde = $_GET['desde'] ?? date('Y-m-01');
+    $hasta = $_GET['hasta'] ?? date('Y-m-t');
+
+    // Servicios más solicitados
+    $sqlTopServicios = "
+        SELECT s.nombre, COUNT(*) AS cantidad
+        FROM citas ci
+        LEFT JOIN servicios s ON ci.servicio_id = s.id
+        WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+        GROUP BY s.id
+        ORDER BY cantidad DESC
+        LIMIT 5
+    ";
+    $stmt = $this->pdo->prepare($sqlTopServicios);
+    $stmt->execute([':desde'=>$desde, ':hasta'=>$hasta]);
+    $topServicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Empleados con más citas
+    $sqlTopEmpleados = "
+        SELECT CONCAT(u.nombre,' ',u.apellido) AS empleado, COUNT(*) AS cantidad
+        FROM citas ci
+        LEFT JOIN usuarios u ON ci.empleado_id = u.id
+        WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+        GROUP BY u.id
+        ORDER BY cantidad DESC
+        LIMIT 5
+    ";
+    $stmt = $this->pdo->prepare($sqlTopEmpleados);
+    $stmt->execute([':desde'=>$desde, ':hasta'=>$hasta]);
+    $topEmpleados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $this->view("admin/reportes/index", [
+        'topServicios' => $topServicios,
+        'topEmpleados' => $topEmpleados,
+        'desde' => $desde,
+        'hasta' => $hasta
+    ], "main_admin");
+}
+
+public function exportarReportesExcel()
+{
+    $desde = $_GET['desde'] ?? date('Y-m-01');
+    $hasta = $_GET['hasta'] ?? date('Y-m-t');
+
+    $sql = "
+        SELECT ci.id, DATE(ci.fecha) AS fecha, s.nombre AS servicio,
+               CONCAT(u_cli.nombre,' ',u_cli.apellido) AS cliente,
+               CONCAT(u_emp.nombre,' ',u_emp.apellido) AS empleado
+        FROM citas ci
+        LEFT JOIN servicios s ON ci.servicio_id = s.id
+        LEFT JOIN usuarios u_cli ON ci.cliente_id = u_cli.id
+        LEFT JOIN usuarios u_emp ON ci.empleado_id = u_emp.id
+        WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+        ORDER BY ci.fecha ASC
+    ";
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([':desde'=>$desde, ':hasta'=>$hasta]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle("Reportes");
+
+    $headers = ["ID","Fecha","Servicio","Cliente","Empleado"];
+    $col = 'A';
+    foreach ($headers as $h) {
+        $sheet->setCellValue($col.'1',$h);
+        $sheet->getStyle($col.'1')->getFont()->setBold(true);
+        $col++;
+    }
+
+    $row=2;
+    foreach($rows as $r){
+        $sheet->setCellValue('A'.$row,$r['id']);
+        $sheet->setCellValue('B'.$row,$r['fecha']);
+        $sheet->setCellValue('C'.$row,$r['servicio']);
+        $sheet->setCellValue('D'.$row,$r['cliente']);
+        $sheet->setCellValue('E'.$row,$r['empleado']);
+        $row++;
+    }
+
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header("Content-Disposition: attachment; filename=reportes_{$desde}_{$hasta}.xlsx");
     $writer = new Xlsx($spreadsheet);
     $writer->save('php://output');
     exit;
