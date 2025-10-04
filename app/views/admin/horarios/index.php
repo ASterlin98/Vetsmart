@@ -1,8 +1,8 @@
 <?php
 // app/views/admin/horarios/index.php
 ?>
-<div class="container mt-4">
-  <h2 class="mb-4">📅 Gestión de Horarios</h2>
+<div class="container-fluid py-3">
+  <h2 class="fw-bold">📅 Gestión de Horarios</h2>
 
   <!-- Nav Tabs -->
   <ul class="nav nav-tabs" id="horariosTabs" role="tablist">
@@ -32,9 +32,10 @@
         ➕ Nuevo Horario Semanal
       </button>
 
-      <div class="table-responsive shadow-sm rounded">
-        <table class="table table-hover align-middle">
-          <thead class="table-success text-dark text-center">
+      <div class="card p-3">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+          <thead class="table-light">
             <tr>
               <th>👨‍⚕️ Empleado</th>
               <th>📅 Día</th>
@@ -98,6 +99,7 @@
           </tbody>
         </table>
       </div>
+      </div>
     </div>
 
     <!-- ================= TURNOS EXTRAS ================= -->
@@ -106,9 +108,10 @@
         ➕ Nuevo Turno Extra
       </button>
 
-      <div class="table-responsive shadow-sm rounded">
-        <table class="table table-hover align-middle">
-          <thead class="table-primary text-center">
+      <div class="card p-3">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+          <thead class="table-light">
             <tr>
               <th>Empleado</th>
               <th>Inicio</th>
@@ -178,6 +181,7 @@
           </tbody>
         </table>
       </div>
+      </div>
     </div>
 
     <!-- ================= SOLICITUDES ================= -->
@@ -185,10 +189,10 @@
       <button class="btn btn-warning mb-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSolicitud">
         ➕ Nueva Solicitud
       </button>
-
-      <div class="table-responsive shadow-sm rounded">
+      <div class="card p-3">
+      <div class="table-responsive">
         <table class="table table-hover align-middle">
-          <thead class="table-warning text-center">
+          <thead class="table-light">
             <tr>
               <th>Empleado</th>
               <th>Tipo</th>

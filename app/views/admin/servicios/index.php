@@ -1,12 +1,13 @@
-<div class="container py-4">
+<div class="container-fluid py-3">
 
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4">
-    <h2 class="fw-bold text-primary">🛠️ Gestión de Servicios</h2>
+    <h2 class="fw-bold ">🛠️ Gestión de Servicios</h2>
+
     <div class="d-flex gap-2">
       <!-- Buscador -->
-      <input type="text" id="searchServicio" class="form-control shadow-sm" placeholder="🔍 Buscar servicio...">
+      <input type="text" id="searchServicio" class="form-control" placeholder="🔍 Buscar servicio...">
       <!-- Botón que abre modal Crear -->
-      <button class="btn btn-gradient shadow-sm"
+      <button class="btn btn-primary"
               data-bs-toggle="modal"
               data-bs-target="#servicioModal"
               onclick="openCrearServicio()">
@@ -20,11 +21,11 @@
       <i class="bi bi-info-circle"></i> No hay servicios registrados.
     </div>
   <?php else: ?>
-    <div class="card shadow-sm border-0 rounded-3">
+      <div class="card p-3">
       <div class="card-body p-0">
         <div class="table-responsive">
-          <table class="table table-bordered table-hover align-middle mb-0" id="tablaServicios">
-            <thead class="table-dark text-white">
+          <table class="table table-striped table-hover align-middle" id="tablaServicios">
+            <thead class="table-light">
               <tr>
                 <th>Nombre</th>
                 <th>Descripción</th>

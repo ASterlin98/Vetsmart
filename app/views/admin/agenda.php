@@ -5,7 +5,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 ?>
 <div class="container-fluid py-3">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="m-0">📅 Agenda General (Vista Tabular)</h3>
+    <h3 class="fw-bold">📅 Agenda General (Vista Tabular)</h3>
     <div>
       <a id="exportMonthBtn" 
    href="/vetsmart/admin/agenda/exportarExcel?desde=<?= date('Y-m-01') ?>&hasta=<?= date('Y-m-t') ?>" 

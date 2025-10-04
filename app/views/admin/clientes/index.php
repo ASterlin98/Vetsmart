@@ -24,7 +24,7 @@ function avatar_color_for($text) {
   <title>Listado de Clientes</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { background: #f3f6fb; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial; }
+    body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial; }
     .card-nacho { border: 0; border-radius: 12px; box-shadow: 0 6px 20px rgba(17,24,39,0.06); }
     .table-nacho thead th { position: sticky; top: 0; background: linear-gradient(180deg,#ffffff,#f7fafc); font-weight:600; z-index:10; }
     .table-nacho tbody tr:hover { background: #f8fafc; transform: translateY(-1px); transition: all .12s ease; }
@@ -40,17 +40,16 @@ function avatar_color_for($text) {
   </style>
 </head>
 <body>
-<div class="container py-5">
+<div class="container-fluid py-3">
 
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
     <div>
-      <h2 class="mb-1">Listado de Clientes</h2>
+      <h2 class="fw-bold">Listado de Clientes</h2>
       <div class="small-muted">Clientes registrados en el sistema</div>
     </div>
 
-    <div class="d-flex gap-2 align-items-center">
-      <input id="filterInput" type="search" class="form-control form-control-sm search-input" placeholder="🔎 Buscar por nombre, documento, email o ciudad">
-      <button type="button" class="btn btn-outline-secondary btn-sm" id="resetFilter">Limpiar</button>
+    <div class="d-flex gap-2">
+      <input id="filterInput" type="search" class="form-control" placeholder="🔎 Buscar por nombre, documento, email o ciudad">
 
       <!-- Botón que abre modal (pequeño y centrado) -->
       <button type="button"
@@ -62,10 +61,10 @@ function avatar_color_for($text) {
     </div>
   </div>
 
-  <div class="card card-nacho mb-4">
+  <div class="card p-3">
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm table-nacho mb-0 align-middle">
+        <table class="table table-striped table-hover align-middle">
             <thead class="table-light">
                 <tr>
                     <th>Cliente</th>
