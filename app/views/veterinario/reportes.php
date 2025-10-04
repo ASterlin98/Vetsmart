@@ -25,10 +25,10 @@ $hasta = $_GET['hasta'] ?? '';
 </head>
 <body>
 
-<div class="container mt-4">
+<div class="container-fluid py-3">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h2 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i> Reportes del Veterinario</h2>
+      <h2 class="fw-bold"><i class="bi bi-bar-chart-line me-2"></i> Reportes del Veterinario</h2>
       <small class="text-muted">Resumen de actividad desde <strong><?= $desde ?: 'inicio' ?></strong> hasta <strong><?= $hasta ?: 'hoy' ?></strong></small>
     </div>
     <div class="d-flex gap-2">

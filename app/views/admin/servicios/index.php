@@ -1,10 +1,9 @@
 <div class="container-fluid py-3">
 
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4">
-    <h2 class="fw-bold ">🛠️ Gestión de Servicios</h2>
+    <h2 class="fw-bold">🛠️ Gestión de Servicios</h2>
 
     <div class="d-flex gap-2">
-      <!-- Buscador -->
       <input type="text" id="searchServicio" class="form-control" placeholder="🔍 Buscar servicio...">
       <!-- Botón que abre modal Crear -->
       <button class="btn btn-primary"

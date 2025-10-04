@@ -310,13 +310,11 @@ function avatar_color_for($text) {
 
       </div>
       <div class="modal-footer">
-        <a id="view_full_link" href="#" class="btn btn-sm btn-outline-primary">Ver ficha completa</a>
         <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
 </div>
-
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>

@@ -23,21 +23,22 @@ $consultas = $consultas ?? [];
 </head>
 <body>
 
-<div class="container py-4">
+<div class="container-fluid py-3">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h3 class="mb-0"><i class="bi bi-journal-medical me-2"></i> Consultas registradas</h3>
+      <h3 class="fw-bold"><i class="bi bi-journal-medical me-2"></i> Consultas registradas</h3>
       <small class="text-muted">Historial de consultas clínicas</small>
     </div>
   </div>
 
-  <div class="card card-list">
+
     <div class="card-body p-0">
       <?php if (empty($consultas)): ?>
         <div class="empty-state text-center text-muted">No tienes consultas registradas.</div>
       <?php else: ?>
+        <div class="card p-3">
         <div class="table-responsive">
-          <table class="table table-hover table-fixed mb-0 align-middle">
+          <table class="table table-striped table-hover align-middle">
             <thead class="table-light">
               <tr>
                 <th style="width:12%">Fecha</th>

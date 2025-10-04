@@ -143,4 +143,6 @@ public function guardar() {
         $this->mascotaModel->eliminar($idMascota);
         header("Location: /vetsmart/admin/clientes/$idCliente");
     }
+
+    
 }

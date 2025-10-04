@@ -49,6 +49,7 @@ return [
         'admin/horarios/{id}/actualizarSemana'=> 'AdminController@actualizarSemana',
         'admin/horarios/{id}/actualizarTurno' => 'AdminController@actualizarTurno',
         'admin/horarios/{id}/actualizarSolicitud'=> 'AdminController@actualizarSolicitud',
+        'admin/clientes/{cliente_id}/mascotas/{id}/actualizar' => 'AdminController@actualizarMascota',
 
         // ================= CITAS (Veterinario) =================
         'veterinario/citas/guardar'    => 'VeterinarioController@guardarCita',

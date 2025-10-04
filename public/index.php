@@ -291,6 +291,12 @@ try {
         exit;
     }
 
+    if (preg_match('#^/admin/clientes/(\d+)/mascotas/(\d+)/actualizar$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller = new ClientesController($pdo);
+        $controller->actualizarMascota((int)$matches[1], (int)$matches[2]);
+        exit;
+    }
+
     if (preg_match('#^/admin/clientes/(\d+)/mascotas/(\d+)/editar$#', $path, $matches)) {
         $controller = new ClientesController($pdo);
         $controller->editarMascota($matches[1], $matches[2]);

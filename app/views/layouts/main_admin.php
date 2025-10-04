@@ -6,7 +6,18 @@
   <title>Panel del Recepcionista</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <style>
-    body { display: flex; min-height: 100vh; background: #f8f9fa; margin:0; }
+    main {
+      flex: 1;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      background: #f8f9fa;
+      margin: 0;
+      flex-direction: column;
+    }
+
     .header {
       width: 100%;
       height: 70px;
@@ -19,17 +30,21 @@
       position: fixed;
       top: 0;
       left: 0;
+      z-index: 30; /* <- importante */
     }
+
     .header h1 {
       font-size: 1.25rem;
       margin: 0;
       font-weight: bold;
     }
+
     .wrapper {
       display: flex;
-      width: 100%;
-      margin-top: 70px; /* espacio para el header fijo */
+      flex: 1; /* <-- el wrapper se expande para empujar el footer hacia abajo */
+      margin-top: 70px;
     }
+
     .sidebar {
       width: 250px;
       background: #212529;
@@ -38,12 +53,15 @@
       flex-direction: column;
       padding: 1rem;
       min-height: calc(100vh - 70px);
+      z-index: 20;
     }
+
     .sidebar h2 {
       font-size: 1.2rem;
       margin-bottom: 1rem;
       font-weight: bold;
     }
+
     .sidebar a {
       color: #ddd;
       text-decoration: none;
@@ -52,23 +70,34 @@
       border-radius: 8px;
       margin-bottom: 0.5rem;
     }
+
     .sidebar a:hover {
       background: #343a40;
       color: #fff;
     }
+
     .sidebar .active {
       background: #0d6efd;
       color: #fff;
     }
+
     .content {
       flex: 1;
-      padding: 2rem;
+      display: flex;
+      flex-direction: column; /* para que el footer quede después del contenido */
+      padding: 25px 20px 0px 20px;
     }
+
     footer {
       text-align: center;
-      margin-top: 2rem;
       font-size: 0.9rem;
       color: #666;
+      margin-top: auto; /* <-- empuja el footer al final */
+      padding: 1rem 0;
+    }
+
+    .modal-root-high-z {
+      z-index: 99999 !important;
     }
   </style>
 </head>

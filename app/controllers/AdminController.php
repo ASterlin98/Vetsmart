@@ -1109,4 +1109,59 @@ public function exportarReportesExcel()
     exit;
 }
 
+public function actualizarMascota(int $cliente_id, int $mascota_id)
+{
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        header("Location: /vetsmart/admin/clientes/{$cliente_id}/mascotas/{$mascota_id}/editar");
+        exit;
+    }
+
+    // Sanitizar / validar
+    $nombre  = trim($_POST['nombre'] ?? '');
+    $especie = trim($_POST['especie'] ?? null);
+    $raza    = trim($_POST['raza'] ?? null);
+    $edad    = $_POST['edad'] !== '' ? (int)$_POST['edad'] : null;
+    $peso    = $_POST['peso'] !== '' ? (float)$_POST['peso'] : null;
+    $notas   = trim($_POST['notas'] ?? null);
+
+    if ($nombre === '') {
+        $_SESSION['flash_error'] = 'El nombre es obligatorio.';
+        header("Location: /vetsmart/admin/clientes/{$cliente_id}/mascotas/{$mascota_id}/editar");
+        exit;
+    }
+
+    try {
+        $stmt = $this->pdo->prepare("
+            UPDATE mascotas
+            SET nombre = :nombre,
+                especie = :especie,
+                raza = :raza,
+                edad = :edad,
+                peso = :peso,
+                notas = :notas
+            WHERE id = :id
+              AND (cliente_id = :cliente_id OR dueno_id = :cliente_id OR owner_id = :cliente_id)
+        ");
+        $stmt->execute([
+            ':nombre'     => $nombre,
+            ':especie'    => $especie,
+            ':raza'       => $raza,
+            ':edad'       => $edad,
+            ':peso'       => $peso,
+            ':notas'      => $notas,
+            ':id'         => $mascota_id,
+            ':cliente_id' => $cliente_id
+        ]);
+
+        $_SESSION['flash_success'] = 'Mascota actualizada correctamente.';
+        header("Location: /vetsmart/admin/clientes/{$cliente_id}");
+        exit;
+    } catch (PDOException $e) {
+        error_log("actualizarMascota error: " . $e->getMessage());
+        $_SESSION['flash_error'] = 'Error actualizando mascota. Revisa logs.';
+        header("Location: /vetsmart/admin/clientes/{$cliente_id}/mascotas/{$mascota_id}/editar");
+        exit;
+    }
+}
+
 }

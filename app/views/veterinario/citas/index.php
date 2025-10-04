@@ -50,7 +50,7 @@ $csrf = $_SESSION['csrf_token'];
 </head>
 <body>
 
-<div class="container py-4">
+<div class="container-fluid py-3">
   <?php if (!empty($_SESSION['flash_success'])): ?>
     <div class="alert alert-success" role="alert">
       <?= htmlspecialchars($_SESSION['flash_success'], ENT_QUOTES | ENT_SUBSTITUTE) ?>

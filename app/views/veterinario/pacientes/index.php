@@ -27,7 +27,7 @@ $q = $q ?? '';
 </head>
 <body>
 
-<div class="container py-4">
+<div class="container-fluid py-3">
   <div class="d-flex justify-content-between align-items-start mb-4">
     <div>
       <h2 class="page-title mb-1">🐾 Pacientes</h2>
@@ -59,9 +59,9 @@ $q = $q ?? '';
         </div>
       <?php else: ?>
         <!-- Desktop: tabla; Mobile: lista cards -->
-        <div class="d-none d-lg-block">
+        <div class="card p-3">
           <div class="table-responsive">
-            <table id="tablaMascotas" class="table align-middle mb-0">
+            <table id="tablaMascotas" class="table table-striped table-hover align-middle">
               <thead class="table-light">
                 <tr>
                   <th>Paciente</th>

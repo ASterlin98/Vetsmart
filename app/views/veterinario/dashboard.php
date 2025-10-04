@@ -25,7 +25,7 @@ $assignedMascotas = $assignedMascotas ?? [];
 </head>
 <body>
 
-<div class="container py-4">
+<div class="container-fluid py-3">
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>

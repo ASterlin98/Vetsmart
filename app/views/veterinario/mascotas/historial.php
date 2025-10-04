@@ -26,12 +26,6 @@ function join_url($base, $path) {
     return $base . '/' . $path;
 }
 
-// Resolver foto: puede ser
-// - nombre de archivo (ej: foto.jpg)
-// - ruta relativa a public (ej: uploads/mascotas/foto.jpg)
-// - ruta con slash inicial (ej: /uploads/mascotas/foto.jpg o /vetsmart/uploads/mascotas/foto.jpg)
-// - ya contener el basePublic (ej: /vetsmart/uploads/mascotas/foto.jpg)
-// - URL absoluta http(s)://...
 $fotoDb = trim((string)$foto);
 $fotoUrl = null;
 $fotoFsPath = null;
@@ -114,7 +108,7 @@ if ($fotoDb !== '') {
 </head>
 <body>
 
-<div class="container py-4">
+<div class="container-fluid py-3">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
       <h3 class="mb-0">Historial clínico</h3>
