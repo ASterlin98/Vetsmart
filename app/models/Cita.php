@@ -285,5 +285,23 @@ public function listarAgenda(array $filtros = []): array {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+public function disponibleParaActualizar($empleado_id, $fecha, $idCita = null) {
+    $sql = "SELECT COUNT(*) FROM citas 
+            WHERE empleado_id = :emp 
+              AND fecha = :fecha";
 
+    $params = [
+        ':emp' => $empleado_id,
+        ':fecha' => $fecha
+    ];
+
+    if ($idCita) {
+        $sql .= " AND id != :id";
+        $params[':id'] = $idCita;
+    }
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchColumn() == 0; // true si disponible
+}
 }

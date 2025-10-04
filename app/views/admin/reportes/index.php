@@ -1,8 +1,8 @@
-<div class="container py-4">
-  <h1 class="h3 mb-4">📊 Reportes</h1>
+<div class="container-fluid mb-4">
+  <h1 class="fw-bold">📊 Reportes</h1>
 
   <!-- Filtros -->
-  <form class="row g-3 mb-4" method="get" action="">
+  <form class="row mb-4" method="get" action="">
     <div class="col-md-4">
       <label class="form-label">Desde</label>
       <input type="date" class="form-control" name="desde" value="<?= htmlspecialchars($desde) ?>">
@@ -16,30 +16,34 @@
       <a href="/vetsmart/admin/exportarReportesExcel?desde=<?= urlencode($desde) ?>&hasta=<?= urlencode($hasta) ?>" class="btn btn-success">📊 Exportar Excel</a>
     </div>
   </form>
-
-  <!-- Servicios más solicitados -->
-  <div class="card mb-4 shadow-sm">
-    <div class="card-body">
-      <h5 class="card-title">🔝 Servicios más solicitados</h5>
-      <canvas id="chartServicios"></canvas>
-      <ul class="mt-3">
-        <?php foreach ($topServicios as $s): ?>
-          <li><?= $s['nombre'] ?>: <strong><?= $s['cantidad'] ?></strong> citas</li>
-        <?php endforeach; ?>
-      </ul>
+  
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body text-center">
+        <h5 class="card-title">🔝 Servicios más solicitados</h5>
+        <canvas id="chartServicios" style="max-width: 100%; height: 715px;"></canvas>
+        <ul class="mt-3 text-start">
+          <?php foreach ($topServicios as $s): ?>
+            <li><?= $s['nombre'] ?>: <strong><?= $s['cantidad'] ?></strong> citas</li>
+          <?php endforeach; ?>
+        </ul>
+      </div>
     </div>
   </div>
 
-  <!-- Empleados con más citas -->
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <h5 class="card-title">👥 Empleados con más citas</h5>
-      <canvas id="chartEmpleados"></canvas>
-      <ul class="mt-3">
-        <?php foreach ($topEmpleados as $e): ?>
-          <li><?= $e['empleado'] ?>: <strong><?= $e['cantidad'] ?></strong> citas</li>
-        <?php endforeach; ?>
-      </ul>
+  <div class="col-md-6">
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title">👥 Empleados con más citas</h5>
+          <canvas id="chartEmpleados" style="max-width: 100%; height: 80px;"></canvas>
+          <ul class="mt-3 text-start">
+            <?php foreach ($topEmpleados as $e): ?>
+              <li><?= $e['empleado'] ?>: <strong><?= $e['cantidad'] ?></strong> citas</li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 </div>

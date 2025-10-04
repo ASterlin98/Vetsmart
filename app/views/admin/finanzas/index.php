@@ -1,5 +1,5 @@
-<div class="container py-4">
-  <h1 class="h3 mb-4">💰 Finanzas</h1>
+<div class="container-fluid py-3">
+  <h1 class="fw-bold">💰 Finanzas</h1>
 
   <!-- Filtros -->
   <form class="row g-3 mb-4" method="get" action="">
@@ -18,10 +18,10 @@
   </form>
 
   <!-- Tabla -->
-  <div class="card shadow-sm">
+  <div class="card p-3">
     <div class="card-body">
-      <table class="table table-striped table-hover">
-        <thead class="table-dark">
+      <table class="table table-striped table-hover align-middle">
+        <thead class="table-light">
           <tr>
             <th>ID</th>
             <th>Fecha</th>

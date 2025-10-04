@@ -350,74 +350,77 @@ public function misCitas()
 }
 
     // (Opcionales) actualizar / eliminar métodos mínimos
-    public function actualizarCita()
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /veterinario/mis-citas');
-            exit;
-        }
-
-        $id = $_POST['id'] ?? null;
-        if (!$id) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'ID requerido']);
-            exit;
-        }
-
-        // leer campos similares a guardar
-        $cliente_id = $_POST['cliente_id'] ?? null;
-        $mascota_id = $_POST['mascota_id'] ?? null;
-        $servicio_id = $_POST['servicio_id'] ?? null;
-        $empleado_id = $_POST['empleado_id'] ?? ($_SESSION['user']['id'] ?? null);
-        $notas = $_POST['notas'] ?? null;
-
-        if (!empty($_POST['fecha'])) {
-            $fechaHora = date('Y-m-d H:i:s', strtotime($_POST['fecha']));
-        } elseif (!empty($_POST['fecha_date']) && !empty($_POST['hora_time'])) {
-            $fechaHora = date('Y-m-d H:i:s', strtotime($_POST['fecha_date'] . ' ' . $_POST['hora_time']));
-        } else {
-            $fechaHora = null;
-        }
-
-        $data = [];
-        if ($cliente_id !== null) $data['cliente_id'] = $cliente_id;
-        if ($mascota_id !== null) $data['mascota_id'] = $mascota_id;
-        if ($servicio_id !== null) $data['servicio_id'] = $servicio_id;
-        if ($empleado_id !== null) $data['empleado_id'] = $empleado_id;
-        if ($fechaHora !== null) $data['fecha'] = $fechaHora;
-        if ($notas !== null) $data['notas'] = $notas;
-
-        if (empty($data)) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Nada para actualizar']);
-            exit;
-        }
-
-        try {
-            if (method_exists($this->citaModel, 'actualizar')) {
-                $this->citaModel->actualizar($id, $data);
-            } else {
-                // construir SET dinámico
-                $sets = [];
-                $params = [':id' => $id];
-                foreach ($data as $k => $v) {
-                    $sets[] = "{$k} = :{$k}";
-                    $params[":{$k}"] = $v;
-                }
-                $sql = "UPDATE citas SET " . implode(', ', $sets) . " WHERE id = :id";
-                $stmt = $this->db->prepare($sql);
-                $stmt->execute($params);
-            }
-
-            header('Content-Type: application/json');
-            echo json_encode(['success' => true]);
-        } catch (PDOException $e) {
-            error_log("ERROR actualizarCita: " . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Error DB']);
-        }
-        exit;
+public function actualizarCita() {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+        return;
     }
+
+    $id         = $_POST['id'] ?? null;
+    $cliente_id = $_POST['cliente_id'] ?? null;
+    $mascota_id = $_POST['mascota_id'] ?? null;
+    $servicio_id= $_POST['servicio_id'] ?? null;
+    $empleado_id= $_SESSION['user']['id'] ?? null;
+    $notas      = $_POST['notas'] ?? null;
+    $estado     = $_POST['estado'] ?? null;
+
+    // reconstruir fecha solo si viene
+    $fechaHora = null;
+    if (!empty($_POST['fecha_date']) && !empty($_POST['hora_time'])) {
+        $fechaHora = date('Y-m-d H:i:s', strtotime($_POST['fecha_date'].' '.$_POST['hora_time']));
+    } elseif (!empty($_POST['fecha'])) {
+        $fechaHora = date('Y-m-d H:i:s', strtotime($_POST['fecha']));
+    }
+
+    // validar disponibilidad SOLO si cambió la fecha
+    if ($fechaHora) {
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*) as total 
+            FROM citas 
+            WHERE fecha = :fecha 
+              AND empleado_id = :empleado_id 
+              AND id != :id
+        ");
+        $stmt->execute([
+            ':fecha' => $fechaHora,
+            ':empleado_id' => $empleado_id,
+            ':id' => $id
+        ]);
+        $exists = $stmt->fetchColumn();
+        if ($exists > 0) {
+            echo json_encode(['success' => false, 'message' => 'Ya existe otra cita en esa fecha y hora']);
+            return;
+        }
+    }
+
+    // armar datos para update dinámico
+    $data = [];
+    if ($cliente_id) $data['cliente_id'] = $cliente_id;
+    if ($mascota_id) $data['mascota_id'] = $mascota_id;
+    if ($servicio_id) $data['servicio_id'] = $servicio_id;
+    if ($empleado_id) $data['empleado_id'] = $empleado_id;
+    if ($fechaHora)   $data['fecha'] = $fechaHora;
+    if ($notas !== null) $data['notas'] = $notas;
+    if ($estado) $data['estado'] = $estado;
+
+    if (empty($data)) {
+        echo json_encode(['success' => false, 'message' => 'No hay datos para actualizar']);
+        return;
+    }
+
+    // generar SET dinámico
+    $setPart = implode(', ', array_map(fn($k)=>"$k = :$k", array_keys($data)));
+    $data['id'] = $id;
+
+    $sql = "UPDATE citas SET $setPart WHERE id = :id";
+    $stmt = $this->db->prepare($sql);
+    $ok = $stmt->execute($data);
+
+    echo json_encode(['success' => $ok, 'message' => $ok ? 'Cita actualizada' : 'Error al actualizar']);
+}
+
+
 
     // Eliminar cita por id (acepta GET o POST)
     public function eliminarCitaAjax($id = null)
