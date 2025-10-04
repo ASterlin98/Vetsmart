@@ -613,6 +613,28 @@ try {
         exit;
     }
 
+    // Admin - Agenda
+if ($path === '/admin/agenda' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->agenda();
+    exit;
+}
+if ($path === '/admin/agenda/listar' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->listarCitasJson();
+    exit;
+}
+if ($path === '/admin/agenda/estadisticas' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->estadisticasAgendaJson();
+    exit;
+}
+if ($path === '/admin/agenda/exportarExcel' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->exportarExcel();   // 👈 este método debe existir en tu AdminController
+    exit;
+}
+
 // ==================== EMPLEADOS ====================
 if ($path === '/admin/empleados' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require_once APP_ROOT . '/controllers/AdminController.php';

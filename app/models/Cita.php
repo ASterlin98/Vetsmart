@@ -235,4 +235,55 @@ public function getPorMascota(int $mascotaId): array {
     }
 }
 
+public function listarAgenda(array $filtros = []): array {
+    $sql = "
+        SELECT 
+            c.id, c.fecha, c.hora, c.estado, c.notas,
+            cli.nombre AS cliente_nombre, cli.apellido AS cliente_apellido,
+            m.nombre AS mascota_nombre,
+            s.nombre AS servicio_nombre, s.precio,
+            emp.nombre AS empleado_nombre, emp.apellido AS empleado_apellido
+        FROM citas c
+        INNER JOIN usuarios cli ON c.cliente_id = cli.id
+        INNER JOIN mascotas m ON c.mascota_id = m.id
+        INNER JOIN servicios s ON c.servicio_id = s.id
+        INNER JOIN usuarios emp ON c.empleado_id = emp.id
+        WHERE 1=1
+    ";
+
+    $params = [];
+
+    // Filtro por rango de fechas (mes actual por defecto)
+    $desde = $filtros['desde'] ?? date('Y-m-01');
+    $hasta = $filtros['hasta'] ?? date('Y-m-t');
+    $sql .= " AND DATE(c.fecha) BETWEEN :desde AND :hasta";
+    $params[':desde'] = $desde;
+    $params[':hasta'] = $hasta;
+
+    // Filtro por empleado
+    if (!empty($filtros['empleado_id'])) {
+        $sql .= " AND c.empleado_id = :empleado";
+        $params[':empleado'] = (int)$filtros['empleado_id'];
+    }
+
+    // Filtro por servicio
+    if (!empty($filtros['servicio_id'])) {
+        $sql .= " AND c.servicio_id = :servicio";
+        $params[':servicio'] = (int)$filtros['servicio_id'];
+    }
+
+    // Filtro por estado
+    if (!empty($filtros['estado'])) {
+        $sql .= " AND c.estado = :estado";
+        $params[':estado'] = $filtros['estado'];
+    }
+
+    $sql .= " ORDER BY c.fecha ASC, c.hora ASC";
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
 }

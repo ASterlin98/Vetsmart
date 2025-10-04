@@ -3,6 +3,11 @@
 
 declare(strict_types=1);
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+
 class AdminController extends Controller
 {
     private $pdo;
@@ -20,6 +25,7 @@ class AdminController extends Controller
     public function empleadosActualizar($id) { return $this->actualizarEmpleado($id); }
     public function empleadosEliminar($id) { return $this->eliminarEmpleado($id); }
     // ---------------------------------------------------------------
+    
 
     /** LISTAR EMPLEADOS */
     public function empleadosIndex()
@@ -537,9 +543,6 @@ public function eliminarSolicitud($id)
     }
 }
 
-/* ==================================================
- *  ACTUALIZAR HORARIO SEMANAL
- * ================================================== */
 public function actualizarSemana($id)
 {
     try {
@@ -579,6 +582,342 @@ public function eliminarSemana($id)
         header("Location: /vetsmart/admin/horarios");
         exit;
     }
+}
+
+public function agenda()
+{
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+    $user = $_SESSION['user'] ?? null;
+    if (!$user) { header('Location: /vetsmart/login'); exit; }
+
+    // filtros
+    $desde = $_GET['desde'] ?? date('Y-m-01');
+    $hasta = $_GET['hasta'] ?? date('Y-m-t');
+    $empleado_id = $_GET['empleado_id'] ?? null;
+    $servicio_id = $_GET['servicio_id'] ?? null;
+    $estado = $_GET['estado'] ?? null;
+
+    // consulta citas
+    $sql = "
+        SELECT ci.id, DATE(ci.fecha) AS fecha, TIME(ci.fecha) AS hora, ci.estado, ci.notas,
+               m.nombre AS mascota_nombre,
+               CONCAT(u_cli.nombre,' ',u_cli.apellido) AS cliente_nombre,
+               CONCAT(u_emp.nombre,' ',u_emp.apellido) AS empleado_nombre,
+               s.nombre AS servicio_nombre
+        FROM citas ci
+        LEFT JOIN mascotas m ON ci.mascota_id = m.id
+        LEFT JOIN usuarios u_cli ON ci.cliente_id = u_cli.id
+        LEFT JOIN usuarios u_emp ON ci.empleado_id = u_emp.id
+        LEFT JOIN servicios s ON ci.servicio_id = s.id
+        WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+    ";
+    $params = [':desde' => $desde, ':hasta' => $hasta];
+
+    if ($empleado_id) {
+        $sql .= " AND ci.empleado_id = :empleado_id";
+        $params[':empleado_id'] = $empleado_id;
+    }
+    if ($servicio_id) {
+        $sql .= " AND ci.servicio_id = :servicio_id";
+        $params[':servicio_id'] = $servicio_id;
+    }
+    if ($estado) {
+        $sql .= " AND ci.estado = :estado";
+        $params[':estado'] = $estado;
+    }
+
+    $sql .= " ORDER BY ci.fecha ASC";
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute($params);
+    $citas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // traer servicios y usuarios (para filtros)
+    $servicios = $this->pdo->query("SELECT id, nombre, precio FROM servicios ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+    $usuarios = $this->pdo->query("
+    SELECT u.id, u.nombre, u.apellido, u.role_id, r.nombre AS role_nombre
+    FROM usuarios u
+    LEFT JOIN roles r ON u.role_id = r.id
+    WHERE u.role_id IN (3,4,5)
+    ORDER BY u.nombre
+")->fetchAll(PDO::FETCH_ASSOC);
+
+    // layout según rol
+    $layout = ($user['role_id'] == 3) ? 'main_recepcionista' : 'main_admin';
+
+    $this->view("admin/agenda", [
+        'citas'     => $citas,
+        'servicios' => $servicios,
+        'usuarios'  => $usuarios
+    ], $layout);
+}
+
+
+public function listarCitasJson()
+{
+    header('Content-Type: application/json; charset=utf-8');
+
+    $start = $_GET['start'] ?? null;
+    $end = $_GET['end'] ?? null;
+    $servicio_id = $_GET['servicio_id'] ?? null;
+    $empleado_id = $_GET['empleado_id'] ?? null;
+    $estado = $_GET['estado'] ?? null;
+
+    try {
+        $sql = "
+            SELECT ci.*,
+                   COALESCE(ci.precio, s.precio, 0) AS precio_final,
+                   m.nombre AS nombre_mascota, m.raza AS raza_mascota,
+                   u_emp.id AS empleado_id, u_emp.nombre AS empleado_nombre, u_emp.apellido AS empleado_apellido, u_emp.role_id AS empleado_role,
+                   u_cli.id AS cliente_id, u_cli.nombre AS cliente_nombre, u_cli.apellido AS cliente_apellido,
+                   s.id AS servicio_id, s.nombre AS servicio_nombre
+            FROM citas ci
+            LEFT JOIN mascotas m ON ci.mascota_id = m.id
+            LEFT JOIN servicios s ON ci.servicio_id = s.id
+            LEFT JOIN usuarios u_emp ON ci.empleado_id = u_emp.id
+            LEFT JOIN usuarios u_cli ON ci.cliente_id = u_cli.id
+            WHERE 1=1
+        ";
+
+        $params = [];
+
+        if ($start && $end) {
+            $sql .= " AND DATE(ci.fecha) BETWEEN :start AND :end ";
+            $params[':start'] = $start;
+            $params[':end'] = $end;
+        }
+
+        if ($servicio_id) {
+            $sql .= " AND ci.servicio_id = :servicio_id ";
+            $params[':servicio_id'] = $servicio_id;
+        }
+        if ($empleado_id) {
+            $sql .= " AND ci.empleado_id = :empleado_id ";
+            $params[':empleado_id'] = $empleado_id;
+        }
+        if ($estado) {
+            $sql .= " AND ci.estado = :estado ";
+            $params[':estado'] = $estado;
+        }
+
+        $sql .= " ORDER BY ci.fecha ASC ";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $out = array_map(function($r) {
+            return [
+                'id' => $r['id'],
+                'title' => ($r['nombre_mascota'] ?? 'Cita') . (isset($r['servicio_nombre']) ? " — {$r['servicio_nombre']}" : ''),
+                'start' => $r['fecha'],
+                'allDay' => false,
+                'precio' => (float) $r['precio_final'],
+                'mascota_id' => $r['mascota_id'] ?? null,
+                'nombre_mascota' => $r['nombre_mascota'] ?? '',
+                'raza_mascota' => $r['raza_mascota'] ?? '',
+                'servicio_id' => $r['servicio_id'] ?? null,
+                'servicio_nombre' => $r['servicio_nombre'] ?? null,
+                'empleado_id' => $r['empleado_id'] ?? null,
+                'empleado_nombre' => trim(($r['empleado_nombre'] ?? '') . ' ' . ($r['empleado_apellido'] ?? '')),
+                'empleado_role' => $r['empleado_role'] ?? null,
+                'cliente_id' => $r['cliente_id'] ?? null,
+                'cliente_nombre' => trim(($r['cliente_nombre'] ?? '') . ' ' . ($r['cliente_apellido'] ?? '')),
+                'estado' => $r['estado'] ?? 'programada',
+                'notas' => $r['notas'] ?? null
+            ];
+        }, $rows);
+
+        echo json_encode($out);
+        exit;
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Error DB', 'msg' => $e->getMessage()]);
+        exit;
+    }
+}
+
+// --------------------------------------------------
+// Estadísticas entre dos fechas (JSON)
+// GET: desde, hasta
+public function estadisticasAgendaJson()
+{
+    header('Content-Type: application/json; charset=utf-8');
+    $desde = $_GET['desde'] ?? null;
+    $hasta = $_GET['hasta'] ?? null;
+    if (!$desde || !$hasta) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Parámetros desde y hasta requeridos.']);
+        exit;
+    }
+
+    try {
+        // Totales
+        $sqlTotals = "
+            SELECT COUNT(*) AS total_citas, COALESCE(SUM(COALESCE(ci.precio, s.precio, 0)),0) AS total_recaudo,
+                   COALESCE(AVG(COALESCE(ci.precio, s.precio, 0)),0) AS promedio_valor
+            FROM citas ci
+            LEFT JOIN servicios s ON ci.servicio_id = s.id
+            WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+        ";
+        $stmt = $this->pdo->prepare($sqlTotals);
+        $stmt->execute([':desde' => $desde, ':hasta' => $hasta]);
+        $tot = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Top servicios
+        $sqlTopServicios = "
+            SELECT s.id, s.nombre, COUNT(*) AS veces, COALESCE(SUM(COALESCE(ci.precio, s.precio, 0)),0) AS total
+            FROM citas ci
+            LEFT JOIN servicios s ON ci.servicio_id = s.id
+            WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+            GROUP BY s.id, s.nombre
+            ORDER BY veces DESC
+            LIMIT 8
+        ";
+        $stmt = $this->pdo->prepare($sqlTopServicios);
+        $stmt->execute([':desde' => $desde, ':hasta' => $hasta]);
+        $topServicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Top razas
+        $sqlTopRazas = "
+            SELECT m.raza AS raza, COUNT(*) AS veces
+            FROM citas ci
+            LEFT JOIN mascotas m ON ci.mascota_id = m.id
+            WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+            GROUP BY m.raza
+            ORDER BY veces DESC
+            LIMIT 8
+        ";
+        $stmt = $this->pdo->prepare($sqlTopRazas);
+        $stmt->execute([':desde' => $desde, ':hasta' => $hasta]);
+        $topRazas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Por rol (4 veterinario, 3 recepcionista, 5 peluquero)
+        $sqlByRole = "
+            SELECT u.role_id, COUNT(*) AS cnt, COALESCE(SUM(COALESCE(ci.precio, s.precio, 0)),0) AS total
+            FROM citas ci
+            LEFT JOIN usuarios u ON ci.empleado_id = u.id
+            LEFT JOIN servicios s ON ci.servicio_id = s.id
+            WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
+            GROUP BY u.role_id
+        ";
+        $stmt = $this->pdo->prepare($sqlByRole);
+        $stmt->execute([':desde' => $desde, ':hasta' => $hasta]);
+        $byRoleRaw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $roleMap = [4 => 'Veterinario', 3 => 'Recepcionista', 5 => 'Peluquero'];
+        $byRole = [];
+        foreach ($byRoleRaw as $r) {
+            $rid = (int)$r['role_id'];
+            $byRole[] = [
+                'role_id' => $rid,
+                'role_name' => $roleMap[$rid] ?? ("role_{$rid}"),
+                'count' => (int)$r['cnt'],
+                'revenue' => (float)$r['total']
+            ];
+        }
+
+        // Por estado
+        $sqlEstado = "
+            SELECT estado, COUNT(*) AS cnt
+            FROM citas
+            WHERE DATE(fecha) BETWEEN :desde AND :hasta
+            GROUP BY estado
+        ";
+        $stmt = $this->pdo->prepare($sqlEstado);
+        $stmt->execute([':desde' => $desde, ':hasta' => $hasta]);
+        $byEstado = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $resp = [
+            'totales' => [
+                'total_citas' => (int)($tot['total_citas'] ?? 0),
+                'total_recaudo' => (float)($tot['total_recaudo'] ?? 0),
+                'promedio_valor' => (float)($tot['promedio_valor'] ?? 0)
+            ],
+            'top_servicios' => $topServicios,
+            'top_razas' => $topRazas,
+            'por_rol' => $byRole,
+            'por_estado' => $byEstado
+        ];
+
+        echo json_encode($resp);
+        exit;
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Error DB', 'msg' => $e->getMessage()]);
+        exit;
+    }
+}
+
+public function exportarExcel()
+{
+    $desde = $_GET['desde'] ?? date('Y-m-01');
+    $hasta = $_GET['hasta'] ?? date('Y-m-t');
+
+$stmt = $this->db->prepare("
+    SELECT 
+        c.id,
+        DATE(c.fecha) AS fecha,       -- solo la fecha
+        TIME(c.fecha) AS hora,        -- solo la hora
+        s.nombre AS servicio,
+        m.nombre AS mascota,
+        cli.nombre AS cliente,
+        u.nombre AS empleado
+    FROM citas c
+    JOIN servicios s ON c.servicio_id = s.id
+    JOIN mascotas m ON c.mascota_id = m.id
+    JOIN usuarios cli ON m.dueño_id = cli.id
+    JOIN usuarios u ON c.empleado_id = u.id
+    WHERE c.fecha BETWEEN :desde AND :hasta
+    ORDER BY c.fecha ASC
+");
+
+    $stmt->execute([
+        ':desde' => $desde,
+        ':hasta' => $hasta
+    ]);
+    $citas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle("Agenda");
+
+    // Encabezados
+    $headers = ["ID", "Fecha", "Hora", "Servicio", "Mascota", "Cliente", "Empleado"];
+    $col = 'A';
+    foreach ($headers as $h) {
+        $sheet->setCellValue($col.'1', $h);
+        $sheet->getStyle($col.'1')->getFont()->setBold(true);
+        $sheet->getStyle($col.'1')->getFill()
+              ->setFillType(Fill::FILL_SOLID)
+              ->getStartColor()->setARGB('FFD9E1F2');
+        $sheet->getColumnDimension($col)->setAutoSize(true);
+        $col++;
+    }
+
+    // Datos
+    $row = 2;
+    foreach ($citas as $c) {
+        $sheet->setCellValue('A'.$row, $c['id']);
+        $sheet->setCellValue('B'.$row, $c['fecha']);
+        $sheet->setCellValue('C'.$row, $c['hora']);
+        $sheet->setCellValue('D'.$row, $c['servicio']);
+        $sheet->setCellValue('E'.$row, $c['mascota']);
+        $sheet->setCellValue('F'.$row, $c['cliente']);
+        $sheet->setCellValue('G'.$row, $c['empleado']);
+        $row++;
+    }
+
+    // Bordes
+    $sheet->getStyle('A1:G'.($row-1))->getBorders()->getAllBorders()
+          ->setBorderStyle(Border::BORDER_THIN);
+
+    // Descargar
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header("Content-Disposition: attachment; filename=agenda_{$desde}_{$hasta}.xlsx");
+    header('Cache-Control: max-age=0');
+
+    $writer = new Xlsx($spreadsheet);
+    $writer->save('php://output');
+    exit;
 }
 
 }
