@@ -806,6 +806,13 @@ if ($path === '/api/disponibilidad-veterinario' && $_SERVER['REQUEST_METHOD'] ==
     exit;
 }
 
+if ($path === '/super_admin/dashboard' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    require_once APP_ROOT . '/controllers/SuperAdminController.php';
+    $controller = new SuperAdminController($pdo);
+    $controller->dashboard();
+    exit;
+}
+
 // ==================== API: DISPONIBILIDAD ====================
 if ($path === '/api/disponibilidad' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     header('Content-Type: application/json; charset=utf-8');

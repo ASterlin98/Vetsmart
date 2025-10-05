@@ -1,57 +1,153 @@
-<h1 class="h3 mb-4">Dashboard Super Administrador</h1>
+<?php
+// app/views/super_admin/dashboard.php
+$totClientes = $totalClientes ?? 0;
+$totMascotas = $totalMascotas ?? 0;
+$totCitas = $totalCitas ?? 0;
+$totIngresos = $totalIngresos ?? 0.0;
+$totVacunas = $totalVacunas ?? 0;
+$citasConfirmadas = $citasConfirmadas ?? 0;
+$recentActivity = $recentActivity ?? [];
+$error = $error ?? null;
 
-<div class="row">
-  <!-- Gestión de Clínicas -->
-  <div class="col-md-6 col-lg-4 mb-3">
-    <div class="card p-3 shadow-sm">
-      <h5>🏥 Clínicas</h5>
-      <p>Registrar, editar o eliminar clínicas dentro del sistema. Controlar su información y estatus.</p>
-      <a href="/vetsmart/superadmin/clinicas" class="btn btn-primary btn-sm">Ir a Clínicas</a>
+function fmtMoney($v) {
+    return '$' . number_format((float)$v, 2, '.', ',');
+}
+?>
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="fw-bold">Panel del Super Administrador</h1>
+      <p class="text-muted mb-4">Resumen general del sistema</p>
     </div>
   </div>
 
-  <!-- Gestión de Usuarios Global -->
-  <div class="col-md-6 col-lg-4 mb-3">
-    <div class="card p-3 shadow-sm">
-      <h5>👤 Usuarios Globales</h5>
-      <p>Administrar usuarios de todas las clínicas (crear, suspender, asignar roles).</p>
-      <a href="/vetsmart/superadmin/usuarios" class="btn btn-primary btn-sm">Ir a Usuarios</a>
+  <?php if ($error): ?>
+    <div class="alert alert-danger">
+      <strong>Error:</strong> <?= htmlspecialchars($error) ?>
+    </div>
+  <?php endif; ?>
+
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-primary fw-semibold">Clientes</div>
+          <div class="display-6 fw-bold"><?= number_format($totClientes) ?></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-success fw-semibold">Mascotas</div>
+          <div class="display-6 fw-bold"><?= number_format($totMascotas) ?></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-warning fw-semibold">Citas</div>
+          <div class="display-6 fw-bold"><?= number_format($totCitas) ?></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-danger fw-semibold">Ingresos</div>
+          <div class="display-6 fw-bold"><?= fmtMoney($totIngresos) ?></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Gestión de Roles -->
-  <div class="col-md-6 col-lg-4 mb-3">
-    <div class="card p-3 shadow-sm">
-      <h5>🔑 Roles</h5>
-      <p>Crear y asignar roles personalizados (recepcionista, veterinario, peluquero, administrador, etc.).</p>
-      <a href="/vetsmart/superadmin/roles" class="btn btn-primary btn-sm">Ir a Roles</a>
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Actividad reciente</h5>
+          <p class="text-muted small">Aquí podrás ver las acciones recientes del sistema.</p>
+
+          <?php if (empty($recentActivity)): ?>
+            <div class="text-muted">No se han detectado actividades recientes.</div>
+          <?php else: ?>
+            <ul class="list-group list-group-flush">
+              <?php foreach ($recentActivity as $a): 
+                $tipo = htmlspecialchars($a['tipo'] ?? '');
+                $actor = htmlspecialchars(trim($a['actor'] ?? ''));
+                $accion = htmlspecialchars($a['accion'] ?? '');
+                $detalle = htmlspecialchars($a['detalle'] ?? '');
+                $time = $a['creado_en'] ?? null;
+                $when = '';
+                if ($time) {
+                  $ts = strtotime($time);
+                  if ($ts !== false) $when = date('d/m/Y H:i', $ts);
+                  else $when = htmlspecialchars($time);
+                }
+              ?>
+                <li class="list-group-item">
+                  <div class="d-flex justify-content-between">
+                    <div>
+                      <div class="fw-semibold"><?= $accion ?> <?= $tipo ? " — " . $tipo : '' ?></div>
+                      <div class="small text-muted"><?= $detalle ?></div>
+                      <?php if ($actor): ?><div class="small text-muted">Por: <?= $actor ?></div><?php endif; ?>
+                    </div>
+                    <div class="text-end small text-muted"><?= $when ?></div>
+                  </div>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          <?php endif; ?>
+        </div>
+      </div>
+
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h6 class="mb-2">Resumen adicional</h6>
+          <div class="row">
+            <div class="col-6">
+              <div class="small text-muted">Vacunas registradas</div>
+              <div class="fw-bold"><?= number_format($totVacunas) ?></div>
+            </div>
+            <div class="col-6">
+              <div class="small text-muted">Citas confirmadas</div>
+              <div class="fw-bold"><?= number_format($citasConfirmadas) ?></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h6 class="card-title">Accesos rápidos</h6>
+          <div class="d-grid gap-2">
+            <a href="/vetsmart/super_admin/usuarios" class="btn btn-primary">Gestionar usuarios</a>
+            <a href="/vetsmart/super_admin/configuracion" class="btn btn-outline-secondary">Configuración global</a>
+            <a href="/vetsmart/super_admin/reportes" class="btn btn-outline-info">Ir a reportes</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="card-title">Notas</h6>
+          <p class="small text-muted mb-0">Usa este panel para monitorear la actividad y acceder a los módulos del sistema.</p>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- Configuración Global -->
-  <div class="col-md-6 col-lg-4 mb-3">
-    <div class="card p-3 shadow-sm">
-      <h5>⚙️ Configuración Global</h5>
-      <p>Gestionar parámetros generales del sistema (planes, pagos, seguridad, backups).</p>
-      <a href="/vetsmart/superadmin/configuracion" class="btn btn-primary btn-sm">Configuración</a>
-    </div>
-  </div>
-
-  <!-- Reportes Generales -->
-  <div class="col-md-6 col-lg-4 mb-3">
-    <div class="card p-3 shadow-sm">
-      <h5>📊 Reportes Generales</h5>
-      <p>Ver reportes de actividad global: ingresos, citas, usuarios activos, métricas de clínicas.</p>
-      <a href="/vetsmart/superadmin/reportes" class="btn btn-primary btn-sm">Ver Reportes</a>
-    </div>
-  </div>
-
-  <!-- Auditorías -->
-  <div class="col-md-6 col-lg-4 mb-3">
-    <div class="card p-3 shadow-sm">
-      <h5>🔍 Auditoría</h5>
-      <p>Monitorear cambios y actividades relevantes realizadas por administradores y usuarios.</p>
-      <a href="/vetsmart/superadmin/auditoria" class="btn btn-primary btn-sm">Ver Auditoría</a>
+  <div class="row mt-5">
+    <div class="col-12 text-center text-muted">
+      © <?= date('Y') ?> VetSmart. Todos los derechos reservados.
     </div>
   </div>
 </div>

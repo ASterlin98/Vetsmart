@@ -32,6 +32,16 @@ return [
         // ================= CITAS (Veterinario) =================
         'veterinario/mis-citas'     => 'VeterinarioController@misCitas',
         'veterinario/citas/listar'  => 'VeterinarioController@listarCitasJson',
+
+        // ================= SUPER ADMIN =================
+        'super_admin/dashboard' => 'SuperAdminController@dashboard',
+        'super_admin/usuarios'        => 'SuperAdminController@usuarios',
+        'super_admin/usuarios/crear'  => 'SuperAdminController@crearUsuario',
+        'super_admin/usuarios/{id}/editar' => 'SuperAdminController@editarUsuario',
+        'super_admin/usuarios/{id}/eliminar' => 'SuperAdminController@eliminarUsuario',
+        'super_admin/estadisticas'    => 'SuperAdminController@estadisticas',
+        'super_admin/configuracion'   => 'SuperAdminController@configuracion',
+        'super_admin/auditoria'       => 'SuperAdminController@auditoria',
     ],
 
     'POST' => [
@@ -55,5 +65,10 @@ return [
         'veterinario/citas/guardar'    => 'VeterinarioController@guardarCita',
         'veterinario/citas/actualizar' => 'VeterinarioController@actualizarCita',
         'veterinario/citas/eliminar'   => 'VeterinarioController@eliminarCitaAjax',
+
+        // ================= SUPER ADMIN =================
+        'super_admin/usuarios/guardar' => 'SuperAdminController@guardarUsuario',
+        'super_admin/usuarios/{id}/actualizar' => 'SuperAdminController@actualizarUsuario',
+        'super_admin/configuracion/guardar' => 'SuperAdminController@guardarConfiguracion',
     ],
 ];
