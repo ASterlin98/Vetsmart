@@ -144,5 +144,15 @@ public function guardar() {
         header("Location: /vetsmart/admin/clientes/$idCliente");
     }
 
-    
+    public function actualizarMascota($idCliente, $idMascota) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $this->mascotaModel->actualizar($idMascota, $_POST);
+        header("Location: /vetsmart/admin/clientes");
+        exit;
+    } else {
+        http_response_code(405);
+        echo "Método no permitido.";
+        exit;
+    }
+}
 }

@@ -1,6 +1,14 @@
 <h3>Mascotas</h3>
 
-<a href="/vetsmart/admin/clientes/<?php echo $cliente['id']; ?>/mascotas/crear" class="btn btn-success mb-3">➕ Nueva Mascota</a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="/vetsmart/admin/clientes/<?php echo $cliente['id']; ?>/mascotas/crear" class="btn btn-success">
+        ➕ Nueva Mascota
+    </a>
+
+    <a href="/vetsmart/admin/clientes" class="btn btn-secondary">
+        🔙 Volver a Clientes
+    </a>
+</div>
 
 <?php if (empty($mascotas)): ?>
     <p>No hay mascotas registradas para este cliente.</p>
