@@ -34,13 +34,17 @@ class Config {
 
         try {
             // Usamos INSERT ... ON DUPLICATE KEY UPDATE para manejar tanto la creación como la actualización
+            // Usar VALUES(valor) es más robusto que volver a vincular el parámetro.
             $sql = "INSERT INTO config (clave, valor) VALUES (:clave, :valor)
-                    ON DUPLICATE KEY UPDATE valor = :valor";
+                    ON DUPLICATE KEY UPDATE valor = VALUES(valor)";
 
             $stmt = $this->db->prepare($sql);
 
             foreach ($settings as $key => $value) {
-                $stmt->execute(['clave' => $key, 'valor' => $value]);
+                $stmt->execute([
+                    ':clave' => $key,
+                    ':valor' => $value
+                ]);
             }
 
             $this->db->commit();
