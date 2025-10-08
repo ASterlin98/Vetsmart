@@ -106,9 +106,10 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedRoleName.textContent = roleName;
         loadingSpinner.style.display = 'block';
 
-        // Construir la URL de forma segura
+        // Construir la URL de forma segura, incluyendo el base path
         const baseUrl = window.location.origin;
-        const fetchUrl = `${baseUrl}/super_admin/getPermisosPorRol/${roleId}`;
+        const basePath = '/vetsmart'; // Ajusta si tu ruta base es diferente
+        const fetchUrl = `${baseUrl}${basePath}/super_admin/getPermisosPorRol/${roleId}`;
 
         fetch(fetchUrl)
             .then(response => {
@@ -191,7 +192,8 @@ document.addEventListener('DOMContentLoaded', function() {
         saveBtn.disabled = true;
 
         const baseUrl = window.location.origin;
-        const postUrl = `${baseUrl}/super_admin/actualizarPermisos`;
+        const basePath = '/vetsmart'; // Asegúrate que coincida con el de arriba
+        const postUrl = `${baseUrl}${basePath}/super_admin/actualizarPermisos`;
 
         fetch(postUrl, {
             method: 'POST',
