@@ -1,36 +1,57 @@
 <?php
 // app/views/veterinario/consultas/ver.php
 $consulta = $consulta ?? null;
-if (!$consulta) { echo "<div class='container py-4'>Consulta no encontrada.</div>"; return; }
+if (!$consulta) {
+  echo "<div class='p-3 text-danger'>Consulta no encontrada.</div>";
+  return;
+}
 ?>
-<div class="container py-4">
-  <h2>Consulta #<?= htmlspecialchars($consulta['id']) ?></h2>
-  <p><strong>Mascota:</strong> <?= htmlspecialchars($consulta['nombre_mascota'] ?? '-') ?></p>
-  <p><strong>Fecha:</strong> <?= htmlspecialchars($consulta['creado_en']) ?></p>
-  <hr>
-  <h5>Motivo</h5>
-  <p><?= nl2br(htmlspecialchars($consulta['motivo'] ?? '-')) ?></p>
+<div class="modal-header">
+  <h5 class="modal-title">
+    🩺 Consulta #<?= htmlspecialchars($consulta['id']) ?> - <?= htmlspecialchars($consulta['nombre_mascota'] ?? '-') ?>
+  </h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+</div>
 
-  <h5>Examen</h5>
-  <p><?= nl2br(htmlspecialchars($consulta['examen'] ?? '-')) ?></p>
+<div class="modal-body small">
+  <div class="mb-2">
+    <span class="text-muted">📅 Fecha:</span>
+    <?= htmlspecialchars(date('d/m/Y H:i', strtotime($consulta['creado_en']))) ?>
+  </div>
 
-  <h5>Diagnóstico</h5>
-  <p><?= nl2br(htmlspecialchars($consulta['diagnostico'] ?? '-')) ?></p>
+  <hr class="my-2">
 
-  <h5>Tratamiento</h5>
-  <p><?= nl2br(htmlspecialchars($consulta['tratamiento'] ?? '-')) ?></p>
+  <?php
+  $campos = [
+    'motivo'         => '📝 Motivo',
+    'examen'         => '🔬 Examen',
+    'diagnostico'    => '🧾 Diagnóstico',
+    'tratamiento'    => '💊 Tratamiento',
+    'recomendaciones'=> '📌 Recomendaciones',
+    'notas'          => '🗒️ Notas'
+  ];
 
-  <h5>Recomendaciones</h5>
-  <p><?= nl2br(htmlspecialchars($consulta['recomendaciones'] ?? '-')) ?></p>
+  foreach ($campos as $key => $label): ?>
+    <div class="mb-3">
+      <h6 class="mb-1"><?= $label ?></h6>
+      <div class="border rounded p-2 bg-light">
+        <?= nl2br(htmlspecialchars($consulta[$key] ?? '-')) ?>
+      </div>
+    </div>
+  <?php endforeach; ?>
+</div>
 
-  <h5>Notas</h5>
-  <p><?= nl2br(htmlspecialchars($consulta['notas'] ?? '-')) ?></p>
+<div class="modal-footer d-flex justify-content-between">
+  <form action="/vetsmart/veterinario/consultas/<?= $consulta['id'] ?>/eliminar" method="POST"
+        onsubmit="return confirm('¿Eliminar esta consulta?');" class="me-auto">
+    <button type="submit" class="btn btn-danger btn-sm">🗑️ Eliminar</button>
+  </form>
 
-  <div class="mt-3">
-    <a href="/vetsmart/veterinario/consultas/editar/<?= $consulta['id'] ?>" class="btn btn-warning">Editar</a>
-    <form action="/vetsmart/veterinario/consultas/eliminar/<?= $consulta['id'] ?>" method="POST" style="display:inline" onsubmit="return confirm('Eliminar consulta?')">
-      <button class="btn btn-danger">Eliminar</button>
-    </form>
-    <a href="/vetsmart/veterinario/consultas" class="btn btn-secondary">Volver</a>
+  <div>
+    <a href="/vetsmart/veterinario/consultas/<?= $consulta['id'] ?>/editar"
+       class="btn btn-warning btn-sm btn-editar-consulta"
+       data-id="<?= $consulta['id'] ?>">✏️ Editar</a>
+
+    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
   </div>
 </div>

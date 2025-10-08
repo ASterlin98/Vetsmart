@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -88,21 +89,17 @@
         </h2>
 
         <?php $currentUri = $_SERVER['REQUEST_URI']; ?>
+            <a href="/vetsmart/super_admin/dashboard" class="<?= strpos($currentUri, '/super_admin/dashboard') !== false ? 'active' : '' ?>">🏠 Dashboard</a>
 
-        <a href="/vetsmart/superadmin/dashboard" class="<?= strpos($currentUri, '/superadmin/dashboard') !== false ? 'active' : '' ?>">🏠 Dashboard</a>
+            <a href="/vetsmart/super_admin/usuarios" class="<?= strpos($currentUri, '/super_admin/usuarios') !== false ? 'active' : '' ?>">👤 Gestión de Usuarios</a>
 
-        <a href="/vetsmart/superadmin/usuarios" class="<?= strpos($currentUri, '/superadmin/usuarios') !== false ? 'active' : '' ?>">👤 Gestión de Usuarios</a>
+            <a href="/vetsmart/super_admin/permisos" class="<?= strpos($currentUri, '/super_admin/permisos') !== false ? 'active' : '' ?>">🔐 Gestión de Permisos</a>
 
-        <a href="/vetsmart/superadmin/permisos" class="nav-link <?= strpos($currentUri, '/superadmin/permisos') !== false ? 'active' : '' ?>">
-        🔐 Gestión de Permisos
-        </a>
+            <a href="/vetsmart/super_admin/clinicas" class="<?= strpos($currentUri, '/super_admin/clinicas') !== false ? 'active' : '' ?>">🏥 Clínicas</a>
 
+            <a href="/vetsmart/super_admin/configuracion" class="<?= strpos($currentUri, '/super_admin/configuracion') !== false ? 'active' : '' ?>">⚙️ Configuración Global</a>
 
-        <a href="/vetsmart/superadmin/clinicas" class="<?= strpos($currentUri, '/superadmin/clinicas') !== false ? 'active' : '' ?>">🏥 Clínicas</a>
-
-        <a href="/vetsmart/superadmin/configuracion" class="<?= strpos($currentUri, '/superadmin/configuracion') !== false ? 'active' : '' ?>">⚙️ Configuración Global</a>
-
-        <a href="/vetsmart/superadmin/reportes" class="<?= strpos($currentUri, '/superadmin/reportes') !== false ? 'active' : '' ?>">📊 Reportes</a>
+            <a href="/vetsmart/super_admin/reportes" class="<?= strpos($currentUri, '/super_admin/reportes') !== false ? 'active' : '' ?>">📊 Reportes</a>
     </div>
 
     <div class="content">

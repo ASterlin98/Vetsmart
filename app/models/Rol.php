@@ -14,6 +14,4 @@ class Rol {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
-
-
 ?>

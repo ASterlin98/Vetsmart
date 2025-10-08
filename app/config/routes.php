@@ -1,27 +1,74 @@
 <?php
 // app/config/routes.php
-// Devuelve las rutas organizadas por método HTTP.
-// Las claves son paths SIN el prefijo /vetsmart (ese prefijo lo gestiona public/index.php).
 
 return [
     'GET' => [
-        ''                      => 'HomeController@index',    // /vetsmart/
-        'auth/login'            => 'AuthController@showLogin',// /vetsmart/auth/login
-        'auth/forgot'           => 'AuthController@forgot',   // /vetsmart/auth/forgot
-        'auth/reset'            => 'AuthController@reset',    // /vetsmart/auth/reset?token=...
-        'auth/logout'           => 'AuthController@logout',
+        ''                       => 'HomeController@index',
+        'auth/login'             => 'AuthController@showLogin',
+        'auth/forgot'            => 'AuthController@forgot',
+        'auth/reset'             => 'AuthController@reset',
+        'auth/logout'            => 'AuthController@logout',
 
-        // dashboards (ejemplo)
-        'veterinario/dashboard' => 'VeterinarioController@dashboard',
+        // dashboards
+        'veterinario/dashboard'  => 'VeterinarioController@dashboard',
         'recepcionista/dashboard'=> 'RecepcionController@dashboard',
         'cliente/dashboard'      => 'ClienteController@dashboard',
-        // ... añade las que necesites
+        'admin/dashboard'        => 'AdminController@dashboard',
+
+        // ================= EMPLEADOS (Admin) =================
+        'admin/empleados'                     => 'AdminController@empleadosIndex',
+        'admin/empleados/crear'               => 'AdminController@crearEmpleado',
+        'admin/empleados/{id}/editar'         => 'AdminController@editarEmpleado',
+        'admin/empleados/{id}/eliminar'       => 'AdminController@eliminarEmpleado',
+
+        'admin/horarios'                      => 'AdminController@horariosIndex',
+        'admin/horarios/{id}/editarSemana'    => 'AdminController@editarHorarioSemana',
+        'admin/horarios/{id}/editarTurno'     => 'AdminController@editarTurno',
+        'admin/horarios/{id}/editarSolicitud' => 'AdminController@editarSolicitud',
+        'admin/horarios/{id}/eliminarSemana'  => 'AdminController@eliminarSemana',
+        'admin/horarios/{id}/eliminarTurno'   => 'AdminController@eliminarTurno',
+        'admin/horarios/{id}/eliminarSolicitud'=> 'AdminController@eliminarSolicitud',
+
+        // ================= CITAS (Veterinario) =================
+        'veterinario/mis-citas'     => 'VeterinarioController@misCitas',
+        'veterinario/citas/listar'  => 'VeterinarioController@listarCitasJson',
+
+        // ================= SUPER ADMIN =================
+        'super_admin/dashboard' => 'SuperAdminController@dashboard',
+        'super_admin/usuarios'        => 'SuperAdminController@usuarios',
+        'super_admin/usuarios/crear'  => 'SuperAdminController@crearUsuario',
+        'super_admin/usuarios/{id}/editar' => 'SuperAdminController@editarUsuario',
+        'super_admin/usuarios/{id}/eliminar' => 'SuperAdminController@eliminarUsuario',
+        'super_admin/estadisticas'    => 'SuperAdminController@estadisticas',
+        'super_admin/configuracion'   => 'SuperAdminController@configuracion',
+        'super_admin/auditoria'       => 'SuperAdminController@auditoria',
     ],
 
     'POST' => [
-        'auth/login'            => 'AuthController@login',            // formulario de login
-        'auth/sendResetLink'    => 'AuthController@sendResetLink',    // formulario forgot (envío email)
-        'auth/updatePassword'   => 'AuthController@updatePassword',   // formulario reset (guardar nueva pass)
-        // ... otras POST
+        'auth/login'             => 'AuthController@login',
+        'auth/sendResetLink'     => 'AuthController@sendResetLink',
+        'auth/updatePassword'    => 'AuthController@updatePassword',
+
+        // ================= EMPLEADOS (Admin) =================
+        'admin/empleados/guardar'             => 'AdminController@guardarEmpleado',
+        'admin/empleados/{id}/actualizar'     => 'AdminController@actualizarEmpleado',
+
+        'admin/horarios/guardar-semana'       => 'AdminController@guardarHorarioSemana',
+        'admin/horarios/guardar-turno'        => 'AdminController@guardarTurno',
+        'admin/horarios/guardar-solicitud'    => 'AdminController@guardarSolicitud',
+        'admin/horarios/{id}/actualizarSemana'=> 'AdminController@actualizarSemana',
+        'admin/horarios/{id}/actualizarTurno' => 'AdminController@actualizarTurno',
+        'admin/horarios/{id}/actualizarSolicitud'=> 'AdminController@actualizarSolicitud',
+        'admin/clientes/{cliente_id}/mascotas/{id}/actualizar' => 'AdminController@actualizarMascota',
+
+        // ================= CITAS (Veterinario) =================
+        'veterinario/citas/guardar'    => 'VeterinarioController@guardarCita',
+        'veterinario/citas/actualizar' => 'VeterinarioController@actualizarCita',
+        'veterinario/citas/eliminar'   => 'VeterinarioController@eliminarCitaAjax',
+
+        // ================= SUPER ADMIN =================
+        'super_admin/usuarios/guardar' => 'SuperAdminController@guardarUsuario',
+        'super_admin/usuarios/{id}/actualizar' => 'SuperAdminController@actualizarUsuario',
+        'super_admin/configuracion/guardar' => 'SuperAdminController@guardarConfiguracion',
     ],
 ];

@@ -27,28 +27,26 @@ class Usuario {
         return $row ?: null;
     }
 
-    public function saveResetToken($id, $token, $expira) {
-        $sql = "UPDATE usuarios SET reset_token = ?, reset_expira = ? WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute([$token, $expira, $id]);
-    }
+public function saveResetToken($id, $token, $expira) {
+    $sql = "UPDATE usuarios SET reset_token = ?, reset_expira = ? WHERE id = ?";
+    $stmt = $this->db->prepare($sql);
+    return $stmt->execute([$token, $expira, $id]);
+}
 
-    public function findByToken($token) {
-        $sql = "SELECT * FROM usuarios 
-                WHERE reset_token = ? 
-                AND reset_expira > NOW()";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$token]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
+public function findByToken($token) {
+    $sql = "SELECT * FROM usuarios WHERE reset_token = ? AND reset_expira > NOW()";
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute([$token]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
 
-    public function updatePassword($id, $hash) {
-        $sql = "UPDATE usuarios 
-                SET password = ?, reset_token = NULL, reset_expira = NULL 
-                WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute([$hash, $id]);
-    }
+public function updatePassword($id, $hash) {
+    $sql = "UPDATE usuarios 
+            SET password = ?, reset_token = NULL, reset_expira = NULL 
+            WHERE id = ?";
+    $stmt = $this->db->prepare($sql);
+    return $stmt->execute([$hash, $id]);
+}
 
     public function createClient($nombre, $apellido, $docusu, $email, $telefono, $password)
     {

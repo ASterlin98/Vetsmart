@@ -26,16 +26,16 @@ class Consulta {
         return $this->db->lastInsertId();
     }
 
-    public function getById($id) {
-        $sql = "SELECT c.*, m.nombre AS nombre_mascota, u.nombre AS nombre_empleado, u.apellido AS apellido_empleado
-                FROM consultas c
-                LEFT JOIN mascotas m ON c.mascota_id = m.id
-                LEFT JOIN usuarios u ON c.empleado_id = u.id
-                WHERE c.id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
+public function getById($id) {
+    $sql = "SELECT c.*, m.nombre AS nombre_mascota, u.nombre AS nombre_veterinario, u.apellido AS apellido_veterinario
+            FROM consultas c
+            LEFT JOIN mascotas m ON c.mascota_id = m.id
+            LEFT JOIN usuarios u ON c.empleado_id = u.id
+            WHERE c.id = ?";
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute([$id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
 
     public function getByMascota($mascota_id) {
         $sql = "SELECT c.*, u.nombre AS nombre_empleado, u.apellido AS apellido_empleado
@@ -76,25 +76,25 @@ class Consulta {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+public function actualizar($id, array $data)
+{
+    $campos = [];
+    $params = [':id' => $id];
 
-    public function actualizar($id, array $data) {
-        $sql = "UPDATE consultas SET motivo=?, examen=?, diagnostico=?, tratamiento=?, recomendaciones=?, notas=? WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute([
-            $data['motivo'] ?? null,
-            $data['examen'] ?? null,
-            $data['diagnostico'] ?? null,
-            $data['tratamiento'] ?? null,
-            $data['recomendaciones'] ?? null,
-            $data['notas'] ?? null,
-            $id
-        ]);
+    foreach ($data as $campo => $valor) {
+        $campos[] = "$campo = :$campo";
+        $params[":$campo"] = $valor;
     }
 
-    public function eliminar($id) {
-        $stmt = $this->db->prepare("DELETE FROM consultas WHERE id = ?");
-        return $stmt->execute([$id]);
-    }
+    $sql = "UPDATE consultas SET " . implode(', ', $campos) . " WHERE id = :id";
+    $stmt = $this->db->prepare($sql);
+    return $stmt->execute($params);
+}
+
+public function eliminar($id) {
+    $stmt = $this->db->prepare("DELETE FROM consultas WHERE id = ?");
+    return $stmt->execute([$id]);
+}
 
     public function getLatest($limit = 10) {
         $sql = "SELECT c.*, m.nombre AS nombre_mascota

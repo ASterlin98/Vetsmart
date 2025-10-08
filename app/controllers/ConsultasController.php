@@ -57,49 +57,90 @@ class ConsultasController extends Controller {
         exit;
     }
 
-    public function ver($id) {
-        $consulta = $this->consultaModel->getById($id);
-        if (!$consulta) {
-            echo "Consulta no encontrada.";
-            return;
-        }
-        $this->view('veterinario/consultas/ver', ['consulta' => $consulta], 'main_veterinario');
+public function ver($id) {
+    $consultaModel = new Consulta($this->db);
+    $consulta = $consultaModel->getById($id);
+
+    if (!$consulta) {
+        die('Consulta no encontrada.');
     }
 
-    public function editar($id) {
-        $consulta = $this->consultaModel->getById($id);
-        if (!$consulta) {
-            echo "Consulta no encontrada.";
-            return;
-        }
-        $this->view('veterinario/consultas/editar', ['consulta' => $consulta], 'main_veterinario');
+    $this->view('veterinario/consultas/ver', ['consulta' => $consulta], 'main_veterinario');
+}
+
+
+public function editar($id) {
+    $consultaModel = new Consulta($this->db);
+    $consulta = $consultaModel->getById($id);
+
+    if (!$consulta) {
+        die('Consulta no encontrada.');
     }
 
-    public function actualizar($id) {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $this->view('veterinario/consultas/editar', ['consulta' => $consulta], 'main_veterinario');
+}
+
+
+public function actualizar($id)
+{
+    // Detectar si es AJAX
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        if ($isAjax) {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+        } else {
+            $_SESSION['flash_error'] = 'Método no permitido.';
             header('Location: /vetsmart/veterinario/consultas');
-            exit;
         }
-        $data = [
-            'motivo' => $_POST['motivo'] ?? null,
-            'examen' => $_POST['examen'] ?? null,
-            'diagnostico' => $_POST['diagnostico'] ?? null,
-            'tratamiento' => $_POST['tratamiento'] ?? null,
-            'recomendaciones' => $_POST['recomendaciones'] ?? null,
-            'notas' => $_POST['notas'] ?? null
-        ];
-        $this->consultaModel->actualizar($id, $data);
-        header('Location: /vetsmart/veterinario/consultas/ver/' . $id);
         exit;
     }
 
-    public function eliminar($id) {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->consultaModel->eliminar($id);
-            header('Location: /vetsmart/veterinario/consultas');
-            exit;
+    $consultaModel = new Consulta($this->db);
+
+    $data = [
+        'motivo' => $_POST['motivo'] ?? null,
+        'examen' => $_POST['examen'] ?? null,
+        'diagnostico' => $_POST['diagnostico'] ?? null,
+        'tratamiento' => $_POST['tratamiento'] ?? null,
+        'recomendaciones' => $_POST['recomendaciones'] ?? null,
+        'notas' => $_POST['notas'] ?? null,
+    ];
+
+    try {
+        $consultaModel->actualizar($id, $data);
+
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'message' => 'Consulta actualizada correctamente.']);
+        } else {
+            $_SESSION['flash_success'] = 'Consulta actualizada correctamente.';
+            header('Location: /vetsmart/veterinario/consultas/ver/' . $id);
         }
-        header('Location: /vetsmart/veterinario/consultas');
-        exit;
+    } catch (Exception $e) {
+        error_log("Error al actualizar consulta: " . $e->getMessage());
+        if ($isAjax) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Error al actualizar la consulta.']);
+        } else {
+            $_SESSION['flash_error'] = 'Error actualizando la consulta.';
+            header('Location: /vetsmart/veterinario/consultas/editar/' . $id);
+        }
     }
+
+    exit;
+}
+
+
+public function eliminar($id) {
+    $consultaModel = new Consulta($this->db);
+    $consultaModel->eliminar($id);
+    
+    $_SESSION['flash_success'] = 'Consulta eliminada correctamente.';
+    header('Location: /vetsmart/veterinario/consultas');
+    exit;
+}
+
 }

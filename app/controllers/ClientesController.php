@@ -30,18 +30,69 @@ class ClientesController extends Controller {
         $this->view('admin/clientes/crear', [], 'main_admin');
     }
 
-    public function guardar() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+public function guardar() {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        header('Location: /vetsmart/admin/clientes');
+        exit;
+    }
+
+    // Detectar AJAX
+    $isAjax = (
+        (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+        || (strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false)
+    );
+
+    try {
+        // intentar crear y obtener ID del nuevo cliente
+        $newId = null;
+        if (method_exists($this->clienteModel, 'crear')) {
+            // suponemos que crear() devuelve lastInsertId o al menos inserta
+            $maybe = $this->clienteModel->crear($_POST);
+            if ($maybe) $newId = $maybe;
+        }
+
+        // fallback a lastInsertId si no fue devuelto por el modelo
+        if (empty($newId) && isset($this->db) && $this->db instanceof PDO) {
+            $newId = $this->db->lastInsertId();
+        }
+
+        // obtener el registro creado para devolver al front (si es posible)
+        $cliente = null;
+        if ($newId) {
             try {
-                $this->clienteModel->crear($_POST);
-                header('Location: /vetsmart/admin/clientes');
-                exit;
+                $cliente = $this->clienteModel->getById($newId);
             } catch (Exception $e) {
-                $error = $e->getMessage();
-                $this->view('admin/clientes/crear', ['error' => $error], 'main_admin');
+                // ignore: devolvemos lo mínimo
+                $cliente = null;
             }
         }
+
+        if ($isAjax) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success' => true,
+                'id' => $newId,
+                'cliente' => $cliente
+            ]);
+            exit;
+        } else {
+            header('Location: /vetsmart/admin/clientes');
+            exit;
+        }
+    } catch (Exception $e) {
+        // log para debugging
+        error_log('ClientesController::guardar error: ' . $e->getMessage());
+        if ($isAjax) {
+            header('Content-Type: application/json; charset=utf-8', true, 500);
+            echo json_encode(['success' => false, 'message' => 'Error guardando cliente.']);
+            exit;
+        } else {
+            $this->view('admin/clientes/crear', ['error' => $e->getMessage()], 'main_admin');
+            exit;
+        }
     }
+}
+
 
     public function verMascota($clienteId, $mascotaId) {
         $mascota = $this->mascotaModel->getById($mascotaId);
@@ -92,4 +143,16 @@ class ClientesController extends Controller {
         $this->mascotaModel->eliminar($idMascota);
         header("Location: /vetsmart/admin/clientes/$idCliente");
     }
+
+    public function actualizarMascota($idCliente, $idMascota) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $this->mascotaModel->actualizar($idMascota, $_POST);
+        header("Location: /vetsmart/admin/clientes");
+        exit;
+    } else {
+        http_response_code(405);
+        echo "Método no permitido.";
+        exit;
+    }
+}
 }

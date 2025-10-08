@@ -202,27 +202,106 @@ public function getUpcomingByVeterinario($veterinarioId, $limite = 8) {
     }
 
 public function getPorMascota(int $mascotaId): array {
-
     try {
         $sql = "
-            SELECT c.*,
-                   m.nombre AS nombre_mascota,
-                   u.nombre AS cliente_nombre, u.apellido AS cliente_apellido,
-                   s.nombre AS nombre_servicio
+            SELECT 
+                c.id, c.fecha, c.estado, c.notas,
+                c.mascota_id, c.cliente_id, c.empleado_id, c.servicio_id,
+                m.nombre AS nombre_mascota,
+                u_cliente.nombre AS cliente_nombre, u_cliente.apellido AS cliente_apellido,
+                s.nombre AS servicio,
+                u_vet.nombre AS vet_nombre, u_vet.apellido AS vet_apellido
             FROM citas c
             LEFT JOIN mascotas m ON c.mascota_id = m.id
-            LEFT JOIN usuarios u ON c.cliente_id = u.id
+            LEFT JOIN usuarios u_cliente ON c.cliente_id = u_cliente.id
             LEFT JOIN servicios s ON c.servicio_id = s.id
+            LEFT JOIN usuarios u_vet ON c.empleado_id = u_vet.id
             WHERE c.mascota_id = ?
             ORDER BY c.fecha DESC
         ";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([(int)$mascotaId]);
+        $stmt->execute([$mascotaId]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Armar campo "veterinario" para la vista
+        foreach ($rows as &$r) {
+            $r['veterinario'] = trim(($r['vet_nombre'] ?? '') . ' ' . ($r['vet_apellido'] ?? ''));
+        }
+
         return $rows ?: [];
     } catch (PDOException $e) {
-        error_log("Cita::getHistorialPorMascota error: " . $e->getMessage());
+        error_log("Cita::getPorMascota error: " . $e->getMessage());
         return [];
     }
+}
+
+public function listarAgenda(array $filtros = []): array {
+    $sql = "
+        SELECT 
+            c.id, c.fecha, c.hora, c.estado, c.notas,
+            cli.nombre AS cliente_nombre, cli.apellido AS cliente_apellido,
+            m.nombre AS mascota_nombre,
+            s.nombre AS servicio_nombre, s.precio,
+            emp.nombre AS empleado_nombre, emp.apellido AS empleado_apellido
+        FROM citas c
+        INNER JOIN usuarios cli ON c.cliente_id = cli.id
+        INNER JOIN mascotas m ON c.mascota_id = m.id
+        INNER JOIN servicios s ON c.servicio_id = s.id
+        INNER JOIN usuarios emp ON c.empleado_id = emp.id
+        WHERE 1=1
+    ";
+
+    $params = [];
+
+    // Filtro por rango de fechas (mes actual por defecto)
+    $desde = $filtros['desde'] ?? date('Y-m-01');
+    $hasta = $filtros['hasta'] ?? date('Y-m-t');
+    $sql .= " AND DATE(c.fecha) BETWEEN :desde AND :hasta";
+    $params[':desde'] = $desde;
+    $params[':hasta'] = $hasta;
+
+    // Filtro por empleado
+    if (!empty($filtros['empleado_id'])) {
+        $sql .= " AND c.empleado_id = :empleado";
+        $params[':empleado'] = (int)$filtros['empleado_id'];
+    }
+
+    // Filtro por servicio
+    if (!empty($filtros['servicio_id'])) {
+        $sql .= " AND c.servicio_id = :servicio";
+        $params[':servicio'] = (int)$filtros['servicio_id'];
+    }
+
+    // Filtro por estado
+    if (!empty($filtros['estado'])) {
+        $sql .= " AND c.estado = :estado";
+        $params[':estado'] = $filtros['estado'];
+    }
+
+    $sql .= " ORDER BY c.fecha ASC, c.hora ASC";
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function disponibleParaActualizar($empleado_id, $fecha, $idCita = null) {
+    $sql = "SELECT COUNT(*) FROM citas 
+            WHERE empleado_id = :emp 
+              AND fecha = :fecha";
+
+    $params = [
+        ':emp' => $empleado_id,
+        ':fecha' => $fecha
+    ];
+
+    if ($idCita) {
+        $sql .= " AND id != :id";
+        $params[':id'] = $idCita;
+    }
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchColumn() == 0; // true si disponible
 }
 }

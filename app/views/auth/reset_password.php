@@ -14,18 +14,24 @@
     </h2>
 
     <form method="POST" action="/vetsmart/auth/updatePassword" class="space-y-4">
-      <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
+        <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
 
-      <div>
-        <label for="password" class="block text-sm font-medium text-gray-700">Nueva contraseña</label>
-        <input id="password" name="password" type="password" required
-               class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
-      </div>
+        <div>
+            <label for="password" class="block text-sm font-medium text-gray-700">Nueva contraseña</label>
+            <input id="password" name="password" type="password" required
+                  class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
 
-      <button type="submit" 
-              class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-semibold">
-        Actualizar contraseña
-      </button>
+        <div>
+            <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirmar contraseña</label>
+            <input id="confirm_password" name="confirm_password" type="password" required
+                  class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <button type="submit" 
+                class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-semibold">
+            Actualizar contraseña
+        </button>
     </form>
 
     <p class="mt-6 text-center text-sm">

@@ -1,6 +1,14 @@
 <h3>Mascotas</h3>
 
-<a href="/vetsmart/admin/clientes/<?= $cliente['id'] ?>/mascotas/crear" class="btn btn-success mb-3">➕ Nueva Mascota</a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="/vetsmart/admin/clientes/<?php echo $cliente['id']; ?>/mascotas/crear" class="btn btn-success">
+        ➕ Nueva Mascota
+    </a>
+
+    <a href="/vetsmart/admin/clientes" class="btn btn-secondary">
+        🔙 Volver a Clientes
+    </a>
+</div>
 
 <?php if (empty($mascotas)): ?>
     <p>No hay mascotas registradas para este cliente.</p>
@@ -19,22 +27,18 @@
     <tbody>
         <?php foreach ($mascotas as $m): ?>
         <tr>
-            <td><?= htmlspecialchars($m['nombre']) ?></td>
-            <td><?= htmlspecialchars($m['especie']) ?></td>
-            <td><?= htmlspecialchars($m['raza']) ?></td>
-            <td><?= htmlspecialchars($m['edad']) ?> años</td>
-            <td><?= htmlspecialchars($m['peso']) ?> kg</td>
+            <td><?php echo htmlspecialchars($m['nombre']); ?></td>
+            <td><?php echo htmlspecialchars($m['especie']); ?></td>
+            <td><?php echo htmlspecialchars($m['raza']); ?></td>
+            <td><?php echo htmlspecialchars($m['edad']); ?> años</td>
+            <td><?php echo htmlspecialchars($m['peso']); ?> kg</td>
             <td>
-                <!-- Ver -->
-                <a href="/vetsmart/admin/clientes/<?= $cliente['id'] ?>/mascotas/<?= $m['id'] ?>" 
-                   class="btn btn-sm btn-info">👁️ Ver</a>
-
                 <!-- Editar -->
-                <a href="/vetsmart/admin/clientes/<?= $cliente['id'] ?>/mascotas/<?= $m['id'] ?>/editar" 
+                <a href="/vetsmart/admin/clientes/<?php echo $cliente['id']; ?>/mascotas/<?php echo $m['id']; ?>/editar" 
                    class="btn btn-sm btn-warning">✏️ Editar</a>
 
                 <!-- Eliminar -->
-                <a href="/vetsmart/admin/clientes/<?= $cliente['id'] ?>/mascotas/<?= $m['id'] ?>/eliminar" 
+                <a href="/vetsmart/admin/clientes/<?php echo $cliente['id']; ?>/mascotas/<?php echo $m['id']; ?>/eliminar" 
                    class="btn btn-sm btn-danger"
                    onclick="return confirm('¿Eliminar mascota?')">🗑️</a>
             </td>

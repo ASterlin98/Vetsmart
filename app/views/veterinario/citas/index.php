@@ -1,167 +1,216 @@
 <?php
-// app/views/veterinario/citas/index.php
-// Variables esperadas desde el controller: $clientes (array), $servicios (array)
+// app/views/veterinario/citas/index.php (versión completa y lista para usar)
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (empty($_SESSION['csrf_token'])) $_SESSION['csrf_token'] = bin2hex(random_bytes(16));
 $csrf = $_SESSION['csrf_token'];
 ?>
-<!------------------ META CSRF ------------------>
-<meta name="csrf-token" content="<?=htmlspecialchars($csrf)?>">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="<?= htmlspecialchars($csrf, ENT_QUOTES | ENT_SUBSTITUTE) ?>">
+  <title>Calendario de Citas</title>
 
-<?php if (!empty($_SESSION['flash_success'])): ?>
-  <div class="alert alert-success" role="alert">
-    <?= htmlspecialchars($_SESSION['flash_success']) ?>
-  </div>
-  <?php unset($_SESSION['flash_success']); ?>
-<?php endif; ?>
+  <!-- Bootstrap CSS & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 
-<?php if (!empty($_SESSION['flash_error'])): ?>
-  <div class="alert alert-danger" role="alert">
-    <?= htmlspecialchars($_SESSION['flash_error']) ?>
-  </div>
-  <?php unset($_SESSION['flash_error']); ?>
-<?php endif; ?>
+  <style>
+    :root{
+      --card-bg: #ffffff;
+      --muted: #6c757d;
+      --accent: #0d6efd;
+      --success: #198754;
+      --danger: #dc3545;
+      --shadow: 0 10px 30px rgba(20,20,30,0.06);
+    }
 
-<style>
-/* Reglas pequeñas para asegurar que el calendario se vea bien */
-#calendar { width: 100%; max-width: 900px; margin: 0 auto; }
-.cita-modal-backdrop.hidden { display: none; }
-.cita-modal-backdrop.flex { display: flex; align-items: center; justify-content: center; }
-.cita-modal { width: 720px; max-width: calc(100% - 32px); background:#fff; border-radius:6px; box-shadow:0 6px 18px rgba(0,0,0,.12); padding:18px; }
-</style>
+    body { background: linear-gradient(180deg,#f7f9fc 0%, #ffffff 100%); font-family: Inter, 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial; }
 
-<div class="p-6">
-  <h1 class="text-2xl font-bold mb-4">Calendario de Citas</h1>
+    .page-header { gap: .75rem; }
+    .page-title { font-weight: 700; letter-spacing: -0.2px; }
 
-  <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-2" style="position:fixed; right:20px; top:20px; z-index:9999;"></div>
+    .card-calendar { border: none; box-shadow: var(--shadow); border-radius: 12px; }
 
-  <div class="bg-white rounded-lg shadow p-4">
-    <div id="calendar" class="w-full"></div>
-  </div>
-</div>
+    .legend { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+    .legend .item { display:flex; gap:.5rem; align-items:center; font-size:.9rem; color:var(--muted); }
+    .legend .dot { width:12px; height:12px; border-radius:50%; display:inline-block; }
 
-<?php
-// INCLUIMOS EL MODAL DIRECTAMENTE AQUÍ (evita incluir partials con debug)
-?>
-<div id="citaModal" class="cita-modal-backdrop hidden" style="position:fixed; inset:0; z-index:1050; background: rgba(0,0,0,0.35);">
-  <div class="cita-modal" role="dialog" aria-modal="true">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-      <h4 id="modalTitle" style="margin:0">Crear cita</h4>
-      <button id="closeModal" class="btn btn-link" aria-label="Cerrar">✕</button>
+    .fc .fc-event { border: 0; border-radius: 8px; padding:6px 8px; font-size:0.9rem; }
+
+    @media (max-width: 867px) {
+      #calendar { height: 500px !important; }
+    }
+
+    /* small tweak for modal z-index if fullcalendar popovers overlap */
+    .modal { z-index: 1200; }
+  </style>
+</head>
+<body>
+
+<div class="container-fluid py-3">
+  <?php if (!empty($_SESSION['flash_success'])): ?>
+    <div class="alert alert-success" role="alert">
+      <?= htmlspecialchars($_SESSION['flash_success'], ENT_QUOTES | ENT_SUBSTITUTE) ?>
+    </div>
+    <?php unset($_SESSION['flash_success']); ?>
+  <?php endif; ?>
+
+  <?php if (!empty($_SESSION['flash_error'])): ?>
+    <div class="alert alert-danger" role="alert">
+      <?= htmlspecialchars($_SESSION['flash_error'], ENT_QUOTES | ENT_SUBSTITUTE) ?>
+    </div>
+    <?php unset($_SESSION['flash_error']); ?>
+  <?php endif; ?>
+
+  <div class="d-flex justify-content-between align-items-center mb-3 page-header">
+    <div>
+      <h2 class="mb-0 page-title"><i class="bi bi-calendar-event me-2 text-primary"></i> Calendario de Citas</h2>
+      <small class="text-muted">Gestiona las citas de tus clientes y sus mascotas</small>
     </div>
 
-    <form id="citaForm">
-      <input type="hidden" id="citaId" name="id" value="">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-        <div>
-          <label>Cliente</label>
-          <select id="clienteSelect" name="cliente_id" class="form-control">
-            <option value="">-- Seleccione cliente --</option>
-            <?php foreach (($clientes ?? []) as $cl): ?>
-              <option value="<?=htmlspecialchars($cl['id'])?>"><?=htmlspecialchars(trim(($cl['nombre'] ?? '') . ' ' . ($cl['apellido'] ?? ''))) ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-
-        <div>
-          <label>Mascota</label>
-          <select id="mascotaSelect" name="mascota_id" class="form-control">
-            <option value="">-- Seleccione mascota --</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Servicio</label>
-          <select id="servicioSelect" name="servicio_id" class="form-control">
-            <option value="">-- Seleccione servicio --</option>
-            <?php foreach (($servicios ?? []) as $s): ?>
-              <option value="<?=htmlspecialchars($s['id'])?>"><?=htmlspecialchars($s['nombre'] ?? $s['titulo'] ?? '-')?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-
-        <div>
-          <label>Estado</label>
-          <select id="estadoSelect" name="estado" class="form-control">
-            <option value="programada">Programada</option>
-            <option value="confirmada">Confirmada</option>
-            <option value="cancelada">Cancelada</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Fecha</label>
-          <input id="fechaInput" name="fecha_date" type="date" class="form-control">
-        </div>
-
-        <div>
-          <label>Hora</label>
-          <input id="horaInput" name="hora_time" type="time" class="form-control">
-        </div>
-
-        <div style="grid-column:1 / -1;">
-          <label>Notas</label>
-          <textarea id="notasInput" name="notas" rows="4" class="form-control"></textarea>
-        </div>
+    <div class="d-flex gap-2 align-items-center">
+      <div class="legend me-2">
+        <div class="item"><span class="dot" style="background:var(--accent)"></span> Programada</div>
+        <div class="item"><span class="dot" style="background:var(--success)"></span> Confirmada</div>
+        <div class="item"><span class="dot" style="background:var(--danger)"></span> Cancelada</div>
       </div>
 
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
-        <button type="button" id="deleteBtn" class="btn btn-danger hidden">Eliminar</button>
-        <button type="button" id="cancelBtn" class="btn btn-secondary">Cancelar</button>
-        <button type="submit" class="btn btn-success">Guardar</button>
-      </div>
-    </form>
+      <button class="btn btn-primary shadow-sm" id="btnCrearCita">
+        <i class="bi bi-plus-circle me-1"></i> Nueva Cita
+      </button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div id="calendar" class="card-calendar"></div>
+    </div>
   </div>
 </div>
 
-<!-- FullCalendar CSS/JS -->
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+<!-- Modal -->
+<div class="modal fade" id="citaModalBootstrap" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">Crear cita</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form id="citaForm">
+        <input type="hidden" id="citaId" name="id" value="">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="clienteSelect" class="form-label">Cliente</label>
+              <select id="clienteSelect" name="cliente_id" class="form-select">
+                <option value="">-- Seleccione cliente --</option>
+                <?php foreach (($clientes ?? []) as $cl): ?>
+                  <option value="<?= htmlspecialchars($cl['id']) ?>"><?= htmlspecialchars(trim(($cl['nombre'] ?? '') . ' ' . ($cl['apellido'] ?? ''))) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="mascotaSelect" class="form-label">Mascota</label>
+              <select id="mascotaSelect" name="mascota_id" class="form-select">
+                <option value="">-- Seleccione mascota --</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="servicioSelect" class="form-label">Servicio</label>
+              <select id="servicioSelect" name="servicio_id" class="form-select">
+                <option value="">-- Seleccione servicio --</option>
+                <?php foreach (($servicios ?? []) as $s): ?>
+                  <option value="<?= htmlspecialchars($s['id']) ?>"><?= htmlspecialchars($s['nombre'] ?? $s['titulo'] ?? '-') ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="estadoSelect" class="form-label">Estado</label>
+              <select id="estadoSelect" name="estado" class="form-select">
+                <option value="programada">Programada</option>
+                <option value="confirmada">Confirmada</option>
+                <option value="cancelada">Cancelada</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="fechaInput" class="form-label">Fecha</label>
+              <input id="fechaInput" name="fecha_date" type="date" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label for="horaInput" class="form-label">Hora</label>
+              <input id="horaInput" name="hora_time" type="time" class="form-control" step="60">
+            </div>
+            <div class="col-12">
+              <label for="notasInput" class="form-label">Notas</label>
+              <textarea id="notasInput" name="notas" rows="3" class="form-control"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="deleteBtn" class="btn btn-outline-danger me-auto d-none"><i class="bi bi-trash"></i> Eliminar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i> Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS & FullCalendar -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
 <script>
 (function(){
+  // Ajusta basePath si tu aplicación no está en /vetsmart
   const basePath = '/vetsmart';
   const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  const VET_ID = <?= json_encode($_SESSION['user']['id'] ?? null) ?>;
 
-  function toast(msg, type = 'info', duration = 3500) {
-    const container = document.getElementById('toast-container');
-    const el = document.createElement('div');
-    el.className = 'max-w-xs p-3 rounded shadow-md text-white';
-    el.style.opacity = '0';
-    el.style.transition = 'opacity .18s';
-    el.style.marginBottom = '8px';
-    el.style.padding = '8px 12px';
-    el.style.borderRadius = '6px';
-    el.style.color = '#fff';
-    if (type === 'success') el.style.background = '#16a34a';
-    else if (type === 'error') el.style.background = '#dc2626';
-    else el.style.background = '#0ea5e9';
-    el.textContent = msg;
-    container.appendChild(el);
-    requestAnimationFrame(()=> el.style.opacity = '1');
-    setTimeout(()=> {
-      el.style.opacity = '0';
-      setTimeout(()=> el.remove(), 220);
-    }, duration);
+  // utilidades
+  function toastBootstrap(message, type = 'info', delay = 3500){
+    const containerId = 'bs-toast-container';
+    let container = document.getElementById(containerId);
+    if (!container) {
+      container = document.createElement('div');
+      container.id = containerId;
+      container.className = 'position-fixed top-0 end-0 p-3';
+      container.style.zIndex = 1100;
+      document.body.appendChild(container);
+    }
+
+    const toastEl = document.createElement('div');
+    toastEl.className = 'toast align-items-center text-bg-' + (type === 'success' ? 'success' : type === 'error' ? 'danger' : 'primary') + ' border-0';
+    toastEl.setAttribute('role', 'alert');
+    toastEl.setAttribute('aria-live', 'assertive');
+    toastEl.setAttribute('aria-atomic', 'true');
+
+    toastEl.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>`;
+
+    container.appendChild(toastEl);
+    const bsToast = new bootstrap.Toast(toastEl, { delay });
+    bsToast.show();
   }
 
-  // envia cookies; pide JSON
-  function fetchWithCsrf(url, opts = {}) {
-    opts = Object.assign({
-      credentials: 'same-origin',
-      headers: {
-        'Accept': 'application/json'
-      }
-    }, opts);
-
-    opts.headers = Object.assign({}, opts.headers || {}, {
-      'X-CSRF-TOKEN': CSRF_TOKEN
-    });
-
+  function fetchWithCsrf(url, opts = {}){
+    opts = Object.assign({ credentials: 'same-origin', headers: { 'Accept': 'application/json' } }, opts);
+    opts.headers = Object.assign({}, opts.headers || {}, { 'X-CSRF-TOKEN': CSRF_TOKEN });
     return fetch(url, opts);
   }
 
-  /* DOM */
+  // referencias DOM
   const calendarEl = document.getElementById('calendar');
   const clienteSelect = document.getElementById('clienteSelect');
   const mascotaSelect = document.getElementById('mascotaSelect');
@@ -173,91 +222,60 @@ $csrf = $_SESSION['csrf_token'];
   const modalTitle = document.getElementById('modalTitle');
   const estadoSelect = document.getElementById('estadoSelect');
   const deleteBtn = document.getElementById('deleteBtn');
-  const closeModalBtn = document.getElementById('closeModal');
-  const cancelBtn = document.getElementById('cancelBtn');
   const citaForm = document.getElementById('citaForm');
-  const citaModal = document.getElementById('citaModal');
+  const citaModalEl = document.getElementById('citaModalBootstrap');
+  const bootstrapModal = new bootstrap.Modal(citaModalEl, { backdrop: 'static' });
 
-  function openModalCentered() {
-    citaModal.classList.remove('hidden');
-    citaModal.classList.add('flex');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeModalCentered() {
-    citaModal.classList.add('hidden');
-    citaModal.classList.remove('flex');
-    document.body.style.overflow = '';
-    resetForm();
-  }
+  document.getElementById('btnCrearCita').addEventListener('click', ()=> openCreateModal(new Date().toISOString().slice(0,10)));
+  clienteSelect.addEventListener('change', function(){ loadMascotasByCliente(this.value); });
 
-  closeModalBtn.addEventListener('click', closeModalCentered);
-  cancelBtn.addEventListener('click', closeModalCentered);
-
-  clienteSelect.addEventListener('change', function() {
-    loadMascotasByCliente(this.value);
-  });
-
-  function loadMascotasByCliente(clienteId, selectedMascota = null) {
+  function loadMascotasByCliente(clienteId, selectedMascota = null){
     mascotaSelect.innerHTML = '<option value="">Cargando...</option>';
-    if (!clienteId) {
-      mascotaSelect.innerHTML = '<option value="">-- Seleccione mascota --</option>';
-      return;
-    }
-    fetch(`${basePath}/api/clientes/${clienteId}/mascotas`, { credentials: 'same-origin' })
+    if (!clienteId) { mascotaSelect.innerHTML = '<option value="">-- Seleccione mascota --</option>'; return; }
+    fetch(`${basePath}/api/clientes/${encodeURIComponent(clienteId)}/mascotas`, { credentials: 'same-origin' })
       .then(r => r.json())
       .then(data => {
         mascotaSelect.innerHTML = '<option value="">-- Seleccione mascota --</option>';
         data.forEach(m => {
-          const opt = document.createElement('option');
-          opt.value = m.id;
-          opt.textContent = m.nombre;
+          const opt = document.createElement('option'); opt.value = m.id; opt.textContent = m.nombre;
           if (selectedMascota && String(selectedMascota) === String(m.id)) opt.selected = true;
           mascotaSelect.appendChild(opt);
         });
       })
-      .catch(err => {
-        console.error('Error cargando mascotas', err);
-        mascotaSelect.innerHTML = '<option value="">-- Error cargando mascotas --</option>';
-        toast('Error cargando mascotas', 'error');
-      });
+      .catch(err => { console.error('Error cargando mascotas', err); mascotaSelect.innerHTML = '<option value="">-- Error --</option>'; toastBootstrap('Error cargando mascotas', 'error'); });
   }
 
-  /* FullCalendar init */
+  // FullCalendar init
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,timeGridWeek,timeGridDay'
-    },
-    selectable: true,
-    height: 700,
+    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+    selectable: true, height: 680,
     events: function(fetchInfo, successCallback, failureCallback) {
-      const url = `${basePath}/veterinario/citas/listar?start=${fetchInfo.startStr}&end=${fetchInfo.endStr}`;
+      const url = `${basePath}/veterinario/citas/listar?start=${encodeURIComponent(fetchInfo.startStr)}&end=${encodeURIComponent(fetchInfo.endStr)}`;
       fetch(url, { credentials: 'same-origin' })
         .then(r => r.json())
         .then(data => successCallback(data))
-        .catch(err => {
-          console.error('Error cargando citas', err);
-          failureCallback(err);
-          toast('Error cargando citas.', 'error');
-        });
+        .catch(err => { console.error('Error cargando citas', err); failureCallback(err); toastBootstrap('Error cargando citas.', 'error'); });
     },
-    dateClick: function(info) {
-      openCreateModal(info.dateStr);
-    },
-    eventClick: function(info) {
-      openEditModal(info.event);
-    },
-    eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false }
+    dateClick: function(info){ openCreateModal(info.dateStr); },
+    eventClick: function(info){ openEditModal(info.event); },
+    eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+    eventDidMount: function(info){
+      const estado = info.event.extendedProps.estado || 'programada';
+      if (estado === 'confirmada') info.el.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--success') || '#198754';
+      if (estado === 'cancelada') info.el.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--danger') || '#dc3545';
+      const servicio = info.event.extendedProps.servicio_nombre || '';
+      const mascota = info.event.extendedProps.nombre_mascota || '';
+      info.el.setAttribute('title', `${info.event.title}\n${mascota} • ${servicio}`);
+    }
   });
 
   calendar.render();
 
-  function openCreateModal(dateStr) {
+  function openCreateModal(dateStr){
     modalTitle.textContent = 'Crear cita';
     citaIdInput.value = '';
-    deleteBtn.classList.add('hidden');
+    deleteBtn.classList.add('d-none');
     fechaInput.value = (new Date(dateStr)).toISOString().slice(0,10);
     horaInput.value = '09:00';
     clienteSelect.value = '';
@@ -265,12 +283,12 @@ $csrf = $_SESSION['csrf_token'];
     servicioSelect.value = '';
     estadoSelect.value = 'programada';
     notasInput.value = '';
-    setTimeout(openModalCentered, 60);
+    bootstrapModal.show();
   }
 
-  function openEditModal(event) {
+  function openEditModal(event){
     modalTitle.textContent = 'Editar cita';
-    deleteBtn.classList.remove('hidden');
+    deleteBtn.classList.remove('d-none');
     const props = event.extendedProps || {};
     citaIdInput.value = event.id;
     notasInput.value = props.notas || '';
@@ -282,24 +300,16 @@ $csrf = $_SESSION['csrf_token'];
     if (props.cliente_id) {
       clienteSelect.value = props.cliente_id;
       loadMascotasByCliente(props.cliente_id, props.mascota_id || null);
-      setTimeout(openModalCentered, 160);
+      setTimeout(() => bootstrapModal.show(), 160);
     } else if (props.mascota_id) {
       mascotaSelect.innerHTML = `<option value="${props.mascota_id}" selected>${props.nombre_mascota || 'Mascota'}</option>`;
-      setTimeout(openModalCentered, 80);
-    } else {
-      setTimeout(openModalCentered, 80);
-    }
+      bootstrapModal.show();
+    } else { bootstrapModal.show(); }
   }
 
-  function resetForm() {
-    citaForm.reset();
-    citaIdInput.value = '';
-    mascotaSelect.innerHTML = '<option value="">-- Seleccione mascota --</option>';
-    deleteBtn.classList.add('hidden');
-  }
+  function resetForm(){ citaForm.reset(); citaIdInput.value = ''; mascotaSelect.innerHTML = '<option value="">-- Seleccione mascota --</option>'; deleteBtn.classList.add('d-none'); }
 
-  /* Submit: create / update */
-  citaForm.addEventListener('submit', function(e) {
+  citaForm.addEventListener('submit', function(e){
     e.preventDefault();
     const id = citaIdInput.value || null;
     const cliente_id = clienteSelect.value || '';
@@ -310,86 +320,75 @@ $csrf = $_SESSION['csrf_token'];
     const notas = notasInput.value;
     const estado = estadoSelect.value;
 
-    if (!mascota_id || !servicio_id || !fecha_date || !hora_time) {
-      toast('Por favor completa mascota, servicio, fecha y hora.', 'error');
+    if (!mascota_id || !servicio_id || !fecha_date || !hora_time){
+      toastBootstrap('Por favor completa mascota, servicio, fecha y hora.', 'error');
       return;
     }
 
-    const params = new URLSearchParams();
-    if (cliente_id) params.append('cliente_id', cliente_id);
-    params.append('mascota_id', mascota_id);
-    params.append('servicio_id', servicio_id);
-    params.append('fecha_date', fecha_date);
-    params.append('hora_time', hora_time);
-    params.append('notas', notas);
-    params.append('estado', estado);
+    // Verificar disponibilidad con CSRF y enviando servicio_id y vet_id
+    const paramsCheck = new URLSearchParams();
+    if (VET_ID) paramsCheck.append('veterinario_id', VET_ID);
+    paramsCheck.append('fecha', fecha_date);
+    paramsCheck.append('hora', hora_time);
+    if (servicio_id) paramsCheck.append('servicio_id', servicio_id);
 
-    const isCreate = !id;
-    const url = isCreate ? `${basePath}/veterinario/citas/guardar` : `${basePath}/veterinario/citas/actualizar`;
-    if (!isCreate) params.append('id', id);
-
-    fetchWithCsrf(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: params.toString()
+    fetchWithCsrf(`${basePath}/api/disponibilidad-veterinario?${paramsCheck.toString()}`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
     })
     .then(r => r.json())
     .then(data => {
-      if (data.success) {
-        toast('Cita guardada correctamente.', 'success');
-        calendar.refetchEvents();
-        closeModalCentered();
-      } else {
-        toast(data.message || 'Error al guardar.', 'error');
+      if (!data || data.disponible !== true) {
+        const why = (data && data.reason) ? (': ' + data.reason) : '.';
+        toastBootstrap('❌ No puedes agendar en esta fecha/hora' + why, 'error');
+        return;
       }
-    })
-    .catch(err => {
-      console.error('Error guardando cita', err);
-      toast('Error interno al guardar cita.', 'error');
-    });
-  });
 
-  /* Delete: ahora con credentials y manejo robusto de respuesta */
-  deleteBtn.addEventListener('click', async function () {
-    if (!confirm('¿Deseas eliminar esta cita?')) return;
-    const id = citaIdInput.value;
-    if (!id) return toast('ID de cita no encontrado.', 'error');
+      // si está disponible, continuamos guardando
+      const params = new URLSearchParams();
+      if (cliente_id) params.append('cliente_id', cliente_id);
+      params.append('mascota_id', mascota_id);
+      params.append('servicio_id', servicio_id);
+      params.append('fecha_date', fecha_date);
+      params.append('hora_time', hora_time);
+      params.append('notas', notas);
+      params.append('estado', estado);
 
-    try {
-      const resp = await fetchWithCsrf(`${basePath}/veterinario/citas/${id}/eliminar`, {
+      const isCreate = !id;
+      const url = isCreate ? `${basePath}/veterinario/citas/guardar` : `${basePath}/veterinario/citas/actualizar`;
+      if (!isCreate) params.append('id', id);
+
+      fetchWithCsrf(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
           'X-Requested-With': 'XMLHttpRequest'
         },
-        body: new URLSearchParams({ id }).toString()
-      });
-
-      const text = await resp.text();
-      console.log('[DELETE] status', resp.status, 'body:', text);
-
-      // intentar parsear JSON
-      try {
-        const data = JSON.parse(text);
-        if (data.success) {
-          toast('Cita eliminada', 'success');
+        body: params.toString()
+      })
+      .then(r => r.json())
+      .then(resp => {
+        if (resp && resp.success){
+          toastBootstrap('✅ Cita guardada correctamente.', 'success');
           calendar.refetchEvents();
-          closeModalCentered();
+          bootstrapModal.hide();
+          resetForm();
         } else {
-          toast(data.message || 'No se pudo eliminar', 'error');
+          toastBootstrap((resp && resp.message) ? resp.message : 'Error al guardar.', 'error');
         }
-      } catch (err) {
-        console.error('Respuesta del servidor no es JSON al eliminar:', err);
-        toast('Error interno al eliminar (ver consola).', 'error', 6000);
-      }
-    } catch (err) {
-      console.error('Error fetch eliminar:', err);
-      toast('Error interno al eliminar', 'error');
-    }
+      })
+      .catch(err => {
+        console.error('Error guardando cita', err);
+        toastBootstrap('Error interno al guardar cita.', 'error');
+      });
+    })
+    .catch(err => {
+      console.error('Error verificando disponibilidad', err);
+      toastBootstrap('Error verificando disponibilidad del veterinario.', 'error');
+    });
   });
 
 })();
 </script>
+</body>
+</html>

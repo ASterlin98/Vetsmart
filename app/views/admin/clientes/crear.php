@@ -5,7 +5,6 @@
 <?php endif; ?>
 
 <form method="POST" action="/vetsmart/admin/clientes/guardar">
-    <div class="row mb-3">
         <div class="col">
             <label>Nombre</label>
             <input type="text" name="nombre" class="form-control" required>
@@ -14,7 +13,6 @@
             <label>Apellido</label>
             <input type="text" name="apellido" class="form-control" required>
         </div>
-    </div>
     <div class="mb-3">
         <label>Documento</label>
         <input type="text" name="docusu" class="form-control" required>
