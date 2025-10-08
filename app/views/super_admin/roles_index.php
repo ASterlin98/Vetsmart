@@ -6,7 +6,7 @@
 <div class="container-fluid px-4">
     <h1 class="mt-4">Gestión de Roles y Permisos</h1>
     <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+
         <li class="breadcrumb-item active">Roles y Permisos</li>
     </ol>
 

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-10-2025 a las 04:13:14
+-- Tiempo de generación: 09-10-2025 a las 01:29:23
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -62,20 +62,18 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `archivos`
+-- Estructura de tabla para la tabla `auditoria`
 --
 
-CREATE TABLE `archivos` (
+CREATE TABLE `auditoria` (
   `id` int(11) NOT NULL,
-  `entidad` varchar(50) DEFAULT NULL,
+  `usuario_id` int(11) DEFAULT NULL,
+  `accion` varchar(255) NOT NULL,
+  `entidad` varchar(100) DEFAULT NULL,
   `entidad_id` int(11) DEFAULT NULL,
-  `ruta` varchar(255) NOT NULL,
-  `nombre_orig` varchar(255) DEFAULT NULL,
-  `mime` varchar(100) DEFAULT NULL,
-  `tam` int(11) DEFAULT NULL,
-  `subido_por` int(11) DEFAULT NULL,
-  `subido_en` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`metadata`)),
+  `creado_en` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -153,20 +151,7 @@ INSERT INTO `cliente_detalles` (`id`, `idusu`, `telefono`, `direccion`, `ciudad`
 (8, 18, '654321596', 'casa pin pin', 'Bogota', '2025-09-12 23:25:35'),
 (9, 20, '3144928505', 'Cr 7 #6-67', 'Cundinamarca', '2025-10-01 00:19:46'),
 (10, 21, '3124285749', 'Pollo rico 32', 'Bogota', '2025-10-01 00:28:22'),
-(12, 28, '7589648512', 'Cr 2 # 3 - 4', 'Bogota', '2025-10-04 00:22:57');
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `config`
---
-
-CREATE TABLE `config` (
-  `id` int(11) NOT NULL,
-  `clave` varchar(100) NOT NULL,
-  `valor` text DEFAULT NULL,
-  `actualizado_en` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+(12, 28, '75896485', 'Cr 2 # 3 - 4', 'Bogota', '2025-10-04 00:22:57');
 
 -- --------------------------------------------------------
 
@@ -219,7 +204,7 @@ INSERT INTO `emp_det` (`id`, `usuario_id`, `especialidad`, `salario`, `fecha_ing
 (5, 5, 'Peluquero', 1200000.00, '2024-01-15', 1),
 (6, 4, 'Recepcionista', 1200000.00, '2024-03-01', 1),
 (7, 3, 'Administrador', 2500000.00, '2022-06-01', 1),
-(10, 25, 'Operaciones1', 3000000.00, '2025-10-02', 1);
+(10, 25, 'Operaciones12', 3000000.00, '2025-10-02', 1);
 
 -- --------------------------------------------------------
 
@@ -235,25 +220,6 @@ CREATE TABLE `historial_citas` (
   `despues` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`despues`)),
   `razon` varchar(255) DEFAULT NULL,
   `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `historial_medico`
---
-
-CREATE TABLE `historial_medico` (
-  `id` int(11) NOT NULL,
-  `mascota_id` int(11) NOT NULL,
-  `cita_id` int(11) DEFAULT NULL,
-  `fecha` datetime DEFAULT current_timestamp(),
-  `motivo` text DEFAULT NULL,
-  `diagnostico` text DEFAULT NULL,
-  `tratamiento` text DEFAULT NULL,
-  `prescripcion` text DEFAULT NULL,
-  `peso` decimal(6,2) DEFAULT NULL,
-  `creado_por` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -464,9 +430,10 @@ CREATE TABLE `mascotas` (
 
 INSERT INTO `mascotas` (`id`, `dueño_id`, `nombre`, `especie`, `raza`, `edad`, `peso`, `notas`, `foto`, `creado_en`) VALUES
 (1, 18, 'Tommy', 'Perro', 'Bulldog', 2, 45.00, NULL, 'uploads/mascotas/mascota_1_1758770429.png', '2025-09-12 23:33:54'),
-(2, 20, 'Hanibal', 'Gato', 'Criollo', 5, 6.00, '2\r\n', NULL, '2025-10-01 01:07:53'),
+(2, 20, 'Hanibal Lecter', 'Gato', 'Criollo', 5, 6.00, '212324\r\n', NULL, '2025-10-01 01:07:53'),
 (3, 20, 'Winnie', 'Ave', 'criolla', 2, 1.00, 'qwe', NULL, '2025-10-01 01:15:36'),
-(6, 28, 'Puppy', 'Roedor', 'Roedor', 3, 1.00, 'Mera Rata', NULL, '2025-10-04 00:23:29');
+(6, 28, 'Puppy', 'Roedor', 'Roedora', 3, 1.00, 'Mera Rata', NULL, '2025-10-04 00:23:29'),
+(7, 28, 'Noah', 'Gato', 'Persa', 3, 3.00, 'Gata castrada', NULL, '2025-10-04 21:54:34');
 
 -- --------------------------------------------------------
 
@@ -656,21 +623,6 @@ INSERT INTO `permisos` (`id`, `modulo`, `nombre`, `descripcion`, `accion`, `orde
 (78, 'facturacion', 'facturacion.anular', 'Anular facturas', 'anular', 123, 1, '2025-09-11 23:57:03', NULL),
 (79, 'facturacion', 'facturacion.pagos', 'Registrar pagos', 'pagos', 124, 1, '2025-09-11 23:57:03', NULL),
 (80, 'facturacion', 'facturacion.imprimir', 'Imprimir facturas', 'imprimir', 125, 1, '2025-09-11 23:57:03', NULL);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `reportes`
---
-
-CREATE TABLE `reportes` (
-  `id` int(11) NOT NULL,
-  `admin_id` int(11) NOT NULL,
-  `titulo` varchar(150) DEFAULT NULL,
-  `tipo` enum('financiero','servicio','clientes','mascotas','otros') DEFAULT 'otros',
-  `contenido` text DEFAULT NULL,
-  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -911,7 +863,7 @@ CREATE TABLE `servicios` (
 
 INSERT INTO `servicios` (`id`, `nombre`, `descripcion`, `precio`, `duracion_min`, `activo`, `creado_en`) VALUES
 (1, 'Peluqueria', 'Hacer baño a la mascota', 45000.00, 30, 1, '2025-09-13 00:40:17'),
-(2, 'Baño y Cortes', 'buena', 67000.00, 34, 1, '2025-10-01 02:29:06');
+(2, 'Bañado y Cortes', 'Con jabon, secadora y olores', 67000.00, 60, 1, '2025-10-01 02:29:06');
 
 -- --------------------------------------------------------
 
@@ -995,8 +947,8 @@ INSERT INTO `usuarios` (`id`, `docusu`, `nombre`, `apellido`, `email`, `telefono
 (18, '987654321', 'paula', 'Real', 'paula@prueba.com', '654321596', '$2y$10$6Acda2HFqvmYyKQ.iAW85eU7F7PdoSf25JLcQFcSg6G.ZnechUgUC', 6, 1, '2025-09-12 23:25:35', '', NULL),
 (20, '49876321', 'Andres', 'Rojas Sterlin', 'segunda@prueba.com', '3144928505', '$2y$10$6uM4.6Sv82unVdTeb3EphedyHBBcaPxQowVsmIG376blrKkpAvQzS', 6, 1, '2025-10-01 00:19:46', '', NULL),
 (21, '98765132', 'Yakeline', 'Sterlin', 'peyahe-77@outlook.com', '3124285749', '$2y$10$Alhov8AGbeVuSTDSn0/yEur9xBoPicIsiJXkFHxtjgb9jIdgCLRs6', 6, 1, '2025-10-01 00:28:22', '', NULL),
-(25, '7418529', 'Luis', 'Arevalo', 'luis@example.com', '951847', '$2y$10$4INL.cpc3ESrncuamkwvZ.Bmq8DNekB2K4vVrJXvLAEq0sdfAa4oC', 4, 1, '2025-10-03 02:02:39', '', NULL),
-(28, '6549873285', 'Chayane', 'ernesto', 'chayanne@ejemplo.com', '7589648512', '$2y$10$LryNrogzbn7H.NS14C023.Jh8CoGXvkLmZVicbirxYQO8WPNt0PMG', 6, 1, '2025-10-04 00:22:57', '', NULL);
+(25, '74185291', 'Luisa', 'Arevaloa', 'luisa@example.com', '9518471', '$2y$10$4INL.cpc3ESrncuamkwvZ.Bmq8DNekB2K4vVrJXvLAEq0sdfAa4oC', 3, 1, '2025-10-03 02:02:39', '', NULL),
+(28, '6549873281', 'Chayanne', 'Ernesto', 'chayanne@ejemplo.com', '75896485', '$2y$10$LryNrogzbn7H.NS14C023.Jh8CoGXvkLmZVicbirxYQO8WPNt0PMG', 6, 1, '2025-10-04 00:22:57', '', NULL);
 
 -- --------------------------------------------------------
 
@@ -1077,12 +1029,12 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 
 --
--- Indices de la tabla `archivos`
+-- Indices de la tabla `auditoria`
 --
-ALTER TABLE `archivos`
+ALTER TABLE `auditoria`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `subido_por` (`subido_por`),
-  ADD KEY `idx_archivos_entidad` (`entidad`,`entidad_id`);
+  ADD KEY `usuario_id` (`usuario_id`),
+  ADD KEY `creado_en` (`creado_en`);
 
 --
 -- Indices de la tabla `bloqueos`
@@ -1112,13 +1064,6 @@ ALTER TABLE `cliente_detalles`
   ADD KEY `idusu` (`idusu`);
 
 --
--- Indices de la tabla `config`
---
-ALTER TABLE `config`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `clave` (`clave`);
-
---
 -- Indices de la tabla `consultas`
 --
 ALTER TABLE `consultas`
@@ -1140,15 +1085,6 @@ ALTER TABLE `historial_citas`
   ADD PRIMARY KEY (`id`),
   ADD KEY `cita_id` (`cita_id`),
   ADD KEY `cambiado_por` (`cambiado_por`);
-
---
--- Indices de la tabla `historial_medico`
---
-ALTER TABLE `historial_medico`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `mascota_id` (`mascota_id`),
-  ADD KEY `cita_id` (`cita_id`),
-  ADD KEY `creado_por` (`creado_por`);
 
 --
 -- Indices de la tabla `horarios_semana`
@@ -1218,13 +1154,6 @@ ALTER TABLE `permisos`
   ADD KEY `idx_permisos_modulo_orden` (`modulo`,`orden`);
 
 --
--- Indices de la tabla `reportes`
---
-ALTER TABLE `reportes`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `admin_id` (`admin_id`);
-
---
 -- Indices de la tabla `roles`
 --
 ALTER TABLE `roles`
@@ -1285,9 +1214,9 @@ ALTER TABLE `vacunas`
 --
 
 --
--- AUTO_INCREMENT de la tabla `archivos`
+-- AUTO_INCREMENT de la tabla `auditoria`
 --
-ALTER TABLE `archivos`
+ALTER TABLE `auditoria`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -1306,13 +1235,7 @@ ALTER TABLE `citas`
 -- AUTO_INCREMENT de la tabla `cliente_detalles`
 --
 ALTER TABLE `cliente_detalles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
-
---
--- AUTO_INCREMENT de la tabla `config`
---
-ALTER TABLE `config`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT de la tabla `consultas`
@@ -1324,18 +1247,12 @@ ALTER TABLE `consultas`
 -- AUTO_INCREMENT de la tabla `emp_det`
 --
 ALTER TABLE `emp_det`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `historial_citas`
 --
 ALTER TABLE `historial_citas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `historial_medico`
---
-ALTER TABLE `historial_medico`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -1360,7 +1277,7 @@ ALTER TABLE `logs_actividad`
 -- AUTO_INCREMENT de la tabla `mascotas`
 --
 ALTER TABLE `mascotas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT de la tabla `modulos`
@@ -1391,12 +1308,6 @@ ALTER TABLE `perfil`
 --
 ALTER TABLE `permisos`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
-
---
--- AUTO_INCREMENT de la tabla `reportes`
---
-ALTER TABLE `reportes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
@@ -1432,7 +1343,7 @@ ALTER TABLE `turnos_empleado`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT de la tabla `vacunas`
@@ -1443,12 +1354,6 @@ ALTER TABLE `vacunas`
 --
 -- Restricciones para tablas volcadas
 --
-
---
--- Filtros para la tabla `archivos`
---
-ALTER TABLE `archivos`
-  ADD CONSTRAINT `archivos_ibfk_1` FOREIGN KEY (`subido_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
 
 --
 -- Filtros para la tabla `bloqueos`
@@ -1494,14 +1399,6 @@ ALTER TABLE `historial_citas`
   ADD CONSTRAINT `historial_citas_ibfk_2` FOREIGN KEY (`cambiado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
 
 --
--- Filtros para la tabla `historial_medico`
---
-ALTER TABLE `historial_medico`
-  ADD CONSTRAINT `historial_medico_ibfk_1` FOREIGN KEY (`mascota_id`) REFERENCES `mascotas` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `historial_medico_ibfk_2` FOREIGN KEY (`cita_id`) REFERENCES `citas` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `historial_medico_ibfk_3` FOREIGN KEY (`creado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
-
---
 -- Filtros para la tabla `horarios_semana`
 --
 ALTER TABLE `horarios_semana`
@@ -1543,12 +1440,6 @@ ALTER TABLE `notificaciones`
 --
 ALTER TABLE `perfil`
   ADD CONSTRAINT `perfil_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE;
-
---
--- Filtros para la tabla `reportes`
---
-ALTER TABLE `reportes`
-  ADD CONSTRAINT `reportes_ibfk_1` FOREIGN KEY (`admin_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `rol_permisos`
