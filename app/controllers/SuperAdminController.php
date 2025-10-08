@@ -11,6 +11,9 @@ require_once APP_ROOT . '/models/Vacuna.php';
 require_once APP_ROOT . '/models/RolePermission.php';
 require_once APP_ROOT . '/models/Config.php';
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
 class SuperAdminController extends Controller
 {
     private $clienteModel;
@@ -333,6 +336,133 @@ class SuperAdminController extends Controller
         } else {
             header('Location: /vetsmart/super_admin/configuracion?error=update_failed');
         }
+        exit;
+    }
+
+    public function reportes()
+    {
+        $desde = $_GET['desde'] ?? date('Y-m-01');
+        $hasta = $_GET['hasta'] ?? date('Y-m-t');
+
+        $params = [':desde' => $desde, ':hasta' => $hasta];
+
+        // 1. Estadísticas Generales
+        $stmt = $this->db->prepare("
+            SELECT
+                COUNT(*) AS total_citas,
+                COALESCE(SUM(s.precio), 0) AS ingresos_totales
+            FROM citas c
+            JOIN servicios s ON c.servicio_id = s.id
+            WHERE DATE(c.fecha) BETWEEN :desde AND :hasta AND c.estado = 'completada'
+        ");
+        $stmt->execute($params);
+        $stats = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // 2. Citas por Estado
+        $stmt = $this->db->prepare("
+            SELECT estado, COUNT(*) as cantidad
+            FROM citas
+            WHERE DATE(fecha) BETWEEN :desde AND :hasta
+            GROUP BY estado
+        ");
+        $stmt->execute($params);
+        $citasPorEstado = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+        // 3. Top 5 Servicios más Rentables
+        $stmt = $this->db->prepare("
+            SELECT s.nombre, SUM(s.precio) as total_ingresos
+            FROM citas c
+            JOIN servicios s ON c.servicio_id = s.id
+            WHERE DATE(c.fecha) BETWEEN :desde AND :hasta AND c.estado = 'completada'
+            GROUP BY s.nombre
+            ORDER BY total_ingresos DESC
+            LIMIT 5
+        ");
+        $stmt->execute($params);
+        $topServicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 4. Top 5 Empleados más Activos
+        $stmt = $this->db->prepare("
+            SELECT CONCAT(u.nombre, ' ', u.apellido) as empleado, COUNT(c.id) as total_citas
+            FROM citas c
+            JOIN usuarios u ON c.empleado_id = u.id
+            WHERE DATE(c.fecha) BETWEEN :desde AND :hasta
+            GROUP BY u.id
+            ORDER BY total_citas DESC
+            LIMIT 5
+        ");
+        $stmt->execute($params);
+        $topEmpleados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $data = [
+            'desde' => $desde,
+            'hasta' => $hasta,
+            'stats' => $stats,
+            'citasPorEstado' => $citasPorEstado,
+            'topServicios' => $topServicios,
+            'topEmpleados' => $topEmpleados
+        ];
+
+        $this->view('super_admin/reportes', $data, 'main_superadmin');
+    }
+
+    public function exportarReportes()
+    {
+        $desde = $_GET['desde'] ?? date('Y-m-01');
+        $hasta = $_GET['hasta'] ?? date('Y-m-t');
+
+        $params = [':desde' => $desde, ':hasta' => $hasta];
+
+        $stmt = $this->db->prepare("
+            SELECT
+                c.id as cita_id,
+                c.fecha,
+                c.estado,
+                s.nombre as servicio_nombre,
+                s.precio as servicio_precio,
+                CONCAT(u_cli.nombre, ' ', u_cli.apellido) as cliente_nombre,
+                CONCAT(u_emp.nombre, ' ', u_emp.apellido) as empleado_nombre
+            FROM citas c
+            JOIN servicios s ON c.servicio_id = s.id
+            JOIN usuarios u_cli ON c.cliente_id = u_cli.id
+            JOIN usuarios u_emp ON c.empleado_id = u_emp.id
+            WHERE DATE(c.fecha) BETWEEN :desde AND :hasta
+            ORDER BY c.fecha DESC
+        ");
+        $stmt->execute($params);
+        $citas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Reporte General');
+
+        // Encabezados
+        $headers = ['ID Cita', 'Fecha', 'Estado', 'Servicio', 'Precio', 'Cliente', 'Empleado'];
+        $sheet->fromArray($headers, NULL, 'A1');
+
+        // Estilo para encabezados
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4285F4']]
+        ];
+        $sheet->getStyle('A1:G1')->applyFromArray($headerStyle);
+
+        // Datos
+        $sheet->fromArray($citas, NULL, 'A2');
+
+        // Autoajustar columnas
+        foreach (range('A', 'G') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Descargar archivo
+        $filename = "reporte_general_{$desde}_a_{$hasta}.xlsx";
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
         exit;
     }
 }

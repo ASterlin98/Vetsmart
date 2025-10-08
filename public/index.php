@@ -846,6 +846,19 @@ if ($path === '/super_admin/actualizarConfiguracion' && $_SERVER['REQUEST_METHOD
     exit;
 }
 
+// ==================== SUPER ADMIN: REPORTES ====================
+if ($path === '/super_admin/reportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SuperAdminController($pdo);
+    $controller->reportes();
+    exit;
+}
+
+if ($path === '/super_admin/exportarReportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SuperAdminController($pdo);
+    $controller->exportarReportes();
+    exit;
+}
+
 
 // ==================== API: DISPONIBILIDAD ====================
 if ($path === '/api/disponibilidad' && $_SERVER['REQUEST_METHOD'] === 'GET') {
