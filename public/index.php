@@ -833,6 +833,20 @@ if ($path === '/super_admin/actualizarPermisos' && $_SERVER['REQUEST_METHOD'] ==
     exit;
 }
 
+// ==================== SUPER ADMIN: CONFIGURACIÓN GLOBAL ====================
+if ($path === '/super_admin/configuracion' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SuperAdminController($pdo);
+    $controller->configuracion();
+    exit;
+}
+
+if ($path === '/super_admin/actualizarConfiguracion' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SuperAdminController($pdo);
+    $controller->actualizarConfiguracion();
+    exit;
+}
+
+
 // ==================== API: DISPONIBILIDAD ====================
 if ($path === '/api/disponibilidad' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     header('Content-Type: application/json; charset=utf-8');

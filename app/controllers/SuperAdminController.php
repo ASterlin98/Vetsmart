@@ -9,6 +9,7 @@ require_once APP_ROOT . '/models/Cita.php';
 require_once APP_ROOT . '/models/Servicio.php';
 require_once APP_ROOT . '/models/Vacuna.php';
 require_once APP_ROOT . '/models/RolePermission.php';
+require_once APP_ROOT . '/models/Config.php';
 
 class SuperAdminController extends Controller
 {
@@ -18,6 +19,7 @@ class SuperAdminController extends Controller
     private $servicioModel;
     private $vacunaModel;
     private $rolePermissionModel;
+    private $configModel;
 
     public function __construct($pdo)
     {
@@ -29,6 +31,7 @@ class SuperAdminController extends Controller
         try { $this->servicioModel = new Servicio($pdo); } catch (\Throwable $e) { $this->servicioModel = null; }
         try { $this->vacunaModel   = new Vacuna($pdo); } catch (\Throwable $e) { $this->vacunaModel = null; }
         try { $this->rolePermissionModel = new RolePermission($pdo); } catch (\Throwable $e) { $this->rolePermissionModel = null; }
+        try { $this->configModel = new Config($pdo); } catch (\Throwable $e) { $this->configModel = null; }
     }
 
     public function dashboard()
@@ -290,5 +293,46 @@ class SuperAdminController extends Controller
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
         }
+    }
+
+    public function configuracion()
+    {
+        if (!$this->configModel) {
+            $this->view('super_admin/config', ['error' => 'El modelo Config no está disponible.'], 'main_superadmin');
+            return;
+        }
+
+        $settings = $this->configModel->getAllSettings();
+        $this->view('super_admin/config', ['settings' => $settings], 'main_superadmin');
+    }
+
+    public function actualizarConfiguracion()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /vetsmart/super_admin/configuracion');
+            exit;
+        }
+
+        if (!$this->configModel) {
+            // Manejar el error, quizás redirigir con un mensaje
+            header('Location: /vetsmart/super_admin/configuracion?error=model_unavailable');
+            exit;
+        }
+
+        // Sanitizar y preparar los datos del POST.
+        // Se asume que los nombres de los campos del formulario coinciden con las claves de la BD.
+        $settings = $_POST;
+
+        // Opcional: eliminar el token CSRF si se está usando uno
+        // unset($settings['csrf_token']);
+
+        $success = $this->configModel->updateSettings($settings);
+
+        if ($success) {
+            header('Location: /vetsmart/super_admin/configuracion?success=true');
+        } else {
+            header('Location: /vetsmart/super_admin/configuracion?error=update_failed');
+        }
+        exit;
     }
 }
