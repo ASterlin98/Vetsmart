@@ -813,6 +813,26 @@ if ($path === '/super_admin/dashboard' && $_SERVER['REQUEST_METHOD'] === 'GET') 
     exit;
 }
 
+// ==================== SUPER ADMIN: GESTIÓN DE ROLES ====================
+if ($path === '/super_admin/gestion' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SuperAdminController($pdo);
+    $controller->gestion();
+    exit;
+}
+
+if (preg_match('#^/super_admin/getPermisosPorRol/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SuperAdminController($pdo);
+    // El método getPermisosPorRol ya extrae el ID de la URL
+    $controller->getPermisosPorRol();
+    exit;
+}
+
+if ($path === '/super_admin/actualizarPermisos' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SuperAdminController($pdo);
+    $controller->actualizarPermisos();
+    exit;
+}
+
 // ==================== API: DISPONIBILIDAD ====================
 if ($path === '/api/disponibilidad' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     header('Content-Type: application/json; charset=utf-8');
