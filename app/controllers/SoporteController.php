@@ -1,0 +1,142 @@
+<?php
+// app/controllers/SoporteController.php
+
+require_once APP_ROOT . '/core/Controller.php';
+require_once APP_ROOT . '/models/Ticket.php';
+require_once APP_ROOT . '/models/Usuario.php'; // Para obtener la lista de usuarios
+
+class SoporteController extends Controller {
+    private $ticketModel;
+    private $userModel;
+
+    public function __construct($pdo) {
+        parent::__construct($pdo);
+        $this->ticketModel = new Ticket($pdo);
+        $this->userModel = new Usuario($pdo);
+    }
+
+    /**
+     * Muestra el listado de todos los tickets de soporte.
+     */
+    public function index() {
+        $tickets = $this->ticketModel->getAll();
+        $this->view('soporte/index', ['tickets' => $tickets], 'main_superadmin');
+    }
+
+    /**
+     * Muestra la vista detallada de un ticket y su historial de mensajes.
+     * @param int $id - El ID del ticket.
+     */
+    public function ver($id) {
+        $ticket = $this->ticketModel->getById($id);
+        if (!$ticket) {
+            // Manejar ticket no encontrado
+            http_response_code(404);
+            $this->view('errors/404', [], 'main_superadmin');
+            return;
+        }
+
+        $mensajes = $this->ticketModel->getMessagesByTicketId($id);
+        $staff = $this->userModel->getStaff(); // Obtener lista de personal para reasignar
+
+        $this->view('soporte/ver', [
+            'ticket' => $ticket,
+            'mensajes' => $mensajes,
+            'staff' => $staff
+        ], 'main_superadmin');
+    }
+
+    /**
+     * Muestra el formulario para crear un nuevo ticket.
+     */
+    public function crear() {
+        $staff = $this->userModel->getStaff();
+        $this->view('soporte/crear', ['staff' => $staff], 'main_superadmin');
+    }
+
+    /**
+     * Procesa la creación de un nuevo ticket.
+     */
+    public function guardar() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /vetsmart/soporte/crear');
+            exit;
+        }
+
+        $data = [
+            'usuario_id'  => $_SESSION['user']['id'],
+            'asunto'      => $_POST['asunto'],
+            'descripcion' => $_POST['descripcion'],
+            'prioridad'   => $_POST['prioridad'],
+            'asignado_a'  => !empty($_POST['asignado_a']) ? $_POST['asignado_a'] : null
+        ];
+
+        $ticketId = $this->ticketModel->create($data);
+
+        if ($ticketId) {
+            // Añadir la descripción inicial como el primer mensaje del ticket
+            $this->ticketModel->addMessage($ticketId, $data['usuario_id'], $data['descripcion']);
+            header('Location: /vetsmart/soporte/ver/' . $ticketId);
+        } else {
+            // Manejar error en la creación
+            $_SESSION['flash_error'] = "No se pudo crear el ticket.";
+            header('Location: /vetsmart/soporte/crear');
+        }
+        exit;
+    }
+
+    /**
+     * Procesa el envío de una nueva respuesta en un ticket.
+     */
+    public function responder() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            exit('Método no permitido');
+        }
+
+        $ticket_id = $_POST['ticket_id'];
+        $mensaje = trim($_POST['mensaje']);
+        $usuario_id = $_SESSION['user']['id'];
+
+        if (empty($mensaje)) {
+            $_SESSION['flash_error'] = "El mensaje no puede estar vacío.";
+            header('Location: /vetsmart/soporte/ver/' . $ticket_id);
+            exit;
+        }
+
+        $success = $this->ticketModel->addMessage($ticket_id, $usuario_id, $mensaje);
+
+        if (!$success) {
+            $_SESSION['flash_error'] = "No se pudo enviar la respuesta.";
+        }
+
+        header('Location: /vetsmart/soporte/ver/' . $ticket_id);
+        exit;
+    }
+
+    /**
+     * Actualiza los metadatos de un ticket (estado, prioridad, asignado).
+     */
+    public function actualizarMeta() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            exit('Método no permitido');
+        }
+
+        $ticket_id  = $_POST['ticket_id'];
+        $estado     = $_POST['estado'];
+        $prioridad  = $_POST['prioridad'];
+        $asignado_a = !empty($_POST['asignado_a']) ? $_POST['asignado_a'] : null;
+
+        $success = $this->ticketModel->updateTicketMeta($ticket_id, $estado, $prioridad, $asignado_a);
+
+        if ($success) {
+            $_SESSION['flash_success'] = "El ticket ha sido actualizado.";
+        } else {
+            $_SESSION['flash_error'] = "No se pudo actualizar el ticket.";
+        }
+
+        header('Location: /vetsmart/soporte/ver/' . $ticket_id);
+        exit;
+    }
+}
