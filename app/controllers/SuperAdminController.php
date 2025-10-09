@@ -511,8 +511,11 @@ class SuperAdminController extends Controller
         }
 
         try {
-            $this->permisoModel->create($data);
-            $_SESSION['flash_success'] = 'Permiso creado correctamente.';
+            if ($this->permisoModel->create($data)) {
+                $_SESSION['flash_success'] = 'Permiso creado correctamente.';
+            } else {
+                $_SESSION['flash_error'] = 'No se pudo crear el permiso. Verifique los datos.';
+            }
         } catch (Exception $e) {
             $_SESSION['flash_error'] = 'Error al crear el permiso: ' . $e->getMessage();
         }
@@ -545,8 +548,11 @@ class SuperAdminController extends Controller
         ];
 
         try {
-            $this->permisoModel->update($id, $data);
-            $_SESSION['flash_success'] = 'Permiso actualizado correctamente.';
+            if ($this->permisoModel->update($id, $data)) {
+                $_SESSION['flash_success'] = 'Permiso actualizado correctamente.';
+            } else {
+                $_SESSION['flash_error'] = 'No se pudo actualizar el permiso. Verifique los datos.';
+            }
         } catch (Exception $e) {
             $_SESSION['flash_error'] = 'Error al actualizar el permiso: ' . $e->getMessage();
         }
@@ -564,8 +570,11 @@ class SuperAdminController extends Controller
         }
 
         try {
-            $this->permisoModel->delete($id);
-            $_SESSION['flash_success'] = 'Permiso eliminado correctamente.';
+            if ($this->permisoModel->delete($id)) {
+                $_SESSION['flash_success'] = 'Permiso eliminado correctamente.';
+            } else {
+                $_SESSION['flash_error'] = 'No se pudo eliminar el permiso.';
+            }
         } catch (Exception $e) {
             $_SESSION['flash_error'] = 'Error al eliminar el permiso: ' . $e->getMessage();
         }
