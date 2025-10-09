@@ -3,7 +3,7 @@
 
 require_once APP_ROOT . '/core/Controller.php';
 require_once APP_ROOT . '/models/Ticket.php';
-require_once APP_ROOT . '/models/Usuario.php'; // Para obtener la lista de usuarios
+require_once APP_ROOT . '/models/Usuario.php';
 
 class SoporteController extends Controller {
     private $ticketModel;
@@ -30,14 +30,13 @@ class SoporteController extends Controller {
     public function ver($id) {
         $ticket = $this->ticketModel->getById($id);
         if (!$ticket) {
-            // Manejar ticket no encontrado
             http_response_code(404);
             $this->view('errors/404', [], 'main_superadmin');
             return;
         }
 
         $mensajes = $this->ticketModel->getMessagesByTicketId($id);
-        $staff = $this->userModel->getStaff(); // Obtener lista de personal para reasignar
+        $staff = $this->userModel->getStaff();
 
         $this->view('soporte/ver', [
             'ticket' => $ticket,
@@ -74,11 +73,9 @@ class SoporteController extends Controller {
         $ticketId = $this->ticketModel->create($data);
 
         if ($ticketId) {
-            // Añadir la descripción inicial como el primer mensaje del ticket
             $this->ticketModel->addMessage($ticketId, $data['usuario_id'], $data['descripcion']);
             header('Location: /vetsmart/soporte/ver/' . $ticketId);
         } else {
-            // Manejar error en la creación
             $_SESSION['flash_error'] = "No se pudo crear el ticket.";
             header('Location: /vetsmart/soporte/crear');
         }
@@ -104,9 +101,9 @@ class SoporteController extends Controller {
             exit;
         }
 
-        $success = $this->ticketModel->addMessage($ticket_id, $usuario_id, $mensaje);
-
-        if (!$success) {
+        if ($this->ticketModel->addMessage($ticket_id, $usuario_id, $mensaje)) {
+             $_SESSION['flash_success'] = "Respuesta enviada.";
+        } else {
             $_SESSION['flash_error'] = "No se pudo enviar la respuesta.";
         }
 
@@ -128,9 +125,7 @@ class SoporteController extends Controller {
         $prioridad  = $_POST['prioridad'];
         $asignado_a = !empty($_POST['asignado_a']) ? $_POST['asignado_a'] : null;
 
-        $success = $this->ticketModel->updateTicketMeta($ticket_id, $estado, $prioridad, $asignado_a);
-
-        if ($success) {
+        if ($this->ticketModel->updateTicketMeta($ticket_id, $estado, $prioridad, $asignado_a)) {
             $_SESSION['flash_success'] = "El ticket ha sido actualizado.";
         } else {
             $_SESSION['flash_error'] = "No se pudo actualizar el ticket.";

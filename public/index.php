@@ -34,6 +34,7 @@ require_once APP_ROOT . '/controllers/ConsultasController.php';
 
 // <-- AÑADIDO: AdminController (necesario para gestión empleados) -->
 require_once APP_ROOT . '/controllers/AdminController.php';
+require_once APP_ROOT . '/controllers/SoporteController.php';
 
 // Detectar base path (subcarpeta donde vive la app)
 $basePath = '/vetsmart';
@@ -878,6 +879,38 @@ if ($path === '/super_admin/actualizarPermiso' && $_SERVER['REQUEST_METHOD'] ===
 if (preg_match('#^/super_admin/eliminarPermiso/(\d+)$#', $path, $matches)) {
     $controller = new SuperAdminController($pdo);
     $controller->eliminarPermiso($matches[1]);
+    exit;
+}
+
+// ==================== CENTRO DE SOPORTE ====================
+if ($path === '/soporte' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SoporteController($pdo);
+    $controller->index();
+    exit;
+}
+if ($path === '/soporte/crear' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SoporteController($pdo);
+    $controller->crear();
+    exit;
+}
+if ($path === '/soporte/guardar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SoporteController($pdo);
+    $controller->guardar();
+    exit;
+}
+if (preg_match('#^/soporte/ver/(\d+)$#', $path, $matches)) {
+    $controller = new SoporteController($pdo);
+    $controller->ver($matches[1]);
+    exit;
+}
+if ($path === '/soporte/responder' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SoporteController($pdo);
+    $controller->responder();
+    exit;
+}
+if ($path === '/soporte/actualizarMeta' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SoporteController($pdo);
+    $controller->actualizarMeta();
     exit;
 }
 

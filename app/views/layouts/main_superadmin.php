@@ -98,6 +98,8 @@
             <a href="/vetsmart/super_admin/configuracion" class="<?= strpos($currentUri, '/super_admin/configuracion') !== false ? 'active' : '' ?>">⚙️ Configuración Global</a>
 
             <a href="/vetsmart/super_admin/reportes" class="<?= strpos($currentUri, '/super_admin/reportes') !== false ? 'active' : '' ?>">📊 Reportes</a>
+
+            <a href="/vetsmart/soporte" class="<?= strpos($currentUri, '/soporte') !== false ? 'active' : '' ?>">🆘 Centro de Soporte</a>
     </div>
 
     <div class="content">
