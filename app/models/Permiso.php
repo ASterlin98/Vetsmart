@@ -1,4 +1,5 @@
 <?php
+// app/models/Permiso.php
 
 class Permiso {
     private $db;
@@ -7,59 +8,111 @@ class Permiso {
         $this->db = $pdo;
     }
 
-    public function getAllGroupedByModulo()
-    {
-        $sql = "SELECT id, modulo, nombre, descripcion, accion FROM permisos WHERE activo = 1 ORDER BY modulo, orden";
+    /**
+     * Obtiene todos los permisos, ordenados por módulo y luego por orden de visualización.
+     * @return array
+     */
+    public function getAll() {
+        $sql = "SELECT id, modulo, nombre, descripcion, accion, orden, activo
+                FROM permisos
+                ORDER BY modulo, orden, nombre";
         $stmt = $this->db->query($sql);
-        $result = [];
-
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $modulo = $row['modulo'];
-            if (!isset($result[$modulo])) {
-                $result[$modulo] = [];
-            }
-            $result[$modulo][] = $row;
-        }
-
-        return $result;
-    }
-
-    public function getPermisosPorRol($role_id)
-    {
-        $sql = "SELECT permiso_id FROM rol_permisos WHERE role_id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$role_id]);
-        return array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'permiso_id');
-    }
-
-    public function asignarPermisosARol($role_id, $permiso_ids, $usuario_id)
-    {
-        $this->db->beginTransaction();
-
-        $this->db->prepare("DELETE FROM rol_permisos WHERE role_id = ?")->execute([$role_id]);
-
-        $stmt = $this->db->prepare("INSERT INTO rol_permisos (role_id, permiso_id, concedido_por) VALUES (?, ?, ?)");
-        foreach ($permiso_ids as $permiso_id) {
-            $stmt->execute([$role_id, $permiso_id, $usuario_id]);
-        }
-
-        $this->db->commit();
-    }
-
-        public function solicitar($idusu, $fecha, $motivo){
-        $sql = "INSERT INTO permisos (idusu, fecha, motivo, estado) VALUES (?, ?, ?, 'pendiente')";
-        return $this->db->prepare($sql)->execute([$idusu, $fecha, $motivo]);
-    }
-
-    public function listarPorEmpleado($idusu){
-        $sql = "SELECT * FROM permisos WHERE idusu=?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$idusu]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function actualizarEstado($idperm, $estado){
-        $sql = "UPDATE permisos SET estado=? WHERE idperm=?";
-        return $this->db->prepare($sql)->execute([$estado, $idperm]);
+    /**
+     * Obtiene un permiso específico por su ID.
+     * @param int $id
+     * @return array|false
+     */
+    public function getById($id) {
+        $sql = "SELECT * FROM permisos WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':id' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Crea un nuevo permiso en la base de datos.
+     * @param array $data - Datos del permiso.
+     * @return bool
+     */
+    public function create($data) {
+        try {
+            $sql = "INSERT INTO permisos (modulo, nombre, descripcion, accion, orden, activo)
+                    VALUES (:modulo, :nombre, :descripcion, :accion, :orden, :activo)";
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([
+                ':modulo'       => $data['modulo'],
+                ':nombre'       => $data['nombre'],
+                ':descripcion'  => $data['descripcion'],
+                ':accion'       => $data['accion'],
+                ':orden'        => $data['orden'] ?? 0,
+                ':activo'       => $data['activo'] ?? 1
+            ]);
+        } catch (PDOException $e) {
+            // Manejar error de nombre de permiso duplicado (UNIQUE KEY `idx_nombre_unico`)
+            if ($e->errorInfo[1] == 1062) {
+                throw new Exception("El nombre del permiso '{$data['nombre']}' ya existe.");
+            }
+            throw $e; // Re-lanzar otras excepciones
+        }
+    }
+
+    /**
+     * Actualiza un permiso existente.
+     * @param int $id
+     * @param array $data - Datos a actualizar.
+     * @return bool
+     */
+    public function update($id, $data) {
+        try {
+            $sql = "UPDATE permisos SET
+                        modulo = :modulo,
+                        nombre = :nombre,
+                        descripcion = :descripcion,
+                        accion = :accion,
+                        orden = :orden,
+                        activo = :activo
+                    WHERE id = :id";
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([
+                ':id'           => $id,
+                ':modulo'       => $data['modulo'],
+                ':nombre'       => $data['nombre'],
+                ':descripcion'  => $data['descripcion'],
+                ':accion'       => $data['accion'],
+                ':orden'        => $data['orden'] ?? 0,
+                ':activo'       => $data['activo'] ?? 1
+            ]);
+        } catch (PDOException $e) {
+            if ($e->errorInfo[1] == 1062) {
+                throw new Exception("El nombre del permiso '{$data['nombre']}' ya está en uso por otro permiso.");
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * Elimina un permiso de la base de datos.
+     * La restricción FOREIGN KEY en `rol_permisos` con ON DELETE CASCADE
+     * se encargará de eliminar las asignaciones automáticamente.
+     * @param int $id
+     * @return bool
+     */
+    public function delete($id) {
+        $sql = "DELETE FROM permisos WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([':id' => $id]);
+    }
+
+    /**
+     * Obtiene una lista de todos los módulos únicos existentes.
+     * @return array
+     */
+    public function getModules() {
+        $sql = "SELECT DISTINCT modulo FROM permisos ORDER BY modulo";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 }
