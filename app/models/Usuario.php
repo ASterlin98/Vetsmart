@@ -83,4 +83,13 @@ public function updatePassword($id, $hash) {
         return (bool) $stmt->fetch();
     }
 
+    /**
+     * Obtiene todos los usuarios que no son clientes (staff).
+     * @return array
+     */
+    public function getStaff() {
+        $sql = "SELECT id, nombre, apellido FROM usuarios WHERE role_id != 6 ORDER BY nombre, apellido";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
