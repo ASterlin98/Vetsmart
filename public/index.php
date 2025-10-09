@@ -859,6 +859,28 @@ if ($path === '/super_admin/exportarReportes' && $_SERVER['REQUEST_METHOD'] === 
     exit;
 }
 
+// ==================== SUPER ADMIN: GESTIÓN DE PERMISOS (CRUD) ====================
+if ($path === '/super_admin/permisos' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SuperAdminController($pdo);
+    $controller->permisos();
+    exit;
+}
+if ($path === '/super_admin/guardarPermiso' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SuperAdminController($pdo);
+    $controller->guardarPermiso();
+    exit;
+}
+if ($path === '/super_admin/actualizarPermiso' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SuperAdminController($pdo);
+    $controller->actualizarPermiso();
+    exit;
+}
+if (preg_match('#^/super_admin/eliminarPermiso/(\d+)$#', $path, $matches)) {
+    $controller = new SuperAdminController($pdo);
+    $controller->eliminarPermiso($matches[1]);
+    exit;
+}
+
 
 // ==================== API: DISPONIBILIDAD ====================
 if ($path === '/api/disponibilidad' && $_SERVER['REQUEST_METHOD'] === 'GET') {

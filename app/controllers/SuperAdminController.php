@@ -10,6 +10,7 @@ require_once APP_ROOT . '/models/Servicio.php';
 require_once APP_ROOT . '/models/Vacuna.php';
 require_once APP_ROOT . '/models/RolePermission.php';
 require_once APP_ROOT . '/models/Config.php';
+require_once APP_ROOT . '/models/Permiso.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -23,6 +24,7 @@ class SuperAdminController extends Controller
     private $vacunaModel;
     private $rolePermissionModel;
     private $configModel;
+    private $permisoModel;
 
     public function __construct($pdo)
     {
@@ -35,6 +37,7 @@ class SuperAdminController extends Controller
         try { $this->vacunaModel   = new Vacuna($pdo); } catch (\Throwable $e) { $this->vacunaModel = null; }
         try { $this->rolePermissionModel = new RolePermission($pdo); } catch (\Throwable $e) { $this->rolePermissionModel = null; }
         try { $this->configModel = new Config($pdo); } catch (\Throwable $e) { $this->configModel = null; }
+        try { $this->permisoModel = new Permiso($pdo); } catch (\Throwable $e) { $this->permisoModel = null; }
     }
 
     public function dashboard()
@@ -463,6 +466,111 @@ class SuperAdminController extends Controller
 
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
+        exit;
+    }
+
+    public function permisos()
+    {
+        if (!$this->permisoModel) {
+            $this->view('super_admin/permisos', ['error' => 'El modelo de Permisos no está disponible.'], 'main_superadmin');
+            return;
+        }
+
+        $permisos = $this->permisoModel->getAll();
+        $modulos = $this->permisoModel->getModules();
+
+        $permisosAgrupados = [];
+        foreach ($permisos as $permiso) {
+            $permisosAgrupados[$permiso['modulo']][] = $permiso;
+        }
+
+        $this->view('super_admin/permisos', [
+            'permisosAgrupados' => $permisosAgrupados,
+            'modulos' => $modulos,
+        ], 'main_superadmin');
+    }
+
+    public function guardarPermiso()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !$this->permisoModel) {
+            header('Location: /vetsmart/super_admin/permisos');
+            exit;
+        }
+
+        $data = [
+            'modulo' => trim($_POST['modulo']),
+            'nombre' => trim($_POST['nombre']),
+            'descripcion' => trim($_POST['descripcion']),
+            'accion' => trim($_POST['accion']),
+            'orden' => (int)($_POST['orden'] ?? 0),
+            'activo' => isset($_POST['activo']) ? 1 : 0
+        ];
+
+        if (!empty(trim($_POST['nuevo_modulo']))) {
+            $data['modulo'] = strtolower(str_replace(' ', '_', trim($_POST['nuevo_modulo'])));
+        }
+
+        try {
+            $this->permisoModel->create($data);
+            $_SESSION['flash_success'] = 'Permiso creado correctamente.';
+        } catch (Exception $e) {
+            $_SESSION['flash_error'] = 'Error al crear el permiso: ' . $e->getMessage();
+        }
+
+        header('Location: /vetsmart/super_admin/permisos');
+        exit;
+    }
+
+    public function actualizarPermiso()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !$this->permisoModel) {
+            header('Location: /vetsmart/super_admin/permisos');
+            exit;
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            $_SESSION['flash_error'] = 'ID de permiso no válido.';
+            header('Location: /vetsmart/super_admin/permisos');
+            exit;
+        }
+
+        $data = [
+            'modulo' => trim($_POST['modulo']),
+            'nombre' => trim($_POST['nombre']),
+            'descripcion' => trim($_POST['descripcion']),
+            'accion' => trim($_POST['accion']),
+            'orden' => (int)($_POST['orden'] ?? 0),
+            'activo' => isset($_POST['activo']) ? 1 : 0
+        ];
+
+        try {
+            $this->permisoModel->update($id, $data);
+            $_SESSION['flash_success'] = 'Permiso actualizado correctamente.';
+        } catch (Exception $e) {
+            $_SESSION['flash_error'] = 'Error al actualizar el permiso: ' . $e->getMessage();
+        }
+
+        header('Location: /vetsmart/super_admin/permisos');
+        exit;
+    }
+
+    public function eliminarPermiso($id)
+    {
+        $id = (int)$id;
+        if ($id <= 0 || !$this->permisoModel) {
+            header('Location: /vetsmart/super_admin/permisos');
+            exit;
+        }
+
+        try {
+            $this->permisoModel->delete($id);
+            $_SESSION['flash_success'] = 'Permiso eliminado correctamente.';
+        } catch (Exception $e) {
+            $_SESSION['flash_error'] = 'Error al eliminar el permiso: ' . $e->getMessage();
+        }
+
+        header('Location: /vetsmart/super_admin/permisos');
         exit;
     }
 }
