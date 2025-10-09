@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 09-10-2025 a las 01:29:23
+-- Tiempo de generación: 09-10-2025 a las 04:13:54
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -152,6 +152,29 @@ INSERT INTO `cliente_detalles` (`id`, `idusu`, `telefono`, `direccion`, `ciudad`
 (9, 20, '3144928505', 'Cr 7 #6-67', 'Cundinamarca', '2025-10-01 00:19:46'),
 (10, 21, '3124285749', 'Pollo rico 32', 'Bogota', '2025-10-01 00:28:22'),
 (12, 28, '75896485', 'Cr 2 # 3 - 4', 'Bogota', '2025-10-04 00:22:57');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `config`
+--
+
+CREATE TABLE `config` (
+  `id` int(11) NOT NULL,
+  `clave` varchar(100) NOT NULL,
+  `valor` text DEFAULT NULL,
+  `actualizado_en` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `config`
+--
+
+INSERT INTO `config` (`id`, `clave`, `valor`, `actualizado_en`) VALUES
+(1, 'site_name', 'VetSmart', '2025-10-09 00:21:42'),
+(2, 'contact_email', 'contacto@vetsmart.com', '2025-10-08 23:45:03'),
+(3, 'maintenance_mode', '1', '2025-10-09 00:20:50'),
+(4, 'records_per_page', '15', '2025-10-08 23:45:03');
 
 -- --------------------------------------------------------
 
@@ -890,6 +913,38 @@ INSERT INTO `solicitudes` (`id`, `usuario_id`, `tipo`, `fecha_inicio`, `fecha_fi
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `tickets`
+--
+
+CREATE TABLE `tickets` (
+  `id` int(11) NOT NULL,
+  `usuario_id` int(11) NOT NULL COMMENT 'ID del usuario que crea el ticket',
+  `asignado_a` int(11) DEFAULT NULL COMMENT 'ID del usuario de soporte asignado',
+  `asunto` varchar(255) NOT NULL,
+  `descripcion` text DEFAULT NULL,
+  `estado` enum('Abierto','En Proceso','Cerrado') NOT NULL DEFAULT 'Abierto',
+  `prioridad` enum('Baja','Media','Alta','Urgente') NOT NULL DEFAULT 'Media',
+  `creado_en` timestamp NOT NULL DEFAULT current_timestamp(),
+  `actualizado_en` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `ticket_mensajes`
+--
+
+CREATE TABLE `ticket_mensajes` (
+  `id` int(11) NOT NULL,
+  `ticket_id` int(11) NOT NULL,
+  `usuario_id` int(11) NOT NULL COMMENT 'ID del autor del mensaje',
+  `mensaje` text NOT NULL,
+  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `turnos_empleado`
 --
 
@@ -1064,6 +1119,13 @@ ALTER TABLE `cliente_detalles`
   ADD KEY `idusu` (`idusu`);
 
 --
+-- Indices de la tabla `config`
+--
+ALTER TABLE `config`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `clave` (`clave`);
+
+--
 -- Indices de la tabla `consultas`
 --
 ALTER TABLE `consultas`
@@ -1185,6 +1247,22 @@ ALTER TABLE `solicitudes`
   ADD KEY `usuario_id` (`usuario_id`);
 
 --
+-- Indices de la tabla `tickets`
+--
+ALTER TABLE `tickets`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `usuario_id` (`usuario_id`),
+  ADD KEY `asignado_a` (`asignado_a`);
+
+--
+-- Indices de la tabla `ticket_mensajes`
+--
+ALTER TABLE `ticket_mensajes`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `ticket_id` (`ticket_id`),
+  ADD KEY `ticket_mensajes_ibfk_2` (`usuario_id`);
+
+--
 -- Indices de la tabla `turnos_empleado`
 --
 ALTER TABLE `turnos_empleado`
@@ -1236,6 +1314,12 @@ ALTER TABLE `citas`
 --
 ALTER TABLE `cliente_detalles`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT de la tabla `config`
+--
+ALTER TABLE `config`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT de la tabla `consultas`
@@ -1332,6 +1416,18 @@ ALTER TABLE `servicios`
 --
 ALTER TABLE `solicitudes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de la tabla `tickets`
+--
+ALTER TABLE `tickets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `ticket_mensajes`
+--
+ALTER TABLE `ticket_mensajes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `turnos_empleado`
@@ -1454,6 +1550,20 @@ ALTER TABLE `rol_permisos`
 --
 ALTER TABLE `solicitudes`
   ADD CONSTRAINT `solicitudes_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `tickets`
+--
+ALTER TABLE `tickets`
+  ADD CONSTRAINT `tickets_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `tickets_ibfk_2` FOREIGN KEY (`asignado_a`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+
+--
+-- Filtros para la tabla `ticket_mensajes`
+--
+ALTER TABLE `ticket_mensajes`
+  ADD CONSTRAINT `ticket_mensajes_ibfk_1` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `ticket_mensajes_ibfk_2` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `turnos_empleado`
