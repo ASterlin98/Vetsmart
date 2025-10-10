@@ -1,3 +1,4 @@
+<?php require_once APP_ROOT . '/helpers/auth_helper.php'; ?>
 <!-- app/views/layouts/main_recepcionista.php -->
 <!DOCTYPE html>
 <html lang="es">
