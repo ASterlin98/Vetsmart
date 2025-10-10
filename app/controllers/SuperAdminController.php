@@ -207,6 +207,87 @@ class SuperAdminController extends Controller
         }
     }
 
+    public function getPermisosPorRol()
+    {
+        header('Content-Type: application/json');
+
+        if (!$this->rolePermissionModel) {
+            http_response_code(500);
+            echo json_encode(['error' => 'El modelo RolePermission no está disponible.']);
+            return;
+        }
+
+        $url_parts = explode('/', $_GET['url'] ?? '');
+        $role_id_from_url = end($url_parts);
+
+        if (!is_numeric($role_id_from_url) || $role_id_from_url <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'ID de rol no válido en la URL.']);
+            return;
+        }
+        $role_id = (int)$role_id_from_url;
+
+        try {
+            $all_permissions = $this->rolePermissionModel->getAllPermissionsGroupedByModule();
+            $assigned_permissions = $this->rolePermissionModel->getPermissionIdsByRoleId($role_id);
+
+            echo json_encode([
+                'all_permissions' => $all_permissions,
+                'assigned_permissions' => $assigned_permissions
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Error al obtener los permisos: ' . $e->getMessage()]);
+        }
+    }
+
+    public function actualizarPermisos()
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Método no permitido.']);
+            return;
+        }
+
+        if (!$this->rolePermissionModel) {
+            http_response_code(500);
+            echo json_encode(['error' => 'El modelo RolePermission no está disponible.']);
+            return;
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $role_id = $input['role_id'] ?? null;
+        $permission_ids = $input['permission_ids'] ?? [];
+
+        if (empty($role_id) || !is_numeric($role_id)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'ID de rol no válido.']);
+            return;
+        }
+
+        $permission_ids = array_map('intval', $permission_ids);
+
+        try {
+            $success = $this->rolePermissionModel->updatePermissionsForRole($role_id, $permission_ids);
+            if ($success) {
+                echo json_encode(['success' => true, 'message' => 'Permisos actualizados correctamente.']);
+            } else {
+                 if ($role_id == 1) {
+                    http_response_code(403); // Forbidden
+                    echo json_encode(['success' => false, 'message' => 'No se pueden modificar los permisos del Super Administrador.']);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['success' => false, 'message' => 'No se pudieron actualizar los permisos.']);
+                }
+            }
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
+        }
+    }
+
     public function configuracion()
     {
         if (!$this->configModel) {
@@ -377,13 +458,14 @@ class SuperAdminController extends Controller
 
     public function permisos()
     {
-        if (!$this->permisoModel) {
-            $this->view('super_admin/permisos', ['error' => 'El modelo de Permisos no está disponible.'], 'main_superadmin');
+        if (!$this->permisoModel || !$this->rolePermissionModel) {
+            $this->view('super_admin/permisos', ['error' => 'Los modelos necesarios no están disponibles.'], 'main_superadmin');
             return;
         }
 
         $permisos = $this->permisoModel->getAll();
         $modulos = $this->permisoModel->getModules();
+        $roles = $this->rolePermissionModel->getAllRoles(); // Fetch roles
 
         $permisosAgrupados = [];
         foreach ($permisos as $permiso) {
@@ -393,6 +475,7 @@ class SuperAdminController extends Controller
         $this->view('super_admin/permisos', [
             'permisosAgrupados' => $permisosAgrupados,
             'modulos' => $modulos,
+            'roles' => $roles, // Pass roles to the view
         ], 'main_superadmin');
     }
 

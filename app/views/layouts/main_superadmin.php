@@ -93,6 +93,8 @@
 
             <a href="/vetsmart/super_admin/permisos" class="<?= strpos($currentUri, '/super_admin/permisos') !== false ? 'active' : '' ?>">🔐 Gestión de Permisos</a>
 
+            <a href="/vetsmart/super_admin/gestion" class="<?= strpos($currentUri, '/super_admin/gestion') !== false ? 'active' : '' ?>">🛡️ Gestión de Roles</a>
+
             <a href="/vetsmart/super_admin/configuracion" class="<?= strpos($currentUri, '/super_admin/configuracion') !== false ? 'active' : '' ?>">⚙️ Configuración Global</a>
 
             <a href="/vetsmart/super_admin/reportes" class="<?= strpos($currentUri, '/super_admin/reportes') !== false ? 'active' : '' ?>">📊 Reportes</a>
