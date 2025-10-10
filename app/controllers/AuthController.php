@@ -31,7 +31,20 @@ class AuthController extends Controller
         $user = $userModel->findByEmail($email);
 
         if ($user && password_verify($password, $user['password'])) {
+            // Cargar permisos del rol
+            $db = Database::getInstance();
+            $stmt = $db->prepare("
+                SELECT p.nombre
+                FROM permisos p
+                JOIN role_permissions rp ON p.id = rp.permission_id
+                WHERE rp.role_id = :role_id AND p.activo = 1
+            ");
+            $stmt->execute(['role_id' => $user['role_id']]);
+            $permissions = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+
+            $user['permissions'] = $permissions;
             $_SESSION['user'] = $user;
+
             header('Location: /vetsmart/dashboard');
             exit;
         }
