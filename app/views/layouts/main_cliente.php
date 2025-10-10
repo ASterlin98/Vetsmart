@@ -87,12 +87,24 @@
         <?= htmlspecialchars($_SESSION['user']['nombre'] ?? '') ?>
         <?= htmlspecialchars($_SESSION['user']['apellido'] ?? '') ?>.
       </h2>
-      <a href="/vetsmart/cliente/dashboard" class="active">🏠 Dashboard</a>
-      <a href="/vetsmart/cliente/citas">📅 Mis Citas</a>
-      <a href="/vetsmart/cliente/mascotas">🐾 Mis Mascotas</a>
-      <a href="/vetsmart/cliente/historial">📖 Historial Clínico</a>
-      <a href="/vetsmart/cliente/pagos">💳 Pagos</a>
-      <a href="/vetsmart/cliente/reportes">📊 Reportes</a>
+      <?php if (has_permission('dashboard.view')): ?>
+        <a href="/vetsmart/cliente/dashboard" class="<?= strpos($_SERVER['REQUEST_URI'], 'dashboard') !== false ? 'active' : '' ?>">🏠 Dashboard</a>
+      <?php endif; ?>
+      <?php if (has_permission('citas.view_own')): ?>
+        <a href="/vetsmart/cliente/citas" class="<?= strpos($_SERVER['REQUEST_URI'], 'citas') !== false ? 'active' : '' ?>">📅 Mis Citas</a>
+      <?php endif; ?>
+      <?php if (has_permission('mascotas.view_own')): ?>
+        <a href="/vetsmart/cliente/mascotas" class="<?= strpos($_SERVER['REQUEST_URI'], 'mascotas') !== false ? 'active' : '' ?>">🐾 Mis Mascotas</a>
+      <?php endif; ?>
+      <?php if (has_permission('historial.view_own')): ?>
+        <a href="/vetsmart/cliente/historial" class="<?= strpos($_SERVER['REQUEST_URI'], 'historial') !== false ? 'active' : '' ?>">📖 Historial Clínico</a>
+      <?php endif; ?>
+      <?php if (has_permission('pagos.view')): ?>
+        <a href="/vetsmart/cliente/pagos" class="<?= strpos($_SERVER['REQUEST_URI'], 'pagos') !== false ? 'active' : '' ?>">💳 Pagos</a>
+      <?php endif; ?>
+      <?php if (has_permission('reportes.view_own')): ?>
+        <a href="/vetsmart/cliente/reportes" class="<?= strpos($_SERVER['REQUEST_URI'], 'reportes') !== false ? 'active' : '' ?>">📊 Reportes</a>
+      <?php endif; ?>
     </div>
 
     <div class="content">
