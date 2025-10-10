@@ -115,14 +115,30 @@
               <?= htmlspecialchars($_SESSION['user']['nombre'] ?? '') ?>
               <?= htmlspecialchars($_SESSION['user']['apellido'] ?? '') ?>.
             </h2>
-            <a href="/vetsmart/admin/dashboard">🏠 Dashboard</a>
-            <a href="/vetsmart/admin/empleados">👥 Gestión de Empleados</a>
-            <a href="/vetsmart/admin/agenda">📅 Agenda General</a>
-            <a href="/vetsmart/admin/horarios" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/horarios') !== false ? 'active' : '' ?>">⏰ Gestión de Horarios</a>
-            <a href="/vetsmart/admin/clientes">🐶 Gestión de Clientes</a>
-            <a href="/vetsmart/admin/servicios" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/servicios') !== false ? 'active' : '' ?>">🛠️ Gestión de Servicios</a>
-            <a href="/vetsmart/admin/finanzas">💰 Finanzas</a>
-            <a href="/vetsmart/admin/reportes">📊 Reportes</a>
+            <?php if (has_permission('dashboard.view')): ?>
+                <a href="/vetsmart/admin/dashboard" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/dashboard') !== false ? 'active' : '' ?>">🏠 Dashboard</a>
+            <?php endif; ?>
+            <?php if (has_permission('empleados.manage')): ?>
+                <a href="/vetsmart/admin/empleados" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/empleados') !== false ? 'active' : '' ?>">👥 Gestión de Empleados</a>
+            <?php endif; ?>
+            <?php if (has_permission('agenda.view_all')): ?>
+                <a href="/vetsmart/admin/agenda" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/agenda') !== false ? 'active' : '' ?>">📅 Agenda General</a>
+            <?php endif; ?>
+            <?php if (has_permission('horarios.manage')): ?>
+                <a href="/vetsmart/admin/horarios" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/horarios') !== false ? 'active' : '' ?>">⏰ Gestión de Horarios</a>
+            <?php endif; ?>
+            <?php if (has_permission('clientes.manage')): ?>
+                <a href="/vetsmart/admin/clientes" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/clientes') !== false ? 'active' : '' ?>">🐶 Gestión de Clientes</a>
+            <?php endif; ?>
+            <?php if (has_permission('servicios.manage')): ?>
+                <a href="/vetsmart/admin/servicios" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/servicios') !== false ? 'active' : '' ?>">🛠️ Gestión de Servicios</a>
+            <?php endif; ?>
+            <?php if (has_permission('finanzas.view')): ?>
+                <a href="/vetsmart/admin/finanzas" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/finanzas') !== false ? 'active' : '' ?>">💰 Finanzas</a>
+            <?php endif; ?>
+            <?php if (has_permission('reportes.view')): ?>
+                <a href="/vetsmart/admin/reportes" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/reportes') !== false ? 'active' : '' ?>">📊 Reportes</a>
+            <?php endif; ?>
         </div>
 
         <div class="content">
