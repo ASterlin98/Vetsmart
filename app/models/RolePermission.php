@@ -38,7 +38,7 @@ class RolePermission {
      * @return array
      */
     public function getPermissionIdsByRoleId($role_id) {
-        $stmt = $this->db->prepare("SELECT permiso_id FROM rol_permisos WHERE role_id = ?");
+        $stmt = $this->db->prepare("SELECT permission_id FROM role_permissions WHERE role_id = ?");
         $stmt->execute([$role_id]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
     }
@@ -60,12 +60,12 @@ class RolePermission {
 
         try {
             // 1. Eliminar todos los permisos actuales para este rol
-            $stmt = $this->db->prepare("DELETE FROM rol_permisos WHERE role_id = ?");
+            $stmt = $this->db->prepare("DELETE FROM role_permissions WHERE role_id = ?");
             $stmt->execute([$role_id]);
 
             // 2. Insertar los nuevos permisos
             if (!empty($permission_ids)) {
-                $sql = "INSERT INTO rol_permisos (role_id, permiso_id) VALUES ";
+                $sql = "INSERT INTO role_permissions (role_id, permission_id) VALUES ";
                 $placeholders = [];
                 $values = [];
                 foreach ($permission_ids as $perm_id) {
