@@ -207,7 +207,7 @@ class SuperAdminController extends Controller
         }
     }
 
-    public function getPermisosPorRol()
+    public function getPermisosPorRol(int $role_id)
     {
         header('Content-Type: application/json');
 
@@ -217,15 +217,11 @@ class SuperAdminController extends Controller
             return;
         }
 
-        $url_parts = explode('/', $_GET['url'] ?? '');
-        $role_id_from_url = end($url_parts);
-
-        if (!is_numeric($role_id_from_url) || $role_id_from_url <= 0) {
+        if ($role_id <= 0) {
             http_response_code(400);
-            echo json_encode(['error' => 'ID de rol no válido en la URL.']);
+            echo json_encode(['error' => 'ID de rol no válido.']);
             return;
         }
-        $role_id = (int)$role_id_from_url;
 
         try {
             $all_permissions = $this->rolePermissionModel->getAllPermissionsGroupedByModule();

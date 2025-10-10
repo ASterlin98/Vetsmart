@@ -818,17 +818,10 @@ if ($path === '/super_admin/dashboard' && $_SERVER['REQUEST_METHOD'] === 'GET') 
 }
 
 // ==================== SUPER ADMIN: GESTIÓN DE ROLES ====================
-if ($path === '/super_admin/gestion' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new SuperAdminController($pdo);
-    $controller->gestion();
-    exit;
-}
-
 if (preg_match('#^/super_admin/getPermisosPorRol/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $controller = new SuperAdminController($pdo);
-    // El método getPermisosPorRol espera el ID en la URL, que se pasa a través de $_GET['url']
-    $_GET['url'] = ltrim($path, '/');
-    $controller->getPermisosPorRol();
+    $role_id = (int)$matches[1];
+    $controller->getPermisosPorRol($role_id);
     exit;
 }
 
