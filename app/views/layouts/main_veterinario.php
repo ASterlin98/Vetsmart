@@ -1,4 +1,3 @@
-<?php require_once APP_ROOT . '/helpers/auth_helper.php'; ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -124,39 +123,29 @@
         <?= htmlspecialchars($_SESSION['user']['apellido'] ?? '') ?>.
       </h2>
 
-      <?php if (has_permission('dashboard.view')): ?>
       <a href="/vetsmart/veterinario/dashboard"
          class="<?= strpos($_SERVER['REQUEST_URI'], '/veterinario/dashboard') !== false ? 'active' : '' ?>">
         🏠 Dashboard
       </a>
-      <?php endif; ?>
 
-      <?php if (has_permission('citas.view')): ?>
       <a href="/vetsmart/veterinario/mis-citas"
          class="<?= (strpos($_SERVER['REQUEST_URI'], '/mis-citas') !== false || strpos($_SERVER['REQUEST_URI'], '/citas') !== false) ? 'active' : '' ?>">
         📅 Mis Citas
       </a>
-      <?php endif; ?>
 
-      <?php if (has_permission('pacientes.view')): ?>
       <a href="/vetsmart/veterinario/pacientes"
          class="<?= strpos($_SERVER['REQUEST_URI'], '/pacientes') !== false ? 'active' : '' ?>">
         🐾 Pacientes
       </a>
-      <?php endif; ?>
 
-      <?php if (has_permission('consultas.view')): ?>
       <a href="/vetsmart/veterinario/consultas"
          class="<?= strpos($_SERVER['REQUEST_URI'], '/consultas') !== false ? 'active' : '' ?>">
         💉 Consultas
       </a>
-      <?php endif; ?>
 
-      <?php if (has_permission('reportes.view')): ?>
       <a href="/vetsmart/veterinario/reportes" class="<?= strpos($_SERVER['REQUEST_URI'], '/reportes') !== false ? 'active' : '' ?>">
         📊 Reportes
       </a>
-      <?php endif; ?>
     </div>
 
     <div class="content">
