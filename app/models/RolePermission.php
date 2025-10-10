@@ -51,17 +51,19 @@ class RolePermission {
      * @return bool
      */
     public function updatePermissionsForRole($role_id, $permission_ids) {
-        // Asegurarse de que el super_admin no se pueda modificar a sí mismo
         if ($role_id == 1) {
+            error_log("SECURITY: Attempted to modify Super Admin permissions. Denied.");
             return false;
         }
 
+        error_log("DB_TXN: Starting transaction for role_id: " . $role_id);
         $this->db->beginTransaction();
 
         try {
             // 1. Eliminar todos los permisos actuales para este rol
-            $stmt = $this->db->prepare("DELETE FROM role_permissions WHERE role_id = ?");
-            $stmt->execute([$role_id]);
+            $stmt_delete = $this->db->prepare("DELETE FROM role_permissions WHERE role_id = ?");
+            $stmt_delete->execute([$role_id]);
+            error_log("DB_TXN: Deleted existing permissions for role_id: " . $role_id . ". Rows affected: " . $stmt_delete->rowCount());
 
             // 2. Insertar los nuevos permisos
             if (!empty($permission_ids)) {
@@ -75,17 +77,22 @@ class RolePermission {
                 }
                 $sql .= implode(", ", $placeholders);
 
-                $stmt = $this->db->prepare($sql);
-                $stmt->execute($values);
+                error_log("DB_TXN: Preparing to insert new permissions. SQL: " . $sql . " with values: " . json_encode($values));
+
+                $stmt_insert = $this->db->prepare($sql);
+                $stmt_insert->execute($values);
+                error_log("DB_TXN: Inserted new permissions for role_id: " . $role_id . ". Rows affected: " . $stmt_insert->rowCount());
+            } else {
+                error_log("DB_TXN: No new permissions to insert for role_id: " . $role_id);
             }
 
             $this->db->commit();
+            error_log("DB_TXN: Transaction committed successfully for role_id: " . $role_id);
             return true;
 
         } catch (Exception $e) {
             $this->db->rollBack();
-            // Opcional: registrar el error
-            error_log("Error al actualizar permisos para el rol $role_id: " . $e->getMessage());
+            error_log("DB_TXN_EXCEPTION: Transaction rolled back for role $role_id: " . $e->getMessage());
             return false;
         }
     }
