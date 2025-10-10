@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const baseUrl = window.location.origin;
         const basePath = '/vetsmart';
-        const fetchUrl = `${baseUrl}${basePath}/super_admin/getPermisosPorRol/${roleId}`;
+        const fetchUrl = `${baseUrl}${basePath}/app/api/permissions_api.php?role_id=${roleId}`;
 
         fetch(fetchUrl)
             .then(response => {
@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const baseUrl = window.location.origin;
         const basePath = '/vetsmart';
-        const postUrl = `${baseUrl}${basePath}/super_admin/actualizarPermisos`;
+        const postUrl = `${baseUrl}${basePath}/app/api/permissions_api.php`;
 
         fetch(postUrl, {
             method: 'POST',

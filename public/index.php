@@ -226,18 +226,6 @@ try {
         exit;
     }
 
-    if (preg_match('#^/superadmin/permisos/rol/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-        $controller = new SuperAdminController($pdo);
-        $_GET['role_id'] = $matches[1];
-        $controller->getPermisosPorRol();
-        exit;
-    }
-
-    if ($path === '/superadmin/permisos/actualizar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-        $controller = new SuperAdminController($pdo);
-        $controller->actualizarPermisos();
-        exit;
-    }
 
     // ==================== CLIENTES ====================
     if ($path === '/admin/clientes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -817,19 +805,7 @@ if ($path === '/super_admin/dashboard' && $_SERVER['REQUEST_METHOD'] === 'GET') 
     exit;
 }
 
-// ==================== SUPER ADMIN: GESTIÓN DE ROLES ====================
-if (preg_match('#^/super_admin/getPermisosPorRol/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new SuperAdminController($pdo);
-    $role_id = (int)$matches[1];
-    $controller->getPermisosPorRol($role_id);
-    exit;
-}
-
-if ($path === '/super_admin/actualizarPermisos' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new SuperAdminController($pdo);
-    $controller->actualizarPermisos();
-    exit;
-}
+// ==================== SUPER ADMIN: GESTIÓN DE ROLES (ahora manejado por API) ====================
 
 // ==================== SUPER ADMIN: CONFIGURACIÓN GLOBAL ====================
 if ($path === '/super_admin/configuracion' && $_SERVER['REQUEST_METHOD'] === 'GET') {
