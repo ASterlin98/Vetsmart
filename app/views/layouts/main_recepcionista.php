@@ -1,4 +1,3 @@
-<?php require_once APP_ROOT . '/helpers/auth_helper.php'; ?>
 <!-- app/views/layouts/main_recepcionista.php -->
 <!DOCTYPE html>
 <html lang="es">
@@ -90,24 +89,12 @@
         <?= htmlspecialchars($_SESSION['user']['nombre'] ?? '') ?>
         <?= htmlspecialchars($_SESSION['user']['apellido'] ?? '') ?>.
       </h2>
-      <?php if (has_permission('dashboard.view')): ?>
-        <a href="/vetsmart/recepcion/dashboard" class="<?= strpos($_SERVER['REQUEST_URI'], 'dashboard') !== false ? 'active' : '' ?>">🏠 Dashboard</a>
-      <?php endif; ?>
-      <?php if (has_permission('agenda.view')): ?>
-        <a href="/vetsmart/recepcion/agenda" class="<?= strpos($_SERVER['REQUEST_URI'], 'agenda') !== false ? 'active' : '' ?>">📅 Agenda Diaria</a>
-      <?php endif; ?>
-      <?php if (has_permission('citas.manage')): ?>
-        <a href="/vetsmart/recepcion/citas" class="<?= strpos($_SERVER['REQUEST_URI'], 'citas') !== false ? 'active' : '' ?>">📌 Gestión de Citas</a>
-      <?php endif; ?>
-      <?php if (has_permission('clientes.manage')): ?>
-        <a href="/vetsmart/recepcion/clientes" class="<?= strpos($_SERVER['REQUEST_URI'], 'clientes') !== false ? 'active' : '' ?>">🐶 Gestión de Clientes</a>
-      <?php endif; ?>
-      <?php if (has_permission('ingresos.view')): ?>
-        <a href="/vetsmart/recepcion/ingresos" class="<?= strpos($_SERVER['REQUEST_URI'], 'ingresos') !== false ? 'active' : '' ?>">🐾 Ingresos / Egresos</a>
-      <?php endif; ?>
-      <?php if (has_permission('inventario.view')): ?>
-        <a href="/vetsmart/recepcion/inventario" class="<?= strpos($_SERVER['REQUEST_URI'], 'inventario') !== false ? 'active' : '' ?>">📦 Inventario Básico</a>
-      <?php endif; ?>
+      <a href="/vetsmart/recepcion/dashboard" class="active">🏠 Dashboard</a>
+      <a href="/vetsmart/recepcion/agenda">📅 Agenda Diaria</a>
+      <a href="/vetsmart/recepcion/citas">📌 Gestión de Citas</a>
+      <a href="/vetsmart/recepcion/clientes">🐶 Gestión de Clientes</a>
+      <a href="/vetsmart/recepcion/ingresos">🐾 Ingresos / Egresos</a>
+      <a href="/vetsmart/recepcion/inventario">📦 Inventario Básico</a>
     </div>
 
     <!-- Contenido -->

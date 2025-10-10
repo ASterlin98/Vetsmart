@@ -24,9 +24,6 @@ require __DIR__ . '/../app/core/Controller.php';
 require __DIR__ . '/../app/core/Auth.php';
 require __DIR__ . '/../app/core/Router.php';
 
-// helpers
-require_once APP_ROOT . '/helpers/auth_helper.php';
-
 // controladores
 require __DIR__ . '/../app/controllers/AuthController.php';
 require __DIR__ . '/../app/controllers/SuperAdminController.php';

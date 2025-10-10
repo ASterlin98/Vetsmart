@@ -1,4 +1,3 @@
-<?php require_once APP_ROOT . '/helpers/auth_helper.php'; ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -88,24 +87,12 @@
         <?= htmlspecialchars($_SESSION['user']['nombre'] ?? '') ?>
         <?= htmlspecialchars($_SESSION['user']['apellido'] ?? '') ?>.
       </h2>
-      <?php if (has_permission('dashboard.view')): ?>
-        <a href="/vetsmart/peluquero/dashboard" class="<?= strpos($_SERVER['REQUEST_URI'], 'dashboard') !== false ? 'active' : '' ?>">🏠 Dashboard</a>
-      <?php endif; ?>
-      <?php if (has_permission('agenda.view_own')): ?>
-        <a href="/vetsmart/peluquero/agenda" class="<?= strpos($_SERVER['REQUEST_URI'], 'agenda') !== false ? 'active' : '' ?>">📅 Mi Agenda</a>
-      <?php endif; ?>
-      <?php if (has_permission('citas.view_own')): ?>
-        <a href="/vetsmart/peluquero/citas" class="<?= strpos($_SERVER['REQUEST_URI'], 'citas') !== false ? 'active' : '' ?>">✂️ Citas de Peluquería</a>
-      <?php endif; ?>
-      <?php if (has_permission('clientes.view')): ?>
-        <a href="/vetsmart/peluquero/clientes" class="<?= strpos($_SERVER['REQUEST_URI'], 'clientes') !== false ? 'active' : '' ?>">🐶 Clientes y Mascotas</a>
-      <?php endif; ?>
-      <?php if (has_permission('servicios.view')): ?>
-        <a href="/vetsmart/peluquero/servicios" class="<?= strpos($_SERVER['REQUEST_URI'], 'servicios') !== false ? 'active' : '' ?>">💈 Servicios Ofrecidos</a>
-      <?php endif; ?>
-      <?php if (has_permission('reportes.view_own')): ?>
-        <a href="/vetsmart/peluquero/reportes" class="<?= strpos($_SERVER['REQUEST_URI'], 'reportes') !== false ? 'active' : '' ?>">📊 Reportes</a>
-      <?php endif; ?>
+      <a href="/vetsmart/peluquero/dashboard" class="active">🏠 Dashboard</a>
+      <a href="/vetsmart/peluquero/agenda">📅 Mi Agenda</a>
+      <a href="/vetsmart/peluquero/citas">✂️ Citas de Peluquería</a>
+      <a href="/vetsmart/peluquero/clientes">🐶 Clientes y Mascotas</a>
+      <a href="/vetsmart/peluquero/servicios">💈 Servicios Ofrecidos</a>
+      <a href="/vetsmart/peluquero/reportes">📊 Reportes</a>
     </div>
 
     <div class="content">
