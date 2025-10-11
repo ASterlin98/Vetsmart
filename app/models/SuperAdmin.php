@@ -5,15 +5,56 @@ class SuperAdmin {
     public function __construct($pdo) { $this->pdo = $pdo; }
 
     public function getEstadisticas(): array {
+        try {
+            // Clientes: usuarios cuyo rol es 'cliente'
+            $sqlClientes = "
+                SELECT COUNT(*) FROM usuarios u
+                JOIN roles r ON u.role_id = r.id
+                WHERE r.nombre = 'cliente'
+            ";
+            $clientes = (int)$this->pdo->query($sqlClientes)->fetchColumn();
+        } catch (\Throwable $e) {
+            error_log("SuperAdmin::getEstadisticas clientes error: " . $e->getMessage());
+            $clientes = 0;
+        }
+
+        try {
+            $mascotas = (int)$this->pdo->query("SELECT COUNT(*) FROM mascotas")->fetchColumn();
+        } catch (\Throwable $e) {
+            error_log("SuperAdmin::getEstadisticas mascotas error: " . $e->getMessage());
+            $mascotas = 0;
+        }
+
+        try {
+            $citas = (int)$this->pdo->query("SELECT COUNT(*) FROM citas")->fetchColumn();
+        } catch (\Throwable $e) {
+            error_log("SuperAdmin::getEstadisticas citas error: " . $e->getMessage());
+            $citas = 0;
+        }
+
+        try {
+            // Ingresos: sumar el precio del servicio asociado a citas completadas
+            $sqlIngresos = "
+                SELECT COALESCE(SUM(s.precio), 0) AS total
+                FROM citas c
+                LEFT JOIN servicios s ON c.servicio_id = s.id
+                WHERE c.estado = 'completada'
+            ";
+            $ingresos = (float)$this->pdo->query($sqlIngresos)->fetchColumn();
+        } catch (\Throwable $e) {
+            error_log("SuperAdmin::getEstadisticas ingresos error: " . $e->getMessage());
+            $ingresos = 0.0;
+        }
+
         return [
-            'clientes' => (int)$this->pdo->query("SELECT COUNT(*) FROM clientes")->fetchColumn(),
-            'mascotas' => (int)$this->pdo->query("SELECT COUNT(*) FROM mascotas")->fetchColumn(),
-            'citas'    => (int)$this->pdo->query("SELECT COUNT(*) FROM citas")->fetchColumn(),
-            'ingresos' => (float)$this->pdo->query("SELECT COALESCE(SUM(total),0) FROM pagos")->fetchColumn()
+            'clientes' => $clientes,
+            'mascotas' => $mascotas,
+            'citas'    => $citas,
+            'ingresos' => $ingresos
         ];
     }
 
-    // Stats por día para últimos N días (para gráfico)
+    // (Conservé los demás métodos que tenías si los necesitas)
     public function getCitasPorDias(int $dias = 7): array {
         $sql = "
           SELECT DATE(fecha) AS dia, COUNT(*) AS total
@@ -26,7 +67,6 @@ class SuperAdmin {
         $stmt->execute([':dias' => $dias]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // rellenar días faltantes con 0
         $labels = [];
         $data = [];
         for ($i = $dias - 1; $i >= 0; $i--) {
@@ -41,7 +81,6 @@ class SuperAdmin {
         return ['labels' => $labels, 'data' => $data];
     }
 
-    // Últimas acciones (auditoría)
     public function getUltimasAcciones(int $limit = 10): array {
         $sql = "
           SELECT a.*, u.nombre AS usuario_nombre, u.apellido AS usuario_apellido

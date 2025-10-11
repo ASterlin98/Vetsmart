@@ -11,6 +11,8 @@ require_once APP_ROOT . '/models/Vacuna.php';
 require_once APP_ROOT . '/models/RolePermission.php';
 require_once APP_ROOT . '/models/Config.php';
 require_once APP_ROOT . '/models/Permiso.php';
+// Nuevo: modelo centralizado para estadísticas
+require_once APP_ROOT . '/models/SuperAdmin.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -25,6 +27,7 @@ class SuperAdminController extends Controller
     private $rolePermissionModel;
     private $configModel;
     private $permisoModel;
+    private $superAdminModel; // NUEVO
 
     public function __construct($pdo)
     {
@@ -38,6 +41,8 @@ class SuperAdminController extends Controller
         try { $this->rolePermissionModel = new RolePermission($pdo); } catch (\Throwable $e) { $this->rolePermissionModel = null; }
         try { $this->configModel = new Config($pdo); } catch (\Throwable $e) { $this->configModel = null; }
         try { $this->permisoModel = new Permiso($pdo); } catch (\Throwable $e) { $this->permisoModel = null; }
+        // Instanciar SuperAdmin model (si existe)
+        try { $this->superAdminModel = new SuperAdmin($pdo); } catch (\Throwable $e) { $this->superAdminModel = null; }
     }
 
     public function dashboard()
@@ -48,69 +53,86 @@ class SuperAdminController extends Controller
                 throw new Exception('No se encontró conexión PDO en SuperAdminController.');
             }
 
-            // COUNT Clientes
+            // Inicializar valores
             $totalClientes = 0;
-            try {
-                // primer intento: tabla usuarios con columna role_name
-                $stmt = $db->query("SELECT COUNT(*) FROM usuarios WHERE role_name = 'cliente' OR role_name IS NULL");
-                $totalClientes = (int)$stmt->fetchColumn();
-            } catch (\Throwable $e1) {
-                // fallback: si existe tabla clientes
+            $totalMascotas = 0;
+            $totalCitas = 0;
+            $totalIngresos = 0.0;
+
+            // 1) Intentar obtener desde el modelo SuperAdmin (centralizado)
+            if ($this->superAdminModel) {
                 try {
-                    $stmt = $db->query("SELECT COUNT(*) FROM clientes");
+                    $estad = $this->superAdminModel->getEstadisticas();
+                    $totalClientes = (int)($estad['clientes'] ?? 0);
+                    $totalMascotas = (int)($estad['mascotas'] ?? 0);
+                    $totalCitas    = (int)($estad['citas'] ?? 0);
+                    $totalIngresos  = (float)($estad['ingresos'] ?? 0.0);
+                } catch (\Throwable $e) {
+                    error_log("SuperAdminController: error al obtener estadisticas desde modelo: " . $e->getMessage());
+                    // dejar las variables en 0 y continuar con fallback
+                }
+            }
+
+            // 2) Si el modelo no está disponible o devuelve todo 0, usar las queries manuales (fallback)
+            if (!$this->superAdminModel || ($totalClientes === 0 && $totalMascotas === 0 && $totalCitas === 0 && $totalIngresos == 0.0)) {
+
+                // COUNT Clientes (fallback)
+                try {
+                    $stmt = $db->prepare("
+                        SELECT COUNT(*) FROM usuarios u
+                        JOIN roles r ON u.role_id = r.id
+                        WHERE r.nombre = :rol
+                    ");
+                    $stmt->execute([':rol' => 'cliente']);
                     $totalClientes = (int)$stmt->fetchColumn();
-                } catch (\Throwable $e2) {
+                } catch (\Throwable $e) {
                     $totalClientes = 0;
                 }
-            }
 
-            // COUNT Mascotas
-            $totalMascotas = 0;
-            try {
-                $stmt = $db->query("SELECT COUNT(*) FROM mascotas");
-                $totalMascotas = (int)$stmt->fetchColumn();
-            } catch (\Throwable $e) {
-                // fallback: diferentes nombres
+                // COUNT Mascotas
                 try {
-                    $stmt = $db->query("SELECT COUNT(*) FROM pets");
+                    $stmt = $db->query("SELECT COUNT(*) FROM mascotas");
                     $totalMascotas = (int)$stmt->fetchColumn();
-                } catch (\Throwable $e2) {
-                    $totalMascotas = 0;
+                } catch (\Throwable $e) {
+                    try {
+                        $stmt = $db->query("SELECT COUNT(*) FROM pets");
+                        $totalMascotas = (int)$stmt->fetchColumn();
+                    } catch (\Throwable $e2) {
+                        $totalMascotas = 0;
+                    }
                 }
-            }
 
-            // COUNT Citas
-            $totalCitas = 0;
-            try {
-                $stmt = $db->query("SELECT COUNT(*) FROM citas");
-                $totalCitas = (int)$stmt->fetchColumn();
-            } catch (\Throwable $e) {
+                // COUNT Citas
                 try {
-                    $stmt = $db->query("SELECT COUNT(*) FROM appointments");
+                    $stmt = $db->query("SELECT COUNT(*) FROM citas");
                     $totalCitas = (int)$stmt->fetchColumn();
-                } catch (\Throwable $e2) {
-                    $totalCitas = 0;
+                } catch (\Throwable $e) {
+                    try {
+                        $stmt = $db->query("SELECT COUNT(*) FROM appointments");
+                        $totalCitas = (int)$stmt->fetchColumn();
+                    } catch (\Throwable $e2) {
+                        $totalCitas = 0;
+                    }
                 }
-            }
 
-            // SUM ingresos: preferimos sumar por servicios asociados a citas
-            $totalIngresos = 0.0;
-            try {
-                $sql = "
-                    SELECT COALESCE(SUM(s.precio),0) AS total
-                    FROM citas c
-                    LEFT JOIN servicios s ON c.servicio_id = s.id
-                ";
-                $stmt = $db->query($sql);
-                $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                $totalIngresos = $row ? (float)$row['total'] : 0.0;
-            } catch (\Throwable $e) {
-                // fallback: si tienes tabla pagos o ingresos
+                // SUM ingresos: preferimos sumar por servicios asociados a citas
                 try {
-                    $stmt = $db->query("SELECT COALESCE(SUM(monto),0) FROM pagos");
-                    $totalIngresos = (float)$stmt->fetchColumn();
-                } catch (\Throwable $e2) {
-                    $totalIngresos = 0.0;
+                    $sql = "
+                        SELECT COALESCE(SUM(s.precio),0) AS total
+                        FROM citas c
+                        LEFT JOIN servicios s ON c.servicio_id = s.id
+                        WHERE c.estado = 'completada'
+                    ";
+                    $stmt = $db->query($sql);
+                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $totalIngresos = $row ? (float)$row['total'] : 0.0;
+                } catch (\Throwable $e) {
+                    try {
+                        $stmt = $db->query("SELECT COALESCE(SUM(monto),0) FROM pagos");
+                        $totalIngresos = (float)$stmt->fetchColumn();
+                    } catch (\Throwable $e2) {
+                        $totalIngresos = 0.0;
+                    }
                 }
             }
 
@@ -183,6 +205,14 @@ class SuperAdminController extends Controller
                 }
             }
 
+            // DEBUG temporal: registrar DB actual y valores (BORRAR DESPUÉS)
+            try {
+                $dbName = $db ? $db->query("SELECT DATABASE()")->fetchColumn() : 'no_db';
+            } catch (\Throwable $e) {
+                $dbName = 'error_obteniendo_db';
+            }
+            error_log("DEBUG dashboard DB={$dbName} totalClientes={$totalClientes} totalMascotas={$totalMascotas} totalCitas={$totalCitas} totalIngresos={$totalIngresos}");
+
             // Datos para la vista
             $data = [
                 'totalClientes'    => $totalClientes,
@@ -206,7 +236,6 @@ class SuperAdminController extends Controller
             ], 'main_superadmin');
         }
     }
-
 
     public function configuracion()
     {

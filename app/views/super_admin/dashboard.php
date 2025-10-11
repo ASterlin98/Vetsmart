@@ -1,13 +1,14 @@
+
+
 <?php
-// app/views/super_admin/dashboard.php
-$totClientes = $totalClientes ?? 0;
-$totMascotas = $totalMascotas ?? 0;
-$totCitas = $totalCitas ?? 0;
-$totIngresos = $totalIngresos ?? 0.0;
-$totVacunas = $totalVacunas ?? 0;
-$citasConfirmadas = $citasConfirmadas ?? 0;
-$recentActivity = $recentActivity ?? [];
-$error = $error ?? null;
+$totClientes = (isset($data['totalClientes']) ? (int)$data['totalClientes'] : ($totalClientes ?? 0));
+$totMascotas = (isset($data['totalMascotas']) ? (int)$data['totalMascotas'] : ($totalMascotas ?? 0));
+$totCitas    = (isset($data['totalCitas']) ? (int)$data['totalCitas'] : ($totalCitas ?? 0));
+$totIngresos = (isset($data['totalIngresos']) ? (float)$data['totalIngresos'] : ($totalIngresos ?? 0.0));
+$totVacunas  = (isset($data['totalVacunas']) ? (int)$data['totalVacunas'] : ($totVacunas ?? 0));
+$citasConfirmadas = (isset($data['citasConfirmadas']) ? (int)$data['citasConfirmadas'] : ($citasConfirmadas ?? 0));
+$recentActivity = $data['recentActivity'] ?? ($recentActivity ?? []);
+$error = $data['error'] ?? ($error ?? null);
 
 function fmtMoney($v) {
     return '$' . number_format((float)$v, 2, '.', ',');
