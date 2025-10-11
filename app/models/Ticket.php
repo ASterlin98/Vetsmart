@@ -143,4 +143,21 @@ class Ticket {
             return false;
         }
     }
+
+    public function countUnseen() {
+        $sql = "SELECT COUNT(*) FROM tickets WHERE notificacion_vista = 0";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchColumn();
+    }
+
+    public function markAllAsSeen() {
+        try {
+            $sql = "UPDATE tickets SET notificacion_vista = 1 WHERE notificacion_vista = 0";
+            $this->db->exec($sql);
+            return true;
+        } catch (PDOException $e) {
+            error_log("Error al marcar tickets como vistos: " . $e->getMessage());
+            return false;
+        }
+    }
 }

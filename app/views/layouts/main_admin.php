@@ -204,6 +204,7 @@
       <a href="/vetsmart/admin/servicios" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/servicios') !== false ? 'active' : '' ?>">🛠️ <span>Gestión de Servicios</span></a>
       <a href="/vetsmart/admin/finanzas" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/finanzas') !== false ? 'active' : '' ?>">💰 <span>Finanzas</span></a>
       <a href="/vetsmart/admin/reportes" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/reportes') !== false ? 'active' : '' ?>">📊 <span>Reportes</span></a>
+      <a href="/vetsmart/admin/reportesSoporte" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/reportesSoporte') !== false ? 'active' : '' ?>">🆘 <span>Soporte</span></a>
     </div>
 
     <!-- Contenido -->
