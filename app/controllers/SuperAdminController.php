@@ -121,7 +121,7 @@ class SuperAdminController extends Controller
                         SELECT COALESCE(SUM(s.precio),0) AS total
                         FROM citas c
                         LEFT JOIN servicios s ON c.servicio_id = s.id
-                        WHERE c.estado = 'completada'
+                        WHERE c.estado IN ('completada', 'confirmada')
                     ";
                     $stmt = $db->query($sql);
                     $row = $stmt->fetch(PDO::FETCH_ASSOC);
