@@ -12,24 +12,10 @@ class AdminController extends Controller
 {
     private $pdo;
 
-    private $adminModel;
-
     public function __construct($pdo)
     {
         parent::__construct($pdo);
         $this->pdo = $pdo;
-        require_once __DIR__ . '/../models/Admin.php';
-        $this->adminModel = new Admin($this->pdo);
-    }
-
-    public function dashboard() {
-        $stats = $this->adminModel->getEstadisticas();
-
-        $data = [
-            'titulo' => 'Dashboard del Administrador',
-            'stats' => $stats
-        ];
-        $this->view('admin/dashboard', $data, 'main_admin');
     }
 
     // --- Compatibilidad: alias publicos que tu router puede llamar ---
