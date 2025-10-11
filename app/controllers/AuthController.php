@@ -126,9 +126,9 @@ class AuthController extends Controller
 
             // Contenido
             $mail->isHTML(true);
-            $mail->Subject = 'Recuperación de contraseña - VetSmart';
-            $mail->Body    = "Hola <b>{$usuario['nombre']}</b>,<br><br>
-                              Haz clic en el siguiente enlace para restablecer tu contraseña:<br>
+            $mail->Subject = 'Restablece tu password - VetSmart';
+            $mail->Body    = "<p>Hola <strong><?= htmlspecialchars(\$usuario['nombre'] ?? 'usuario', ENT_QUOTES, 'UTF-8') ?></strong>,</p>
+                              <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>VetSmart</strong>.</p>
                               <a href='{$resetUrl}'>{$resetUrl}</a><br><br>
                               Este enlace expirará en 1 hora.";
 
