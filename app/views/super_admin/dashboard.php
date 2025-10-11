@@ -160,6 +160,31 @@ function fmtMoney($v) {
   </div>
 </div>
 
+<!-- Modal para Detalles de Cita -->
+<div class="modal fade" id="citaDetallesModal" tabindex="-1" aria-labelledby="citaDetallesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="citaDetallesModalLabel">Detalles de la Cita</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-loader" class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+        <div id="modal-content-display" style="display: none;">
+            <!-- El contenido se inyectará aquí -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const modal = new bootstrap.Modal(document.getElementById('citaDetallesModal'));
@@ -175,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function () {
             modalBody.style.display = 'none';
             modalBody.innerHTML = ''; // Clear previous content
 
-            fetch(`/api/citas/${citaId}`)
+            fetch(`/vetsmart/api/citas/${citaId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.error) {
@@ -220,28 +245,3 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-
-<!-- Modal para Detalles de Cita -->
-<div class="modal fade" id="citaDetallesModal" tabindex="-1" aria-labelledby="citaDetallesModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="citaDetallesModalLabel">Detalles de la Cita</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div id="modal-loader" class="text-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-        </div>
-        <div id="modal-content-display" style="display: none;">
-            <!-- El contenido se inyectará aquí -->
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
