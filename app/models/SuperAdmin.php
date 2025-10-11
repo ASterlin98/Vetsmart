@@ -1,96 +1,89 @@
 <?php
 // app/models/SuperAdmin.php
+
 class SuperAdmin {
-    private $pdo;
-    public function __construct($pdo) { $this->pdo = $pdo; }
+    private $db;
 
-    public function getEstadisticas(): array {
-        try {
-            // Clientes: usuarios cuyo rol es 'cliente'
-            $sqlClientes = "
-                SELECT COUNT(*) FROM usuarios u
-                JOIN roles r ON u.role_id = r.id
-                WHERE r.nombre = 'cliente'
-            ";
-            $clientes = (int)$this->pdo->query($sqlClientes)->fetchColumn();
-        } catch (\Throwable $e) {
-            error_log("SuperAdmin::getEstadisticas clientes error: " . $e->getMessage());
-            $clientes = 0;
-        }
+    public function __construct($pdo) {
+        $this->db = $pdo;
+    }
 
-        try {
-            $mascotas = (int)$this->pdo->query("SELECT COUNT(*) FROM mascotas")->fetchColumn();
-        } catch (\Throwable $e) {
-            error_log("SuperAdmin::getEstadisticas mascotas error: " . $e->getMessage());
-            $mascotas = 0;
-        }
+    public function countTotalUsuarios() {
+        $stmt = $this->db->query("SELECT COUNT(*) FROM usuarios");
+        return $stmt->fetchColumn();
+    }
 
-        try {
-            $citas = (int)$this->pdo->query("SELECT COUNT(*) FROM citas")->fetchColumn();
-        } catch (\Throwable $e) {
-            error_log("SuperAdmin::getEstadisticas citas error: " . $e->getMessage());
-            $citas = 0;
-        }
+    public function countTicketsAbiertos() {
+        $stmt = $this->db->query("SELECT COUNT(*) FROM tickets WHERE estado = 'Abierto'");
+        return $stmt->fetchColumn();
+    }
 
-        try {
-            // Ingresos: sumar el precio del servicio asociado a citas completadas
-            $sqlIngresos = "
-                SELECT COALESCE(SUM(s.precio), 0) AS total
+    public function countCitasHoy() {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM citas WHERE DATE(fecha) = CURDATE()");
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
+
+    public function countUsuariosPorRol() {
+        $sql = "SELECT r.nombre, COUNT(u.id) as total
+                FROM roles r
+                LEFT JOIN usuarios u ON r.id = u.role_id
+                GROUP BY r.nombre";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countTicketsPorPrioridad() {
+        $sql = "SELECT prioridad, COUNT(*) as total
+                FROM tickets
+                GROUP BY prioridad";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getRecentActivity($limit, $offset) {
+        $sql = "SELECT 'cita' AS tipo, c.id AS entidad_id,
+                       CONCAT(COALESCE(u_creo.nombre,''),' ',COALESCE(u_creo.apellido,'')) AS actor,
+                       'Cita creada' AS accion,
+                       COALESCE(c.creado_en, c.fecha, NOW()) AS creado_en,
+                       CONCAT('Mascota: ', COALESCE(m.nombre,''), ' — Servicio: ', COALESCE(s.nombre,'')) AS detalle
                 FROM citas c
+                LEFT JOIN usuarios u_creo ON c.creado_por = u_creo.id
+                LEFT JOIN mascotas m ON c.mascota_id = m.id
                 LEFT JOIN servicios s ON c.servicio_id = s.id
-                WHERE c.estado IN ('completada', 'confirmada')
-            ";
-            $ingresos = (float)$this->pdo->query($sqlIngresos)->fetchColumn();
-        } catch (\Throwable $e) {
-            error_log("SuperAdmin::getEstadisticas ingresos error: " . $e->getMessage());
-            $ingresos = 0.0;
-        }
 
-        return [
-            'clientes' => $clientes,
-            'mascotas' => $mascotas,
-            'citas'    => $citas,
-            'ingresos' => $ingresos
-        ];
+                UNION ALL
+
+                SELECT 'usuario' AS tipo, u.id AS entidad_id,
+                       CONCAT(COALESCE(u.nombre,''),' ',COALESCE(u.apellido,'')) AS actor,
+                       'Usuario registrado' AS accion,
+                       u.creado_en AS creado_en,
+                       CONCAT('Email: ', COALESCE(u.email,'')) AS detalle
+                FROM usuarios u
+
+                ORDER BY creado_en DESC
+                LIMIT :limit OFFSET :offset";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // (Conservé los demás métodos que tenías si los necesitas)
-    public function getCitasPorDias(int $dias = 7): array {
-        $sql = "
-          SELECT DATE(fecha) AS dia, COUNT(*) AS total
-          FROM citas
-          WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL :dias DAY)
-          GROUP BY DATE(fecha)
-          ORDER BY DATE(fecha) ASC
-        ";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':dias' => $dias]);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $labels = [];
-        $data = [];
-        for ($i = $dias - 1; $i >= 0; $i--) {
-            $d = date('Y-m-d', strtotime("-{$i} days"));
-            $labels[] = date('d/m', strtotime($d));
-            $found = false;
-            foreach ($rows as $r) {
-                if ($r['dia'] === $d) { $data[] = (int)$r['total']; $found = true; break; }
-            }
-            if (!$found) $data[] = 0;
-        }
-        return ['labels' => $labels, 'data' => $data];
+    public function countTotalActivities() {
+        $sql = "SELECT (SELECT COUNT(*) FROM citas) + (SELECT COUNT(*) FROM usuarios)";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchColumn();
     }
 
-    public function getUltimasAcciones(int $limit = 10): array {
-        $sql = "
-          SELECT a.*, u.nombre AS usuario_nombre, u.apellido AS usuario_apellido
-          FROM auditoria a
-          LEFT JOIN usuarios u ON a.usuario_id = u.id
-          ORDER BY a.creado_en DESC
-          LIMIT :lim
-        ";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+    public function getRecentTickets($limit) {
+        $sql = "SELECT t.*, CONCAT(u.nombre, ' ', u.apellido) as creador_nombre
+                FROM tickets t
+                JOIN usuarios u ON t.usuario_id = u.id
+                ORDER BY t.creado_en DESC
+                LIMIT :limit";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
