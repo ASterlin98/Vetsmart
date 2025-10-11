@@ -255,6 +255,9 @@
 
       <a href="/vetsmart/soporte" class="<?= strpos($currentUri, '/soporte') !== false ? 'active' : '' ?>">
         🆘 <span>Centro de Soporte</span>
+        <?php if (isset($unseen_tickets) && $unseen_tickets > 0): ?>
+          <span class="badge bg-danger ms-auto"><?= $unseen_tickets ?></span>
+        <?php endif; ?>
       </a>
     </aside>
 

@@ -19,6 +19,7 @@ class SoporteController extends Controller {
      * Muestra el listado de todos los tickets de soporte.
      */
     public function index() {
+        $this->ticketModel->markAllAsSeen();
         $tickets = $this->ticketModel->getAll();
         $this->view('soporte/index', ['tickets' => $tickets], 'main_superadmin');
     }
