@@ -238,68 +238,74 @@
         </div>
     </div>
 </div>
+<!-- Asegúrate de incluir esto (Bootstrap JS bundle con Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const editPermissionModal = document.getElementById('editPermissionModal');
-    editPermissionModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const id = button.getAttribute('data-id');
-        const modulo = button.getAttribute('data-modulo');
-        const nombre = button.getAttribute('data-nombre');
-        const descripcion = button.getAttribute('data-descripcion');
-        const accion = button.getAttribute('data-accion');
-        const orden = button.getAttribute('data-orden');
-        const activo = button.getAttribute('data-activo');
+    /* -------------------------
+       HELPERS para el modal Edit
+       ------------------------- */
+    const editPermissionModalEl = document.getElementById('editPermissionModal');
+    let bootstrapEditModal = null;
+    if (typeof bootstrap !== 'undefined' && editPermissionModalEl) {
+        bootstrapEditModal = new bootstrap.Modal(editPermissionModalEl);
+    }
 
-        const modalTitle = editPermissionModal.querySelector('.modal-title');
-        const modalBodyInputId = editPermissionModal.querySelector('#edit_id');
-        const modalBodyInputModulo = editPermissionModal.querySelector('#edit_modulo');
-        const modalBodyInputNombre = editPermissionModal.querySelector('#edit_nombre');
-        const modalBodyInputDescripcion = editPermissionModal.querySelector('#edit_descripcion');
-        const modalBodyInputAccion = editPermissionModal.querySelector('#edit_accion');
-        const modalBodyInputOrden = editPermissionModal.querySelector('#edit_orden');
-        const modalBodyInputActivo = editPermissionModal.querySelector('#edit_activo');
+    function populateEditModalFromButton(button) {
+        if (!button || !editPermissionModalEl) return;
 
-        modalTitle.textContent = 'Editar Permiso #' + id;
-        modalBodyInputId.value = id;
-        modalBodyInputModulo.value = modulo;
-        modalBodyInputNombre.value = nombre;
-        modalBodyInputDescripcion.value = descripcion;
-        modalBodyInputAccion.value = accion;
-        modalBodyInputOrden.value = orden;
-        modalBodyInputActivo.checked = activo == '1';
+        // Usar dataset (data-*) es más confiable y evita problemas de escapado
+        const id = button.dataset.id;
+        const modulo = button.dataset.modulo;
+        const nombre = button.dataset.nombre;
+        const descripcion = button.dataset.descripcion;
+        const accion = button.dataset.accion;
+        const orden = button.dataset.orden;
+        const activo = button.dataset.activo;
+
+        editPermissionModalEl.querySelector('#edit_id').value = id || '';
+        editPermissionModalEl.querySelector('#edit_modulo').value = modulo || '';
+        editPermissionModalEl.querySelector('#edit_nombre').value = nombre || '';
+        editPermissionModalEl.querySelector('#edit_descripcion').value = descripcion || '';
+        editPermissionModalEl.querySelector('#edit_accion').value = accion || '';
+        editPermissionModalEl.querySelector('#edit_orden').value = (orden !== undefined ? orden : '');
+        editPermissionModalEl.querySelector('#edit_activo').checked = (activo === '1' || activo === 'true' || activo === 'on');
+        // título del modal
+        const modalTitle = editPermissionModalEl.querySelector('.modal-title');
+        if (modalTitle) modalTitle.textContent = 'Editar Permiso #' + (id || '');
+    }
+
+    // Fallback: manejar click en botones .edit-btn (por si data-bs-toggle no dispara)
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            // prevenir comportamiento por defecto si lo hubiera
+            e.preventDefault();
+            populateEditModalFromButton(this);
+            if (bootstrapEditModal) {
+                bootstrapEditModal.show();
+            } else {
+                // Si bootstrap no está definido, intentar disparar el event nativo (menos probable que funcione)
+                const ev = new Event('show.bs.modal');
+                editPermissionModalEl && editPermissionModalEl.dispatchEvent(ev);
+            }
+        });
     });
-});
-</script>
 
-<style>
-    .permission-module {
-        margin-bottom: 1.5rem;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 1rem;
+    // También escuchar show.bs.modal (esto funciona si uses data-bs-toggle y bootstrap está cargado)
+    if (editPermissionModalEl) {
+        editPermissionModalEl.addEventListener('show.bs.modal', function (event) {
+            // event.relatedTarget viene si el modal fue disparado por data-bs-toggle="modal"
+            const button = event.relatedTarget || document.activeElement;
+            if (button) populateEditModalFromButton(button);
+        });
     }
-    .permission-module h5 {
-        border-bottom: 2px solid #007bff;
-        padding-bottom: 0.5rem;
-        margin-bottom: 1rem;
-        text-transform: capitalize;
-    }
-    .permission-group {
-        display: flex;
-        flex-wrap: wrap;
-    }
-    .permission-item {
-        flex: 1 1 300px; /* Flex-grow, flex-shrink, flex-basis */
-        margin-right: 1rem;
-    }
-</style>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+    /* -------------------------
+       Permisos por Rol (fetch / save)
+       ------------------------- */
     const roleSelect = document.getElementById('role-select');
-    if (!roleSelect) return; // Si no existe el selector de rol, no hacer nada.
+    if (!roleSelect) return;
 
     const permissionsContainer = document.getElementById('permissions-container');
     const permissionsContent = document.getElementById('permissions-content');
@@ -308,9 +314,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingSpinner = document.getElementById('loading-spinner');
     const feedbackMessage = document.getElementById('feedback-message');
 
-    roleSelect.addEventListener('change', function() {
+    roleSelect.addEventListener('change', function () {
         const roleId = this.value;
-        const roleName = this.options[this.selectedIndex].text;
+        const roleName = this.options[this.selectedIndex] ? this.options[this.selectedIndex].text : '';
 
         permissionsContent.innerHTML = '';
         saveBtn.style.display = 'none';
@@ -325,42 +331,41 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedRoleName.textContent = roleName;
         loadingSpinner.style.display = 'block';
 
-        const baseUrl = window.location.origin;
-        const basePath = '/vetsmart';
-        const fetchUrl = `${baseUrl}${basePath}/app/api/permissions_api.php?role_id=${roleId}`;
+        // USAR rutas relativas evita problemas con window.location.origin o entornos locales
+        const fetchUrl = `/vetsmart/app/api/permissions_api.php?role_id=${encodeURIComponent(roleId)}`;
 
         fetch(fetchUrl)
             .then(response => {
-                if (!response.ok) throw new Error(`Error en la red: ${response.statusText}`);
+                if (!response.ok) throw new Error(`Error en la red: ${response.status} ${response.statusText}`);
                 return response.json();
             })
             .then(data => {
                 loadingSpinner.style.display = 'none';
                 if (data.error) throw new Error(data.error);
-
-                renderPermissions(data.all_permissions, data.assigned_permissions);
+                renderPermissions(data.all_permissions || {}, data.assigned_permissions || []);
                 saveBtn.style.display = 'block';
             })
             .catch(error => {
                 loadingSpinner.style.display = 'none';
                 permissionsContent.innerHTML = `<div class="alert alert-danger">Error al cargar los permisos: ${error.message}</div>`;
+                console.error('Fetch permisos error:', error);
             });
     });
 
     function renderPermissions(allPermissions, assignedPermissions) {
         permissionsContent.innerHTML = '';
-        for (const module in allPermissions) {
+        for (const moduleName in allPermissions) {
             const moduleContainer = document.createElement('div');
             moduleContainer.className = 'permission-module';
 
             const moduleTitle = document.createElement('h5');
-            moduleTitle.textContent = module.replace(/_/g, ' ');
+            moduleTitle.textContent = moduleName.replace(/_/g, ' ');
             moduleContainer.appendChild(moduleTitle);
 
             const permissionGroup = document.createElement('div');
             permissionGroup.className = 'permission-group';
 
-            allPermissions[module].forEach(permission => {
+            allPermissions[moduleName].forEach(permission => {
                 const isChecked = assignedPermissions.includes(String(permission.id)) || assignedPermissions.includes(Number(permission.id));
 
                 const itemDiv = document.createElement('div');
@@ -388,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    saveBtn.addEventListener('click', function() {
+    saveBtn && saveBtn.addEventListener('click', function () {
         const roleId = roleSelect.value;
         if (!roleId) {
             alert('Por favor, seleccione un rol primero.');
@@ -402,9 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingSpinner.style.display = 'block';
         saveBtn.disabled = true;
 
-        const baseUrl = window.location.origin;
-        const basePath = '/vetsmart';
-        const postUrl = `${baseUrl}${basePath}/app/api/permissions_api.php`;
+        const postUrl = `/vetsmart/app/api/permissions_api.php`;
 
         fetch(postUrl, {
             method: 'POST',
@@ -429,6 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             feedbackMessage.textContent = `Error: ${error.message}`;
             feedbackMessage.classList.add('alert', 'alert-danger');
+            console.error('Guardar permisos error:', error);
         })
         .finally(() => {
             loadingSpinner.style.display = 'none';

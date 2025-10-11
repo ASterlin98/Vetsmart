@@ -58,7 +58,7 @@ class SuperAdminController extends Controller
 
         // Data for recent activity (with pagination)
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $limit = 10;
+        $limit = 3;
         $offset = ($page - 1) * $limit;
         $recentActivity = $this->superAdminModel->getRecentActivity($limit, $offset);
         $totalActivities = $this->superAdminModel->countTotalActivities();
