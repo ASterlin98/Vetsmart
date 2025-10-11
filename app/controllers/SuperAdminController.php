@@ -292,7 +292,7 @@ class SuperAdminController extends Controller
                 COALESCE(SUM(s.precio), 0) AS ingresos_totales
             FROM citas c
             JOIN servicios s ON c.servicio_id = s.id
-            WHERE DATE(c.fecha) BETWEEN :desde AND :hasta AND c.estado = 'completada'
+            WHERE DATE(c.fecha) BETWEEN :desde AND :hasta AND c.estado IN ('completada', 'confirmada')
         ");
         $stmt->execute($params);
         $stats = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -312,7 +312,7 @@ class SuperAdminController extends Controller
             SELECT s.nombre, SUM(s.precio) as total_ingresos
             FROM citas c
             JOIN servicios s ON c.servicio_id = s.id
-            WHERE DATE(c.fecha) BETWEEN :desde AND :hasta AND c.estado = 'completada'
+            WHERE DATE(c.fecha) BETWEEN :desde AND :hasta AND c.estado IN ('completada', 'confirmada')
             GROUP BY s.nombre
             ORDER BY total_ingresos DESC
             LIMIT 5

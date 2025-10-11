@@ -189,8 +189,7 @@ try {
                 $controller->view("admin/dashboard", [], "main_admin");
                 break;
             case 'super_admin':
-                $controller = new SuperAdminController($pdo);
-                $controller->dashboard();
+                $controller->view("super_admin/dashboard", [], "main_superadmin");
                 break;
             default:
                 echo "Rol no reconocido.";
