@@ -1060,6 +1060,32 @@ public function reportesIndex()
     ], "main_admin");
 }
 
+    public function reportesSoporte()
+    {
+        $this->view("admin/reportes/soporte", [], "main_admin");
+    }
+
+    public function guardarTicket()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = [
+                'usuario_id'   => $_SESSION['user']['id'],
+                'asunto'       => $_POST['asunto'],
+                'descripcion'  => $_POST['descripcion'],
+                'rol_problema' => $_POST['rol_problema'],
+                'prioridad'    => $_POST['prioridad']
+            ];
+
+            $ticketModel = new Ticket($this->pdo);
+            if ($ticketModel->create($data)) {
+                header('Location: /vetsmart/admin/reportes');
+            } else {
+                // Handle error
+                header('Location: /vetsmart/admin/reportesSoporte');
+            }
+        }
+    }
+
 public function exportarReportesExcel()
 {
     $desde = $_GET['desde'] ?? date('Y-m-01');

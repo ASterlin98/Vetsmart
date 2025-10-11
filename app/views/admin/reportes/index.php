@@ -1,5 +1,8 @@
 <div class="container-fluid mb-4">
-  <h1 class="fw-bold">📊 Reportes</h1>
+    <div class="d-flex justify-content-between align-items-center">
+        <h1 class="h3 mb-4 text-gray-800">Reportes</h1>
+        <a href="/vetsmart/admin/reportesSoporte" class="btn btn-primary mb-4">Crear Ticket de Soporte</a>
+    </div>
 
   <!-- Filtros -->
   <form class="row mb-4" method="get" action="">

@@ -922,6 +922,7 @@ CREATE TABLE `tickets` (
   `asignado_a` int(11) DEFAULT NULL COMMENT 'ID del usuario de soporte asignado',
   `asunto` varchar(255) NOT NULL,
   `descripcion` text DEFAULT NULL,
+  `rol_problema` VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `estado` enum('Abierto','En Proceso','Cerrado') NOT NULL DEFAULT 'Abierto',
   `prioridad` enum('Baja','Media','Alta','Urgente') NOT NULL DEFAULT 'Media',
   `creado_en` timestamp NOT NULL DEFAULT current_timestamp(),
