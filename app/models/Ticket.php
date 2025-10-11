@@ -127,19 +127,23 @@ class Ticket {
      * @return bool
      */
     public function updateTicketMeta($id, $estado, $prioridad, $asignado_a) {
-         try {
-            $sql = "UPDATE tickets SET estado = :estado, prioridad = :prioridad, asignado_a = :asignado_a
-                    WHERE id = :id";
+        try {
+            $sql = "UPDATE tickets SET estado = :estado, prioridad = :prioridad, asignado_a = :asignado_a WHERE id = :id";
             $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                ':estado'     => $estado,
-                ':prioridad'  => $prioridad,
-                ':asignado_a' => $asignado_a,
-                ':id'         => $id
-            ]);
-            return true;
+
+            $stmt->bindValue(':id', (int)$id, PDO::PARAM_INT);
+            $stmt->bindValue(':estado', $estado, PDO::PARAM_STR);
+            $stmt->bindValue(':prioridad', $prioridad, PDO::PARAM_STR);
+
+            if (empty($asignado_a)) {
+                $stmt->bindValue(':asignado_a', null, PDO::PARAM_NULL);
+            } else {
+                $stmt->bindValue(':asignado_a', (int)$asignado_a, PDO::PARAM_INT);
+            }
+
+            return $stmt->execute();
         } catch (PDOException $e) {
-            error_log("Error al actualizar metadatos del ticket $id: " . $e->getMessage());
+            error_log("Error al actualizar metadatos del ticket {$id}: " . $e->getMessage());
             return false;
         }
     }
