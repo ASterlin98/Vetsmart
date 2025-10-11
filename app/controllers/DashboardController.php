@@ -24,13 +24,11 @@ class DashboardController extends Controller {
                 $this->view("peluquero/dashboard", [], "main_peluquero");
                 break;
             case 'admin':
-                // Redirigir al dashboard de admin, que ahora tendrá su propia lógica
-                header("Location: /vetsmart/admin/dashboard");
-                exit;
+                $this->view("admin/dashboard", [], "main_admin");
+                break;
             case 'super_admin':
-                // Redirigir al dashboard de superadmin
-                header("Location: /vetsmart/superadmin/dashboard");
-                exit;
+                $this->view("super_admin/index", [], "main_superadmin");
+                break;
             default:
                 echo "Rol no reconocido.";
         }
