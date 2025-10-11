@@ -27,6 +27,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Asunto</th>
+                        <th>Rol del Problema</th>
                         <th>Estado</th>
                         <th>Prioridad</th>
                         <th>Creador</th>
@@ -38,13 +39,31 @@
                 <tbody>
                     <?php if (empty($tickets)): ?>
                         <tr>
-                            <td colspan="8" class="text-center">No hay tickets de soporte registrados.</td>
+                            <td colspan="9" class="text-center">No hay tickets de soporte registrados.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($tickets as $ticket): ?>
-                            <tr>
+                            <?php
+                                $priorityClass = '';
+                                switch ($ticket['prioridad']) {
+                                    case 'Urgente':
+                                        $priorityClass = 'table-danger';
+                                        break;
+                                    case 'Alta':
+                                        $priorityClass = 'table-warning';
+                                        break;
+                                    case 'Media':
+                                        $priorityClass = 'table-info';
+                                        break;
+                                    case 'Baja':
+                                        $priorityClass = 'table-success';
+                                        break;
+                                }
+                            ?>
+                            <tr class="<?php echo $priorityClass; ?>">
                                 <td>#<?= htmlspecialchars($ticket['id']) ?></td>
                                 <td><?= htmlspecialchars($ticket['asunto']) ?></td>
+                                <td><?= htmlspecialchars($ticket['rol_problema']) ?></td>
                                 <td>
                                     <span class="badge
                                         <?php
