@@ -97,7 +97,14 @@ function fmtMoney($v) {
                       <div class="small text-muted"><?= $detalle ?></div>
                       <?php if ($actor): ?><div class="small text-muted">Por: <?= $actor ?></div><?php endif; ?>
                     </div>
-                    <div class="text-end small text-muted"><?= $when ?></div>
+                    <div class="text-end">
+                        <small class="text-muted d-block mb-1"><?= $when ?></small>
+                        <?php if ($tipo === 'cita'): ?>
+                            <button class="btn btn-xs btn-outline-primary ver-detalles-btn" data-id="<?= htmlspecialchars($a['entidad_id']) ?>" data-bs-toggle="modal" data-bs-target="#citaDetallesModal">
+                                Ver Detalles
+                            </button>
+                        <?php endif; ?>
+                    </div>
                   </div>
                 </li>
               <?php endforeach; ?>
@@ -149,6 +156,92 @@ function fmtMoney($v) {
   <div class="row mt-5">
     <div class="col-12 text-center text-muted">
       © <?= date('Y') ?> VetSmart. Todos los derechos reservados.
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = new bootstrap.Modal(document.getElementById('citaDetallesModal'));
+    const modalBody = document.getElementById('modal-content-display');
+    const loader = document.getElementById('modal-loader');
+
+    document.querySelectorAll('.ver-detalles-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const citaId = this.dataset.id;
+
+            // Show loader, hide content
+            loader.style.display = 'block';
+            modalBody.style.display = 'none';
+            modalBody.innerHTML = ''; // Clear previous content
+
+            fetch(`/api/citas/${citaId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        modalBody.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                    } else {
+                        const formattedDate = new Date(data.fecha).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' });
+                        const Creador = data.creador_nombre ? `${data.creador_nombre} ${data.creador_apellido}` : 'No especificado';
+                        modalBody.innerHTML = `
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>ID de Cita:</strong> ${data.id}</p>
+                                    <p><strong>Fecha y Hora:</strong> ${formattedDate}</p>
+                                    <p><strong>Estado:</strong> <span class="badge bg-info text-dark">${data.estado}</span></p>
+                                    <p><strong>Creado por:</strong> ${Creador}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Cliente:</strong> ${data.cliente_nombre} ${data.cliente_apellido}</p>
+                                    <p><strong>Mascota:</strong> ${data.mascota_nombre} (${data.mascota_especie} - ${data.mascota_raza})</p>
+                                    <p><strong>Atendido por:</strong> ${data.empleado_nombre} ${data.empleado_apellido}</p>
+                                </div>
+                            </div>
+                            <hr>
+                            <h5>Detalles del Servicio</h5>
+                            <p><strong>Servicio:</strong> ${data.servicio_nombre}</p>
+                            <p><strong>Precio:</strong> $${Number(data.servicio_precio).toLocaleString('es-ES')}</p>
+                            <hr>
+                            <h5>Notas de la Cita</h5>
+                            <p>${data.notas ? data.notas : 'No hay notas.'}</p>
+                        `;
+                    }
+                    // Hide loader, show content
+                    loader.style.display = 'none';
+                    modalBody.style.display = 'block';
+                })
+                .catch(error => {
+                    loader.style.display = 'none';
+                    modalBody.style.display = 'block';
+                    modalBody.innerHTML = `<div class="alert alert-danger">Error al cargar los datos.</div>`;
+                    console.error('Error:', error);
+                });
+        });
+    });
+});
+</script>
+
+<!-- Modal para Detalles de Cita -->
+<div class="modal fade" id="citaDetallesModal" tabindex="-1" aria-labelledby="citaDetallesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="citaDetallesModalLabel">Detalles de la Cita</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-loader" class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+        <div id="modal-content-display" style="display: none;">
+            <!-- El contenido se inyectará aquí -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
     </div>
   </div>
 </div>

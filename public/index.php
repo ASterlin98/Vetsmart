@@ -27,6 +27,7 @@ require __DIR__ . '/../app/core/Router.php';
 // controladores
 require __DIR__ . '/../app/controllers/AuthController.php';
 require __DIR__ . '/../app/controllers/SuperAdminController.php';
+require __DIR__ . '/../app/controllers/ApiController.php';
 require_once APP_ROOT . '/controllers/ClientesController.php';
 require __DIR__ . '/../app/controllers/VeterinarioController.php';
 require __DIR__ . '/../app/controllers/ServiciosController.php';
@@ -189,8 +190,7 @@ try {
                 $controller->view("admin/dashboard", [], "main_admin");
                 break;
             case 'super_admin':
-                $controller = new SuperAdminController($pdo);
-                $controller->dashboard();
+                $controller->view("super_admin/dashboard", [], "main_superadmin");
                 break;
             default:
                 echo "Rol no reconocido.";
@@ -793,6 +793,13 @@ if (preg_match('#^/admin/horarios/(\d+)/eliminarSolicitud$#', $path, $m)) {
 if ($path === '/api/disponibilidad-veterinario' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $controller = new VeterinarioController($pdo);
     $controller->disponibilidadVeterinario();
+    exit;
+}
+
+// API para obtener detalles de una cita
+if (preg_match('#^/api/citas/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new ApiController($pdo);
+    $controller->getCitaDetalles($matches[1]);
     exit;
 }
 

@@ -58,24 +58,6 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="company_address" class="form-label">Dirección de la Empresa</label>
-                        <input type="text" class="form-control" id="company_address" name="company_address" value="<?= htmlspecialchars($settings['company_address'] ?? '') ?>">
-                        <small class="form-text text-muted">La dirección física de la clínica.</small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="company_phone" class="form-label">Teléfono de Contacto</label>
-                        <input type="text" class="form-control" id="company_phone" name="company_phone" value="<?= htmlspecialchars($settings['company_phone'] ?? '') ?>">
-                        <small class="form-text text-muted">El número de teléfono principal de la clínica.</small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="company_logo_url" class="form-label">URL del Logo</label>
-                        <input type="text" class="form-control" id="company_logo_url" name="company_logo_url" value="<?= htmlspecialchars($settings['company_logo_url'] ?? '') ?>">
-                        <small class="form-text text-muted">La ruta al archivo del logo (ej. /assets/img/logo.png).</small>
-                    </div>
-
-                    <div class="mb-3">
                         <label for="maintenance_mode" class="form-label">Modo Mantenimiento</label>
                         <select class="form-select" id="maintenance_mode" name="maintenance_mode">
                             <option value="0" <?= (isset($settings['maintenance_mode']) && $settings['maintenance_mode'] == '0') ? 'selected' : '' ?>>Inactivo</option>

@@ -121,7 +121,7 @@ class SuperAdminController extends Controller
                         SELECT COALESCE(SUM(s.precio),0) AS total
                         FROM citas c
                         LEFT JOIN servicios s ON c.servicio_id = s.id
-                        WHERE c.estado IN ('completada', 'confirmada')
+                        WHERE c.estado = 'completada'
                     ";
                     $stmt = $db->query($sql);
                     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -292,7 +292,7 @@ class SuperAdminController extends Controller
                 COALESCE(SUM(s.precio), 0) AS ingresos_totales
             FROM citas c
             JOIN servicios s ON c.servicio_id = s.id
-            WHERE DATE(c.fecha) BETWEEN :desde AND :hasta AND c.estado IN ('completada', 'confirmada')
+            WHERE DATE(c.fecha) BETWEEN :desde AND :hasta AND c.estado = 'completada'
         ");
         $stmt->execute($params);
         $stats = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -312,7 +312,7 @@ class SuperAdminController extends Controller
             SELECT s.nombre, SUM(s.precio) as total_ingresos
             FROM citas c
             JOIN servicios s ON c.servicio_id = s.id
-            WHERE DATE(c.fecha) BETWEEN :desde AND :hasta AND c.estado IN ('completada', 'confirmada')
+            WHERE DATE(c.fecha) BETWEEN :desde AND :hasta AND c.estado = 'completada'
             GROUP BY s.nombre
             ORDER BY total_ingresos DESC
             LIMIT 5
@@ -352,24 +352,13 @@ class SuperAdminController extends Controller
 
         $params = [':desde' => $desde, ':hasta' => $hasta];
 
-        // 1. Top 5 Servicios más Rentables (para el gráfico)
-        $stmt = $this->db->prepare("
-            SELECT s.nombre, SUM(s.precio) as total_ingresos
-            FROM citas c
-            JOIN servicios s ON c.servicio_id = s.id
-            WHERE DATE(c.fecha) BETWEEN :desde AND :hasta AND c.estado IN ('completada', 'confirmada')
-            GROUP BY s.nombre
-            ORDER BY total_ingresos DESC
-            LIMIT 5
-        ");
-        $stmt->execute($params);
-        $topServicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // 2. Datos generales de citas (para la tabla)
         $stmt = $this->db->prepare("
             SELECT
-                c.id as cita_id, c.fecha, c.estado,
-                s.nombre as servicio_nombre, s.precio as servicio_precio,
+                c.id as cita_id,
+                c.fecha,
+                c.estado,
+                s.nombre as servicio_nombre,
+                s.precio as servicio_precio,
                 CONCAT(u_cli.nombre, ' ', u_cli.apellido) as cliente_nombre,
                 CONCAT(u_emp.nombre, ' ', u_emp.apellido) as empleado_nombre
             FROM citas c
@@ -383,77 +372,35 @@ class SuperAdminController extends Controller
         $citas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $spreadsheet = new Spreadsheet();
-
-        // --- Hoja 1: Reporte General (con gráfico) ---
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Reporte General');
 
-        // Encabezados de la tabla de servicios para el gráfico
-        $sheet->setCellValue('J1', 'Top 5 Servicios Rentables');
-        $sheet->getStyle('J1')->getFont()->setBold(true);
-        $sheet->fromArray(['Servicio', 'Ingresos'], NULL, 'J2');
-        $sheet->fromArray($topServicios, NULL, 'J3');
-        $dataRowCount = count($topServicios) + 2;
-
-        // Encabezados de la tabla principal
+        // Encabezados
         $headers = ['ID Cita', 'Fecha', 'Estado', 'Servicio', 'Precio', 'Cliente', 'Empleado'];
         $sheet->fromArray($headers, NULL, 'A1');
-        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
 
-        // Datos de la tabla principal
+        // Estilo para encabezados
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4285F4']]
+        ];
+        $sheet->getStyle('A1:G1')->applyFromArray($headerStyle);
+
+        // Datos
         $sheet->fromArray($citas, NULL, 'A2');
 
         // Autoajustar columnas
-        foreach (range('A', 'G') as $col) $sheet->getColumnDimension($col)->setAutoSize(true);
-        foreach (range('J', 'K') as $col) $sheet->getColumnDimension($col)->setAutoSize(true);
+        foreach (range('A', 'G') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
 
-        // --- Creación del Gráfico ---
-        $dataSeriesLabels = [
-            new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('String', 'Reporte General!$K$2', null, 1),
-        ];
-        $xAxisTickValues = [
-            new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('String', 'Reporte General!$J$3:$J$' . $dataRowCount, null, count($topServicios)),
-        ];
-        $dataSeriesValues = [
-            new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('Number', 'Reporte General!$K$3:$K$' . $dataRowCount, null, count($topServicios)),
-        ];
-
-        $series = new \PhpOffice\PhpSpreadsheet\Chart\DataSeries(
-            \PhpOffice\PhpSpreadsheet\Chart\DataSeries::TYPE_BARCHART,
-            \PhpOffice\PhpSpreadsheet\Chart\DataSeries::GROUPING_CLUSTERED,
-            range(0, count($dataSeriesValues) - 1),
-            $dataSeriesLabels,
-            $xAxisTickValues,
-            $dataSeriesValues
-        );
-
-        $plotArea = new \PhpOffice\PhpSpreadsheet\Chart\PlotArea(null, [$series]);
-        $legend = new \PhpOffice\PhpSpreadsheet\Chart\Legend(\PhpOffice\PhpSpreadsheet\Chart\Legend::POSITION_RIGHT, null, false);
-        $title = new \PhpOffice\PhpSpreadsheet\Chart\Title('Top 5 Servicios más Rentables');
-        $yAxisLabel = new \PhpOffice\PhpSpreadsheet\Chart\Title('Ingresos ($)');
-
-        $chart = new \PhpOffice\PhpSpreadsheet\Chart\Chart(
-            'chart1',
-            $title,
-            $legend,
-            $plotArea,
-            true,
-            0,
-            null,
-            $yAxisLabel
-        );
-
-        $chart->setTopLeftPosition('A' . (count($citas) + 5));
-        $chart->setBottomRightPosition('H' . (count($citas) + 20));
-        $sheet->addChart($chart);
-
-        // --- Descargar Archivo ---
+        // Descargar archivo
         $filename = "reporte_general_{$desde}_a_{$hasta}.xlsx";
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
 
-        $writer = new Xlsx($spreadsheet, $chart);
+        $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
         exit;
     }
