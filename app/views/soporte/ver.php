@@ -125,7 +125,7 @@ $current_user_id = $_SESSION['user']['id'];
                     </ul>
                     <hr>
                     <form action="/vetsmart/soporte/actualizarMeta" method="POST">
-                        <input type="hidden" name="ticket_id" value="<?= $ticket['id'] ?>">
+                        <input type="hidden" name="ticket_id" value="<?= htmlspecialchars($ticket['id']) ?>">
                         <div class="mb-3">
                             <label for="estado" class="form-label">Estado</label>
                             <select name="estado" id="estado" class="form-select">

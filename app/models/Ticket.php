@@ -50,8 +50,8 @@ class Ticket {
                 ':mensaje'    => $mensaje
             ]);
 
-            // Actualizar la fecha de 'actualizado_en' del ticket principal
-            $stmt_update = $this->db->prepare("UPDATE tickets SET actualizado_en = CURRENT_TIMESTAMP WHERE id = :ticket_id");
+            // Actualizar la fecha de 'actualizado_en' del ticket principal y marcar como no visto para el admin
+            $stmt_update = $this->db->prepare("UPDATE tickets SET actualizado_en = CURRENT_TIMESTAMP, notificacion_admin_vista = 0 WHERE id = :ticket_id");
             $stmt_update->execute([':ticket_id' => $ticket_id]);
 
             return true;
@@ -126,23 +126,49 @@ class Ticket {
      * @return bool
      */
     public function updateTicketMeta($id, $estado, $prioridad, $asignado_a) {
-        try {
-            $sql = "UPDATE tickets SET estado = :estado, prioridad = :prioridad, asignado_a = :asignado_a WHERE id = :id";
+         try {
+            $sql = "UPDATE tickets SET estado = :estado, prioridad = :prioridad, asignado_a = :asignado_a
+                    WHERE id = :id";
             $stmt = $this->db->prepare($sql);
-
-            $stmt->bindValue(':id', (int)$id, PDO::PARAM_INT);
-            $stmt->bindValue(':estado', $estado, PDO::PARAM_STR);
-            $stmt->bindValue(':prioridad', $prioridad, PDO::PARAM_STR);
-
-            if (empty($asignado_a)) {
-                $stmt->bindValue(':asignado_a', null, PDO::PARAM_NULL);
-            } else {
-                $stmt->bindValue(':asignado_a', (int)$asignado_a, PDO::PARAM_INT);
-            }
-
-            return $stmt->execute();
+            $stmt->execute([
+                ':estado'     => $estado,
+                ':prioridad'  => $prioridad,
+                ':asignado_a' => $asignado_a,
+                ':id'         => $id
+            ]);
+            return true;
         } catch (PDOException $e) {
-            error_log("Error al actualizar metadatos del ticket {$id}: " . $e->getMessage());
+            error_log("Error al actualizar metadatos del ticket $id: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function getTicketsByAdminId($admin_id) {
+        $sql = "SELECT t.*, CONCAT(u.nombre, ' ', u.apellido) as creador_nombre
+                FROM tickets t
+                JOIN usuarios u ON t.usuario_id = u.id
+                WHERE t.usuario_id = :admin_id
+                ORDER BY t.actualizado_en DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':admin_id' => $admin_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countUnseenForAdmin($admin_id) {
+        $sql = "SELECT COUNT(*) FROM tickets WHERE usuario_id = :admin_id AND notificacion_admin_vista = 0";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':admin_id' => $admin_id]);
+        return $stmt->fetchColumn();
+    }
+
+    public function markAsSeenByAdmin($ticket_id) {
+        try {
+            $sql = "UPDATE tickets SET notificacion_admin_vista = 1 WHERE id = :ticket_id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':ticket_id' => $ticket_id]);
+            return true;
+        } catch (PDOException $e) {
+            error_log("Error al marcar ticket como visto por admin: " . $e->getMessage());
             return false;
         }
     }

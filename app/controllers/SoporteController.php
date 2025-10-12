@@ -120,7 +120,14 @@ class SoporteController extends Controller {
             exit('Método no permitido');
         }
 
-        $ticket_id  = $_POST['ticket_id'];
+        $ticket_id  = (int)($_POST['ticket_id'] ?? 0);
+
+        if ($ticket_id <= 0) {
+            $_SESSION['flash_error'] = "Error: ID de ticket no válido. La operación ha sido cancelada para proteger los datos.";
+            header('Location: /vetsmart/soporte');
+            exit;
+        }
+
         $estado     = $_POST['estado'];
         $prioridad  = $_POST['prioridad'];
         $asignado_a = !empty($_POST['asignado_a']) ? $_POST['asignado_a'] : null;

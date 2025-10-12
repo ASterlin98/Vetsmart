@@ -856,6 +856,32 @@ public function exportarExcel()
 {
     $desde = $_GET['desde'] ?? date('Y-m-01');
     $hasta = $_GET['hasta'] ?? date('Y-m-t');
+}
+
+public function soporte()
+{
+    require_once APP_ROOT . '/models/Ticket.php';
+    $ticketModel = new Ticket($this->pdo);
+    $admin_id = $_SESSION['user']['id'];
+    $tickets = $ticketModel->getTicketsByAdminId($admin_id);
+    $this->view('admin/soporte/index', ['tickets' => $tickets], 'main_admin');
+}
+
+public function verTicket($id)
+{
+    require_once APP_ROOT . '/models/Ticket.php';
+    $ticketModel = new Ticket($this->pdo);
+    $ticket = $ticketModel->getById((int)$id);
+
+    if ($ticket && $ticket['usuario_id'] == $_SESSION['user']['id']) {
+        $ticketModel->markAsSeenByAdmin($id);
+        $mensajes = $ticketModel->getMessagesByTicketId($id);
+        $this->view('admin/soporte/ver', ['ticket' => $ticket, 'mensajes' => $mensajes], 'main_admin');
+    } else {
+        header('Location: /vetsmart/admin/soporte');
+        exit;
+    }
+}
 
 $stmt = $this->db->prepare("
     SELECT 

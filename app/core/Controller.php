@@ -19,6 +19,22 @@ class Controller {
      */
     public function view(string $view, array $data = [], ?string $layout = 'main')
     {
+        if ($this->db) {
+            // Fetch unseen ticket count for superadmin
+            if (isset($_SESSION['user']) && $_SESSION['user']['role_name'] === 'super_admin') {
+                require_once APP_ROOT . '/models/Ticket.php';
+                $ticketModel = new Ticket($this->db);
+                $data['unseen_tickets'] = $ticketModel->countUnseen();
+            }
+
+            // Fetch unseen ticket count for admin
+            if (isset($_SESSION['user']) && $_SESSION['user']['role_name'] === 'admin') {
+                require_once APP_ROOT . '/models/Ticket.php';
+                $ticketModel = new Ticket($this->db);
+                $data['unseen_tickets_admin'] = $ticketModel->countUnseenForAdmin($_SESSION['user']['id']);
+            }
+        }
+
         $viewFile = __DIR__ . "/../views/{$view}.php";
 
         ob_start();
