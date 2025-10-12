@@ -47,194 +47,39 @@ class SuperAdminController extends Controller
 
     public function dashboard()
     {
-        try {
-            $db = $this->db ?? $this->pdo ?? null;
-            if (!$db instanceof PDO) {
-                throw new Exception('No se encontró conexión PDO en SuperAdminController.');
-            }
+        // Data for stats cards
+        $totalUsuarios = $this->superAdminModel->countTotalUsuarios();
+        $ticketsAbiertos = $this->superAdminModel->countTicketsAbiertos();
+        $citasHoy = $this->superAdminModel->countCitasHoy();
 
-            // Inicializar valores
-            $totalClientes = 0;
-            $totalMascotas = 0;
-            $totalCitas = 0;
-            $totalIngresos = 0.0;
+        // Data for charts
+        $usuariosPorRol = $this->superAdminModel->countUsuariosPorRol();
+        $ticketsPorPrioridad = $this->superAdminModel->countTicketsPorPrioridad();
 
-            // 1) Intentar obtener desde el modelo SuperAdmin (centralizado)
-            if ($this->superAdminModel) {
-                try {
-                    $estad = $this->superAdminModel->getEstadisticas();
-                    $totalClientes = (int)($estad['clientes'] ?? 0);
-                    $totalMascotas = (int)($estad['mascotas'] ?? 0);
-                    $totalCitas    = (int)($estad['citas'] ?? 0);
-                    $totalIngresos  = (float)($estad['ingresos'] ?? 0.0);
-                } catch (\Throwable $e) {
-                    error_log("SuperAdminController: error al obtener estadisticas desde modelo: " . $e->getMessage());
-                    // dejar las variables en 0 y continuar con fallback
-                }
-            }
+        // Data for recent activity (with pagination)
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = 3;
+        $offset = ($page - 1) * $limit;
+        $recentActivity = $this->superAdminModel->getRecentActivity($limit, $offset);
+        $totalActivities = $this->superAdminModel->countTotalActivities();
+        $totalPages = ceil($totalActivities / $limit);
 
-            // 2) Si el modelo no está disponible o devuelve todo 0, usar las queries manuales (fallback)
-            if (!$this->superAdminModel || ($totalClientes === 0 && $totalMascotas === 0 && $totalCitas === 0 && $totalIngresos == 0.0)) {
+        // Data for recent tickets
+        $recentTickets = $this->superAdminModel->getRecentTickets(5);
 
-                // COUNT Clientes (fallback)
-                try {
-                    $stmt = $db->prepare("
-                        SELECT COUNT(*) FROM usuarios u
-                        JOIN roles r ON u.role_id = r.id
-                        WHERE r.nombre = :rol
-                    ");
-                    $stmt->execute([':rol' => 'cliente']);
-                    $totalClientes = (int)$stmt->fetchColumn();
-                } catch (\Throwable $e) {
-                    $totalClientes = 0;
-                }
+        $data = [
+            'totalUsuarios' => $totalUsuarios,
+            'ticketsAbiertos' => $ticketsAbiertos,
+            'citasHoy' => $citasHoy,
+            'usuariosPorRol' => json_encode($usuariosPorRol),
+            'ticketsPorPrioridad' => json_encode($ticketsPorPrioridad),
+            'recentActivity' => $recentActivity,
+            'recentTickets' => $recentTickets,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+        ];
 
-                // COUNT Mascotas
-                try {
-                    $stmt = $db->query("SELECT COUNT(*) FROM mascotas");
-                    $totalMascotas = (int)$stmt->fetchColumn();
-                } catch (\Throwable $e) {
-                    try {
-                        $stmt = $db->query("SELECT COUNT(*) FROM pets");
-                        $totalMascotas = (int)$stmt->fetchColumn();
-                    } catch (\Throwable $e2) {
-                        $totalMascotas = 0;
-                    }
-                }
-
-                // COUNT Citas
-                try {
-                    $stmt = $db->query("SELECT COUNT(*) FROM citas");
-                    $totalCitas = (int)$stmt->fetchColumn();
-                } catch (\Throwable $e) {
-                    try {
-                        $stmt = $db->query("SELECT COUNT(*) FROM appointments");
-                        $totalCitas = (int)$stmt->fetchColumn();
-                    } catch (\Throwable $e2) {
-                        $totalCitas = 0;
-                    }
-                }
-
-                // SUM ingresos: preferimos sumar por servicios asociados a citas
-                try {
-                    $sql = "
-                        SELECT COALESCE(SUM(s.precio),0) AS total
-                        FROM citas c
-                        LEFT JOIN servicios s ON c.servicio_id = s.id
-                        WHERE c.estado IN ('completada', 'confirmada')
-                    ";
-                    $stmt = $db->query($sql);
-                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                    $totalIngresos = $row ? (float)$row['total'] : 0.0;
-                } catch (\Throwable $e) {
-                    try {
-                        $stmt = $db->query("SELECT COALESCE(SUM(monto),0) FROM pagos");
-                        $totalIngresos = (float)$stmt->fetchColumn();
-                    } catch (\Throwable $e2) {
-                        $totalIngresos = 0.0;
-                    }
-                }
-            }
-
-            // COUNT Vacunas
-            $totalVacunas = 0;
-            try {
-                $stmt = $db->query("SELECT COUNT(*) FROM vacunas");
-                $totalVacunas = (int)$stmt->fetchColumn();
-            } catch (\Throwable $e) {
-                $totalVacunas = 0;
-            }
-
-            // Citas confirmadas
-            $citasConfirmadas = 0;
-            try {
-                $stmt = $db->query("SELECT COUNT(*) FROM citas WHERE estado = 'confirmada'");
-                $citasConfirmadas = (int)$stmt->fetchColumn();
-            } catch (\Throwable $e) {
-                $citasConfirmadas = 0;
-            }
-
-            // Actividad reciente (consulta compuesta; si falla, fallback sencillo)
-            $recent = [];
-            try {
-                $recentSql = "
-                    SELECT 'cita' AS tipo, c.id AS entidad_id,
-                           CONCAT(COALESCE(u_creo.nombre,''),' ',COALESCE(u_creo.apellido,'')) AS actor,
-                           'Cita creada' AS accion,
-                           COALESCE(c.creado_en, c.fecha, NOW()) AS creado_en,
-                           CONCAT('Mascota: ', COALESCE(m.nombre,''), ' — Servicio: ', COALESCE(s.nombre,'')) AS detalle
-                    FROM citas c
-                    LEFT JOIN usuarios u_creo ON c.creado_por = u_creo.id
-                    LEFT JOIN mascotas m ON c.mascota_id = m.id
-                    LEFT JOIN servicios s ON c.servicio_id = s.id
-
-                    UNION ALL
-
-                    SELECT 'usuario' AS tipo, u.id AS entidad_id,
-                           CONCAT(COALESCE(u.nombre,''),' ',COALESCE(u.apellido,'')) AS actor,
-                           'Usuario registrado' AS accion,
-                           COALESCE(u.creado_en, u.created_at, NOW()) AS creado_en,
-                           CONCAT('Email: ', COALESCE(u.email,''), ' — Rol: ', COALESCE(u.role_name,'')) AS detalle
-                    FROM usuarios u
-
-                    UNION ALL
-
-                    SELECT 'vacuna' AS tipo, v.id AS entidad_id,
-                           CONCAT(COALESCE(u2.nombre,''),' ',COALESCE(u2.apellido,'')) AS actor,
-                           'Vacuna registrada' AS accion,
-                           COALESCE(v.creado_en, v.fecha_aplicacion, NOW()) AS creado_en,
-                           CONCAT('Mascota: ', COALESCE(m3.nombre,''), ' — Vacuna: ', COALESCE(v.nombre,'')) AS detalle
-                    FROM vacunas v
-                    LEFT JOIN mascotas m3 ON v.mascota_id = m3.id
-                    LEFT JOIN usuarios u2 ON v.creador_id = u2.id
-
-                    ORDER BY creado_en DESC
-                    LIMIT 20
-                ";
-                $stmt = $db->query($recentSql);
-                $recent = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            } catch (\Throwable $e) {
-                // fallback simple: últimas citas
-                try {
-                    $rows = $db->query("SELECT id, COALESCE(creado_en, fecha, NOW()) AS creado_en, CONCAT('Cita #', id) AS detalle FROM citas ORDER BY COALESCE(creado_en, fecha) DESC LIMIT 10")->fetchAll(PDO::FETCH_ASSOC);
-                    foreach ($rows as $r) {
-                        $recent[] = ['tipo'=>'cita','entidad_id'=>$r['id'],'actor'=>'','accion'=>'Cita','creado_en'=>$r['creado_en'],'detalle'=>$r['detalle']];
-                    }
-                } catch (\Throwable $e2) {
-                    $recent = [];
-                }
-            }
-
-            // DEBUG temporal: registrar DB actual y valores (BORRAR DESPUÉS)
-            try {
-                $dbName = $db ? $db->query("SELECT DATABASE()")->fetchColumn() : 'no_db';
-            } catch (\Throwable $e) {
-                $dbName = 'error_obteniendo_db';
-            }
-            error_log("DEBUG dashboard DB={$dbName} totalClientes={$totalClientes} totalMascotas={$totalMascotas} totalCitas={$totalCitas} totalIngresos={$totalIngresos}");
-
-            // Datos para la vista
-            $data = [
-                'totalClientes'    => $totalClientes,
-                'totalMascotas'    => $totalMascotas,
-                'totalCitas'       => $totalCitas,
-                'totalIngresos'    => $totalIngresos,
-                'totalVacunas'     => $totalVacunas,
-                'citasConfirmadas' => $citasConfirmadas,
-                'recentActivity'   => $recent
-            ];
-
-            $this->view('super_admin/dashboard', $data, 'main_superadmin');
-        } catch (\Throwable $ex) {
-            error_log("SuperAdmin::dashboard error: " . $ex->getMessage());
-            // enviar vista con zeros y mensaje de error
-            $this->view('super_admin/dashboard', [
-                'totalClientes'=>0,'totalMascotas'=>0,'totalCitas'=>0,
-                'totalIngresos'=>0,'totalVacunas'=>0,'citasConfirmadas'=>0,
-                'recentActivity'=>[],
-                'error' => $ex->getMessage()
-            ], 'main_superadmin');
-        }
+        $this->view('super_admin/dashboard', $data, 'main_superadmin');
     }
 
     public function configuracion()

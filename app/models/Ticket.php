@@ -15,13 +15,14 @@ class Ticket {
      */
     public function create($data) {
         try {
-            $sql = "INSERT INTO tickets (usuario_id, asunto, descripcion, prioridad, asignado_a)
-                    VALUES (:usuario_id, :asunto, :descripcion, :prioridad, :asignado_a)";
+            $sql = "INSERT INTO tickets (usuario_id, asunto, descripcion, rol_problema, prioridad, asignado_a)
+                    VALUES (:usuario_id, :asunto, :descripcion, :rol_problema, :prioridad, :asignado_a)";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 ':usuario_id'   => $data['usuario_id'],
                 ':asunto'       => $data['asunto'],
                 ':descripcion'  => $data['descripcion'],
+                ':rol_problema' => $data['rol_problema'],
                 ':prioridad'    => $data['prioridad'] ?? 'Media',
                 ':asignado_a'   => $data['asignado_a'] ?? null
             ]);
@@ -67,7 +68,7 @@ class Ticket {
      */
     public function getAll() {
         $sql = "SELECT
-                    t.id, t.asunto, t.estado, t.prioridad, t.creado_en, t.actualizado_en,
+                    t.id, t.asunto, t.estado, t.prioridad, t.creado_en, t.actualizado_en, t.rol_problema,
                     CONCAT(u_creador.nombre, ' ', u_creador.apellido) as creador_nombre,
                     CONCAT(u_asignado.nombre, ' ', u_asignado.apellido) as asignado_nombre
                 FROM tickets t
@@ -169,6 +170,23 @@ class Ticket {
             return true;
         } catch (PDOException $e) {
             error_log("Error al marcar ticket como visto por admin: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function countUnseen() {
+        $sql = "SELECT COUNT(*) FROM tickets WHERE notificacion_vista = 0";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchColumn();
+    }
+
+    public function markAllAsSeen() {
+        try {
+            $sql = "UPDATE tickets SET notificacion_vista = 1 WHERE notificacion_vista = 0";
+            $this->db->exec($sql);
+            return true;
+        } catch (PDOException $e) {
+            error_log("Error al marcar tickets como vistos: " . $e->getMessage());
             return false;
         }
     }

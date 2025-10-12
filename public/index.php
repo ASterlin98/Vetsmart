@@ -669,6 +669,18 @@ if ($path === '/admin/reportes/exportarExcel' && $_SERVER['REQUEST_METHOD'] === 
     exit;
 }
 
+if ($path === '/admin/reportesSoporte' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->reportesSoporte();
+    exit;
+}
+
+if ($path === '/admin/guardarTicket' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->guardarTicket();
+    exit;
+}
+
 // ==================== EMPLEADOS ====================
 if ($path === '/admin/empleados' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require_once APP_ROOT . '/controllers/AdminController.php';

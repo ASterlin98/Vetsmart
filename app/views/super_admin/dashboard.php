@@ -1,247 +1,283 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8fafc;
+        color: #333;
+    }
 
-<?php
-$totClientes = (isset($data['totalClientes']) ? (int)$data['totalClientes'] : ($totalClientes ?? 0));
-$totMascotas = (isset($data['totalMascotas']) ? (int)$data['totalMascotas'] : ($totalMascotas ?? 0));
-$totCitas    = (isset($data['totalCitas']) ? (int)$data['totalCitas'] : ($totalCitas ?? 0));
-$totIngresos = (isset($data['totalIngresos']) ? (float)$data['totalIngresos'] : ($totalIngresos ?? 0.0));
-$totVacunas  = (isset($data['totalVacunas']) ? (int)$data['totalVacunas'] : ($totVacunas ?? 0));
-$citasConfirmadas = (isset($data['citasConfirmadas']) ? (int)$data['citasConfirmadas'] : ($citasConfirmadas ?? 0));
-$recentActivity = $data['recentActivity'] ?? ($recentActivity ?? []);
-$error = $data['error'] ?? ($error ?? null);
+    h1 {
+        color: #0d6efd;
+    }
 
-function fmtMoney($v) {
-    return '$' . number_format((float)$v, 2, '.', ',');
-}
-?>
+    .card {
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        background-color: #ffffff;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-title {
+        font-weight: 600;
+        color: #374151;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .display-6 {
+        font-size: 2.5rem;
+        color: #111827;
+    }
+
+    .list-group-item {
+        border: none;
+        border-bottom: 1px solid #f1f5f9;
+        background-color: transparent;
+        transition: background 0.2s;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8fafc;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .pagination .page-link {
+        color: #0d6efd;
+    }
+
+    .pagination .page-link:hover {
+        color: #0a58ca;
+    }
+
+    .badge {
+        border-radius: 0.5rem;
+    }
+
+    .shadow-sm {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    }
+
+    .text-primary {
+        color: #0d6efd !important;
+    }
+
+    .text-danger {
+        color: #dc3545 !important;
+    }
+
+    .text-success {
+        color: #198754 !important;
+    }
+
+    .fw-semibold {
+        font-weight: 600;
+    }
+
+    .small.text-muted {
+        color: #6b7280 !important;
+    }
+
+    canvas {
+        max-height: 300px;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .page-link {
+        border-radius: 8px;
+        margin: 0 3px;
+    }
+</style>
+
 <div class="container-fluid py-4">
-  <div class="row">
-    <div class="col-12">
-      <h1 class="fw-bold">Panel del Super Administrador</h1>
-      <p class="text-muted mb-4">Resumen general del sistema</p>
-    </div>
-  </div>
+    <h1 class="fw-bold mb-2">Dashboard del Super Administrador</h1>
+    <p class="text-muted mb-4">Visión general del sistema y actividad reciente.</p>
 
-  <?php if ($error): ?>
-    <div class="alert alert-danger">
-      <strong>Error:</strong> <?= htmlspecialchars($error) ?>
-    </div>
-  <?php endif; ?>
-
-  <div class="row g-3 mb-4">
-    <div class="col-sm-6 col-md-3">
-      <div class="card shadow-sm h-100">
-        <div class="card-body text-center">
-          <div class="text-primary fw-semibold">Clientes</div>
-          <div class="display-6 fw-bold"><?= number_format($totClientes) ?></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-sm-6 col-md-3">
-      <div class="card shadow-sm h-100">
-        <div class="card-body text-center">
-          <div class="text-success fw-semibold">Mascotas</div>
-          <div class="display-6 fw-bold"><?= number_format($totMascotas) ?></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-sm-6 col-md-3">
-      <div class="card shadow-sm h-100">
-        <div class="card-body text-center">
-          <div class="text-warning fw-semibold">Citas</div>
-          <div class="display-6 fw-bold"><?= number_format($totCitas) ?></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-sm-6 col-md-3">
-      <div class="card shadow-sm h-100">
-        <div class="card-body text-center">
-          <div class="text-danger fw-semibold">Ingresos</div>
-          <div class="display-6 fw-bold"><?= fmtMoney($totIngresos) ?></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4">
-    <div class="col-lg-7">
-      <div class="card mb-3 shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">Actividad reciente</h5>
-          <p class="text-muted small">Aquí podrás ver las acciones recientes del sistema.</p>
-
-          <?php if (empty($recentActivity)): ?>
-            <div class="text-muted">No se han detectado actividades recientes.</div>
-          <?php else: ?>
-            <ul class="list-group list-group-flush">
-              <?php foreach ($recentActivity as $a): 
-                $tipo = htmlspecialchars($a['tipo'] ?? '');
-                $actor = htmlspecialchars(trim($a['actor'] ?? ''));
-                $accion = htmlspecialchars($a['accion'] ?? '');
-                $detalle = htmlspecialchars($a['detalle'] ?? '');
-                $time = $a['creado_en'] ?? null;
-                $when = '';
-                if ($time) {
-                  $ts = strtotime($time);
-                  if ($ts !== false) $when = date('d/m/Y H:i', $ts);
-                  else $when = htmlspecialchars($time);
-                }
-              ?>
-                <li class="list-group-item">
-                  <div class="d-flex justify-content-between">
-                    <div>
-                      <div class="fw-semibold"><?= $accion ?> <?= $tipo ? " — " . $tipo : '' ?></div>
-                      <div class="small text-muted"><?= $detalle ?></div>
-                      <?php if ($actor): ?><div class="small text-muted">Por: <?= $actor ?></div><?php endif; ?>
-                    </div>
-                    <div class="text-end">
-                        <small class="text-muted d-block mb-1"><?= $when ?></small>
-                        <?php if ($tipo === 'cita'): ?>
-                            <button class="btn btn-xs btn-outline-primary ver-detalles-btn" data-id="<?= htmlspecialchars($a['entidad_id']) ?>" data-bs-toggle="modal" data-bs-target="#citaDetallesModal">
-                                Ver Detalles
-                            </button>
-                        <?php endif; ?>
-                    </div>
-                  </div>
-                </li>
-              <?php endforeach; ?>
-            </ul>
-          <?php endif; ?>
-        </div>
-      </div>
-
-      <div class="card shadow-sm mb-3">
-        <div class="card-body">
-          <h6 class="mb-2">Resumen adicional</h6>
-          <div class="row">
-            <div class="col-6">
-              <div class="small text-muted">Vacunas registradas</div>
-              <div class="fw-bold"><?= number_format($totVacunas) ?></div>
-            </div>
-            <div class="col-6">
-              <div class="small text-muted">Citas confirmadas</div>
-              <div class="fw-bold"><?= number_format($citasConfirmadas) ?></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="col-lg-5">
-      <div class="card shadow-sm mb-3">
-        <div class="card-body">
-          <h6 class="card-title">Accesos rápidos</h6>
-          <div class="d-grid gap-2">
-            <a href="/vetsmart/super_admin/usuarios" class="btn btn-primary">Gestionar usuarios</a>
-            <a href="/vetsmart/super_admin/configuracion" class="btn btn-outline-secondary">Configuración global</a>
-            <a href="/vetsmart/super_admin/reportes" class="btn btn-outline-info">Ir a reportes</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h6 class="card-title">Notas</h6>
-          <p class="small text-muted mb-0">Usa este panel para monitorear la actividad y acceder a los módulos del sistema.</p>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <div class="row mt-5">
-    <div class="col-12 text-center text-muted">
-      © <?= date('Y') ?> VetSmart. Todos los derechos reservados.
-    </div>
-  </div>
-</div>
-
-<!-- Modal para Detalles de Cita -->
-<div class="modal fade" id="citaDetallesModal" tabindex="-1" aria-labelledby="citaDetallesModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="citaDetallesModalLabel">Detalles de la Cita</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div id="modal-loader" class="text-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Cargando...</span>
+    <!-- Stat Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <div class="text-primary fw-semibold mb-2">Usuarios Totales</div>
+                    <div class="display-6 fw-bold"><?= $totalUsuarios ?></div>
+                </div>
             </div>
         </div>
-        <div id="modal-content-display" style="display: none;">
-            <!-- El contenido se inyectará aquí -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <div class="text-danger fw-semibold mb-2">Tickets Abiertos</div>
+                    <div class="display-6 fw-bold"><?= $ticketsAbiertos ?></div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <div class="text-success fw-semibold mb-2">Citas para Hoy</div>
+                    <div class="display-6 fw-bold"><?= $citasHoy ?></div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <!-- Charts -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Usuarios por Rol</h5>
+                    <canvas id="userRoleChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Tickets por Prioridad</h5>
+                    <canvas id="ticketPriorityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity and Tickets -->
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Actividad Reciente</h5>
+                    <?php if (empty($recentActivity)): ?>
+                        <p class="text-muted">No hay actividad reciente.</p>
+                    <?php else: ?>
+                        <ul class="list-group list-group-flush">
+                            <?php foreach ($recentActivity as $activity): ?>
+                                <li class="list-group-item">
+                                    <div class="fw-semibold"><?= htmlspecialchars($activity['accion']) ?></div>
+                                    <div class="small text-muted"><?= htmlspecialchars($activity['detalle']) ?></div>
+                                    <div class="small text-muted">Por: <?= htmlspecialchars($activity['actor']) ?> - <?= date('d/m/Y H:i', strtotime($activity['creado_en'])) ?></div>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <nav class="mt-3">
+                            <ul class="pagination justify-content-center">
+                                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                                    <li class="page-item <?= $i == $currentPage ? 'active' : '' ?>">
+                                        <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                                    </li>
+                                <?php endfor; ?>
+                            </ul>
+                        </nav>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Tickets Recientes</h5>
+                    <?php if (empty($recentTickets)): ?>
+                        <p class="text-muted">No hay tickets recientes.</p>
+                    <?php else: ?>
+                        <ul class="list-group list-group-flush">
+                            <?php foreach ($recentTickets as $ticket): ?>
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <a href="/vetsmart/soporte/ver/<?= $ticket['id'] ?>" class="fw-semibold text-decoration-none text-dark"><?= htmlspecialchars($ticket['asunto']) ?></a>
+                                            <div class="small text-muted">Por: <?= htmlspecialchars($ticket['creador_nombre']) ?></div>
+                                        </div>
+                                        <span class="badge bg-info text-dark"><?= htmlspecialchars($ticket['prioridad']) ?></span>
+                                    </div>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const modal = new bootstrap.Modal(document.getElementById('citaDetallesModal'));
-    const modalBody = document.getElementById('modal-content-display');
-    const loader = document.getElementById('modal-loader');
+    // Chart: Users by Role
+    const userRoleCtx = document.getElementById('userRoleChart').getContext('2d');
+    const userRoleData = JSON.parse('<?= $usuariosPorRol ?>');
+    new Chart(userRoleCtx, {
+        type: 'bar',
+        data: {
+            labels: userRoleData.map(d => d.nombre),
+            datasets: [{
+                label: 'Número de Usuarios',
+                data: userRoleData.map(d => d.total),
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#f3f4f6' },
+                    ticks: { color: '#4b5563' }
+                },
+                x: {
+                    grid: { color: '#f9fafb' },
+                    ticks: { color: '#4b5563' }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
 
-    document.querySelectorAll('.ver-detalles-btn').forEach(button => {
-        button.addEventListener('click', function () {
-            const citaId = this.dataset.id;
-
-            // Show loader, hide content
-            loader.style.display = 'block';
-            modalBody.style.display = 'none';
-            modalBody.innerHTML = ''; // Clear previous content
-
-            fetch(`/vetsmart/api/citas/${citaId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        modalBody.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
-                    } else {
-                        const formattedDate = new Date(data.fecha).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' });
-                        const Creador = data.creador_nombre ? `${data.creador_nombre} ${data.creador_apellido}` : 'No especificado';
-                        modalBody.innerHTML = `
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p><strong>ID de Cita:</strong> ${data.id}</p>
-                                    <p><strong>Fecha y Hora:</strong> ${formattedDate}</p>
-                                    <p><strong>Estado:</strong> <span class="badge bg-info text-dark">${data.estado}</span></p>
-                                    <p><strong>Creado por:</strong> ${Creador}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Cliente:</strong> ${data.cliente_nombre} ${data.cliente_apellido}</p>
-                                    <p><strong>Mascota:</strong> ${data.mascota_nombre} (${data.mascota_especie} - ${data.mascota_raza})</p>
-                                    <p><strong>Atendido por:</strong> ${data.empleado_nombre} ${data.empleado_apellido}</p>
-                                </div>
-                            </div>
-                            <hr>
-                            <h5>Detalles del Servicio</h5>
-                            <p><strong>Servicio:</strong> ${data.servicio_nombre}</p>
-                            <p><strong>Precio:</strong> $${Number(data.servicio_precio).toLocaleString('es-ES')}</p>
-                            <hr>
-                            <h5>Notas de la Cita</h5>
-                            <p>${data.notas ? data.notas : 'No hay notas.'}</p>
-                        `;
-                    }
-                    // Hide loader, show content
-                    loader.style.display = 'none';
-                    modalBody.style.display = 'block';
-                })
-                .catch(error => {
-                    loader.style.display = 'none';
-                    modalBody.style.display = 'block';
-                    modalBody.innerHTML = `<div class="alert alert-danger">Error al cargar los datos.</div>`;
-                    console.error('Error:', error);
-                });
-        });
+    // Chart: Tickets by Priority
+    const ticketPriorityCtx = document.getElementById('ticketPriorityChart').getContext('2d');
+    const ticketPriorityData = JSON.parse('<?= $ticketsPorPrioridad ?>');
+    new Chart(ticketPriorityCtx, {
+        type: 'pie',
+        data: {
+            labels: ticketPriorityData.map(d => d.prioridad),
+            datasets: [{
+                label: 'Tickets',
+                data: ticketPriorityData.map(d => d.total),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)'
+                ],
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#374151' }
+                }
+            }
+        }
     });
 });
 </script>
