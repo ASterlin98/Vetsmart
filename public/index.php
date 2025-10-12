@@ -509,6 +509,18 @@ try {
         exit;
     }
 
+if ($path === '/admin/soporte' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->soporte();
+    exit;
+}
+
+if (preg_match('#^/admin/soporte/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->verTicket($matches[1]);
+    exit;
+}
+
     if ($path === '/veterinario/citas/actualizar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $controller = new VeterinarioController($pdo);
         $controller->actualizarCita();

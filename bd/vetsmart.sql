@@ -926,6 +926,7 @@ CREATE TABLE `tickets` (
   `estado` enum('Abierto','En Proceso','Cerrado') NOT NULL DEFAULT 'Abierto',
   `prioridad` enum('Baja','Media','Alta','Urgente') NOT NULL DEFAULT 'Media',
   `notificacion_vista` tinyint(1) NOT NULL DEFAULT 0 COMMENT '0 = no visto, 1 = visto por superadmin',
+  `notificacion_admin_vista` tinyint(1) NOT NULL DEFAULT 1 COMMENT '0 = no visto por admin, 1 = visto',
   `creado_en` timestamp NOT NULL DEFAULT current_timestamp(),
   `actualizado_en` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
