@@ -27,6 +27,7 @@ require __DIR__ . '/../app/core/Router.php';
 // controladores
 require __DIR__ . '/../app/controllers/AuthController.php';
 require __DIR__ . '/../app/controllers/SuperAdminController.php';
+require __DIR__ . '/../app/controllers/ApiController.php';
 require_once APP_ROOT . '/controllers/ClientesController.php';
 require __DIR__ . '/../app/controllers/VeterinarioController.php';
 require __DIR__ . '/../app/controllers/ServiciosController.php';
@@ -34,6 +35,7 @@ require_once APP_ROOT . '/controllers/ConsultasController.php';
 
 // <-- AÑADIDO: AdminController (necesario para gestión empleados) -->
 require_once APP_ROOT . '/controllers/AdminController.php';
+require_once APP_ROOT . '/controllers/SoporteController.php';
 
 // Detectar base path (subcarpeta donde vive la app)
 $basePath = '/vetsmart';
@@ -188,7 +190,8 @@ try {
                 $controller->view("admin/dashboard", [], "main_admin");
                 break;
             case 'super_admin':
-                $controller->view("super_admin/dashboard", [], "main_superadmin");
+                $controller = new SuperAdminController($pdo);
+                $controller->dashboard();
                 break;
             default:
                 echo "Rol no reconocido.";
@@ -222,18 +225,6 @@ try {
         exit;
     }
 
-    if (preg_match('#^/superadmin/permisos/rol/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-        $controller = new SuperAdminController($pdo);
-        $_GET['role_id'] = $matches[1];
-        $controller->getPermisosPorRol();
-        exit;
-    }
-
-    if ($path === '/superadmin/permisos/actualizar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-        $controller = new SuperAdminController($pdo);
-        $controller->actualizarPermisos();
-        exit;
-    }
 
     // ==================== CLIENTES ====================
     if ($path === '/admin/clientes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -518,6 +509,18 @@ try {
         exit;
     }
 
+if ($path === '/admin/soporte' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->soporte();
+    exit;
+}
+
+if (preg_match('#^/admin/soporte/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->verTicket($matches[1]);
+    exit;
+}
+
     if ($path === '/veterinario/citas/actualizar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $controller = new VeterinarioController($pdo);
         $controller->actualizarCita();
@@ -666,6 +669,18 @@ if ($path === '/admin/reportes/exportarExcel' && $_SERVER['REQUEST_METHOD'] === 
     exit;
 }
 
+if ($path === '/admin/reportesSoporte' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->reportesSoporte();
+    exit;
+}
+
+if ($path === '/admin/guardarTicket' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $ctrl = new AdminController($pdo);
+    $ctrl->guardarTicket();
+    exit;
+}
+
 // ==================== EMPLEADOS ====================
 if ($path === '/admin/empleados' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require_once APP_ROOT . '/controllers/AdminController.php';
@@ -806,12 +821,102 @@ if ($path === '/api/disponibilidad-veterinario' && $_SERVER['REQUEST_METHOD'] ==
     exit;
 }
 
+// API para obtener detalles de una cita
+if (preg_match('#^/api/citas/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new ApiController($pdo);
+    $controller->getCitaDetalles($matches[1]);
+    exit;
+}
+
 if ($path === '/super_admin/dashboard' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require_once APP_ROOT . '/controllers/SuperAdminController.php';
     $controller = new SuperAdminController($pdo);
     $controller->dashboard();
     exit;
 }
+
+// ==================== SUPER ADMIN: GESTIÓN DE ROLES (ahora manejado por API) ====================
+
+// ==================== SUPER ADMIN: CONFIGURACIÓN GLOBAL ====================
+if ($path === '/super_admin/configuracion' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SuperAdminController($pdo);
+    $controller->configuracion();
+    exit;
+}
+
+if ($path === '/super_admin/actualizarConfiguracion' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SuperAdminController($pdo);
+    $controller->actualizarConfiguracion();
+    exit;
+}
+
+// ==================== SUPER ADMIN: REPORTES ====================
+if ($path === '/super_admin/reportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SuperAdminController($pdo);
+    $controller->reportes();
+    exit;
+}
+
+if ($path === '/super_admin/exportarReportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SuperAdminController($pdo);
+    $controller->exportarReportes();
+    exit;
+}
+
+// ==================== SUPER ADMIN: GESTIÓN DE PERMISOS (CRUD) ====================
+if ($path === '/super_admin/permisos' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SuperAdminController($pdo);
+    $controller->permisos();
+    exit;
+}
+if ($path === '/super_admin/guardarPermiso' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SuperAdminController($pdo);
+    $controller->guardarPermiso();
+    exit;
+}
+if ($path === '/super_admin/actualizarPermiso' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SuperAdminController($pdo);
+    $controller->actualizarPermiso();
+    exit;
+}
+if (preg_match('#^/super_admin/eliminarPermiso/(\d+)$#', $path, $matches)) {
+    $controller = new SuperAdminController($pdo);
+    $controller->eliminarPermiso($matches[1]);
+    exit;
+}
+
+// ==================== CENTRO DE SOPORTE ====================
+if ($path === '/soporte' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SoporteController($pdo);
+    $controller->index();
+    exit;
+}
+if ($path === '/soporte/crear' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SoporteController($pdo);
+    $controller->crear();
+    exit;
+}
+if ($path === '/soporte/guardar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SoporteController($pdo);
+    $controller->guardar();
+    exit;
+}
+if (preg_match('#^/soporte/ver/(\d+)$#', $path, $matches)) {
+    $controller = new SoporteController($pdo);
+    $controller->ver($matches[1]);
+    exit;
+}
+if ($path === '/soporte/responder' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SoporteController($pdo);
+    $controller->responder();
+    exit;
+}
+if ($path === '/soporte/actualizarMeta' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SoporteController($pdo);
+    $controller->actualizarMeta();
+    exit;
+}
+
 
 // ==================== API: DISPONIBILIDAD ====================
 if ($path === '/api/disponibilidad' && $_SERVER['REQUEST_METHOD'] === 'GET') {

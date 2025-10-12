@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-10-2025 a las 04:13:14
+-- Tiempo de generación: 12-10-2025 a las 03:15:53
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -62,20 +62,18 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `archivos`
+-- Estructura de tabla para la tabla `auditoria`
 --
 
-CREATE TABLE `archivos` (
+CREATE TABLE `auditoria` (
   `id` int(11) NOT NULL,
-  `entidad` varchar(50) DEFAULT NULL,
+  `usuario_id` int(11) DEFAULT NULL,
+  `accion` varchar(255) NOT NULL,
+  `entidad` varchar(100) DEFAULT NULL,
   `entidad_id` int(11) DEFAULT NULL,
-  `ruta` varchar(255) NOT NULL,
-  `nombre_orig` varchar(255) DEFAULT NULL,
-  `mime` varchar(100) DEFAULT NULL,
-  `tam` int(11) DEFAULT NULL,
-  `subido_por` int(11) DEFAULT NULL,
-  `subido_en` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`metadata`)),
+  `creado_en` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -127,7 +125,9 @@ INSERT INTO `citas` (`id`, `cliente_id`, `mascota_id`, `empleado_id`, `servicio_
 (43, 28, 6, 25, 2, '2025-10-13 09:00:00', 34, 'confirmada', '', 25, '2025-10-03 23:59:10'),
 (44, 20, 2, 25, 1, '2025-10-06 09:00:00', 30, 'confirmada', '', 25, '2025-10-04 01:33:45'),
 (45, 18, 1, 25, 1, '2025-10-07 09:00:00', 30, 'confirmada', '', 25, '2025-10-04 01:34:05'),
-(46, 28, 6, 25, 1, '2025-10-15 09:00:00', 30, 'confirmada', '', 25, '2025-10-04 01:35:01');
+(46, 28, 6, 25, 1, '2025-10-15 09:00:00', 30, 'confirmada', '', 25, '2025-10-04 01:35:01'),
+(47, 20, 3, 3, 1, '2025-10-14 09:00:00', 30, 'confirmada', '', 3, '2025-10-10 01:09:29'),
+(48, 28, 6, 3, 2, '2025-10-15 09:00:00', 60, 'confirmada', '', 3, '2025-10-10 02:12:27');
 
 -- --------------------------------------------------------
 
@@ -153,7 +153,7 @@ INSERT INTO `cliente_detalles` (`id`, `idusu`, `telefono`, `direccion`, `ciudad`
 (8, 18, '654321596', 'casa pin pin', 'Bogota', '2025-09-12 23:25:35'),
 (9, 20, '3144928505', 'Cr 7 #6-67', 'Cundinamarca', '2025-10-01 00:19:46'),
 (10, 21, '3124285749', 'Pollo rico 32', 'Bogota', '2025-10-01 00:28:22'),
-(12, 28, '7589648512', 'Cr 2 # 3 - 4', 'Bogota', '2025-10-04 00:22:57');
+(12, 28, '75896485', 'Cr 2 # 3 - 4', 'Bogota', '2025-10-04 00:22:57');
 
 -- --------------------------------------------------------
 
@@ -167,6 +167,19 @@ CREATE TABLE `config` (
   `valor` text DEFAULT NULL,
   `actualizado_en` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `config`
+--
+
+INSERT INTO `config` (`id`, `clave`, `valor`, `actualizado_en`) VALUES
+(1, 'site_name', 'VetSmart', '2025-10-11 01:11:45'),
+(2, 'contact_email', 'contacto@vetsmart.com', '2025-10-08 23:45:03'),
+(3, 'maintenance_mode', '1', '2025-10-09 00:20:50'),
+(4, 'records_per_page', '15', '2025-10-08 23:45:03'),
+(25, 'company_address', 'Tu Dirección Aquí', '2025-10-11 01:28:35'),
+(26, 'company_phone', '123-456-7890', '2025-10-11 01:28:35'),
+(27, 'company_logo_url', 'assets/img/logo.png', '2025-10-11 01:28:35');
 
 -- --------------------------------------------------------
 
@@ -219,7 +232,7 @@ INSERT INTO `emp_det` (`id`, `usuario_id`, `especialidad`, `salario`, `fecha_ing
 (5, 5, 'Peluquero', 1200000.00, '2024-01-15', 1),
 (6, 4, 'Recepcionista', 1200000.00, '2024-03-01', 1),
 (7, 3, 'Administrador', 2500000.00, '2022-06-01', 1),
-(10, 25, 'Operaciones1', 3000000.00, '2025-10-02', 1);
+(10, 25, 'Operaciones12', 3000000.00, '2025-10-02', 1);
 
 -- --------------------------------------------------------
 
@@ -235,25 +248,6 @@ CREATE TABLE `historial_citas` (
   `despues` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`despues`)),
   `razon` varchar(255) DEFAULT NULL,
   `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `historial_medico`
---
-
-CREATE TABLE `historial_medico` (
-  `id` int(11) NOT NULL,
-  `mascota_id` int(11) NOT NULL,
-  `cita_id` int(11) DEFAULT NULL,
-  `fecha` datetime DEFAULT current_timestamp(),
-  `motivo` text DEFAULT NULL,
-  `diagnostico` text DEFAULT NULL,
-  `tratamiento` text DEFAULT NULL,
-  `prescripcion` text DEFAULT NULL,
-  `peso` decimal(6,2) DEFAULT NULL,
-  `creado_por` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -437,7 +431,54 @@ INSERT INTO `logs_actividad` (`id`, `usuario_id`, `accion`, `entidad`, `entidad_
 (115, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 350, '{\"role_id\": 2, \"permiso_id\": 18}', NULL, '2025-09-12 23:36:58'),
 (116, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 351, '{\"role_id\": 2, \"permiso_id\": 22}', NULL, '2025-09-12 23:36:58'),
 (117, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 352, '{\"role_id\": 2, \"permiso_id\": 23}', NULL, '2025-09-12 23:36:58'),
-(118, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 353, '{\"role_id\": 2, \"permiso_id\": 24}', NULL, '2025-09-12 23:36:58');
+(118, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 353, '{\"role_id\": 2, \"permiso_id\": 24}', NULL, '2025-09-12 23:36:58'),
+(119, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 354, '{\"role_id\": 3, \"permiso_id\": 4}', NULL, '2025-10-10 00:53:16'),
+(120, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 355, '{\"role_id\": 3, \"permiso_id\": 5}', NULL, '2025-10-10 00:53:16'),
+(121, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 286, '{\"role_id\": 4, \"permiso_id\": 9}', NULL, '2025-10-10 01:06:07'),
+(122, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 287, '{\"role_id\": 4, \"permiso_id\": 6}', NULL, '2025-10-10 01:06:07'),
+(123, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 288, '{\"role_id\": 4, \"permiso_id\": 4}', NULL, '2025-10-10 01:06:07'),
+(124, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 289, '{\"role_id\": 4, \"permiso_id\": 15}', NULL, '2025-10-10 01:06:07'),
+(125, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 290, '{\"role_id\": 4, \"permiso_id\": 16}', NULL, '2025-10-10 01:06:07'),
+(126, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 291, '{\"role_id\": 4, \"permiso_id\": 11}', NULL, '2025-10-10 01:06:07'),
+(127, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 292, '{\"role_id\": 4, \"permiso_id\": 2}', NULL, '2025-10-10 01:06:07'),
+(128, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 293, '{\"role_id\": 4, \"permiso_id\": 1}', NULL, '2025-10-10 01:06:07'),
+(129, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 294, '{\"role_id\": 4, \"permiso_id\": 39}', NULL, '2025-10-10 01:06:07'),
+(130, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 295, '{\"role_id\": 4, \"permiso_id\": 40}', NULL, '2025-10-10 01:06:07'),
+(131, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 296, '{\"role_id\": 4, \"permiso_id\": 44}', NULL, '2025-10-10 01:06:07'),
+(132, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 297, '{\"role_id\": 4, \"permiso_id\": 43}', NULL, '2025-10-10 01:06:07'),
+(133, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 298, '{\"role_id\": 4, \"permiso_id\": 42}', NULL, '2025-10-10 01:06:07'),
+(134, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 299, '{\"role_id\": 4, \"permiso_id\": 38}', NULL, '2025-10-10 01:06:07'),
+(135, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 300, '{\"role_id\": 4, \"permiso_id\": 74}', NULL, '2025-10-10 01:06:07'),
+(136, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 301, '{\"role_id\": 4, \"permiso_id\": 70}', NULL, '2025-10-10 01:06:07'),
+(137, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 302, '{\"role_id\": 4, \"permiso_id\": 24}', NULL, '2025-10-10 01:06:07'),
+(138, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 303, '{\"role_id\": 4, \"permiso_id\": 20}', NULL, '2025-10-10 01:06:07'),
+(139, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 304, '{\"role_id\": 4, \"permiso_id\": 23}', NULL, '2025-10-10 01:06:07'),
+(140, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 305, '{\"role_id\": 4, \"permiso_id\": 22}', NULL, '2025-10-10 01:06:07'),
+(141, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 306, '{\"role_id\": 4, \"permiso_id\": 18}', NULL, '2025-10-10 01:06:07'),
+(142, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 307, '{\"role_id\": 4, \"permiso_id\": 49}', NULL, '2025-10-10 01:06:07'),
+(143, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 308, '{\"role_id\": 4, \"permiso_id\": 45}', NULL, '2025-10-10 01:06:07'),
+(144, NULL, 'PERMISO_ELIMINADO', 'rol_permisos', 309, '{\"role_id\": 4, \"permiso_id\": 32}', NULL, '2025-10-10 01:06:07'),
+(145, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 356, '{\"role_id\": 4, \"permiso_id\": 11}', NULL, '2025-10-10 01:06:07'),
+(146, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 357, '{\"role_id\": 4, \"permiso_id\": 15}', NULL, '2025-10-10 01:06:07'),
+(147, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 358, '{\"role_id\": 4, \"permiso_id\": 16}', NULL, '2025-10-10 01:06:07'),
+(148, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 359, '{\"role_id\": 4, \"permiso_id\": 1}', NULL, '2025-10-10 01:06:07'),
+(149, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 360, '{\"role_id\": 4, \"permiso_id\": 2}', NULL, '2025-10-10 01:06:07'),
+(150, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 361, '{\"role_id\": 4, \"permiso_id\": 38}', NULL, '2025-10-10 01:06:07'),
+(151, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 362, '{\"role_id\": 4, \"permiso_id\": 39}', NULL, '2025-10-10 01:06:07'),
+(152, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 363, '{\"role_id\": 4, \"permiso_id\": 40}', NULL, '2025-10-10 01:06:07'),
+(153, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 364, '{\"role_id\": 4, \"permiso_id\": 42}', NULL, '2025-10-10 01:06:07'),
+(154, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 365, '{\"role_id\": 4, \"permiso_id\": 43}', NULL, '2025-10-10 01:06:07'),
+(155, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 366, '{\"role_id\": 4, \"permiso_id\": 44}', NULL, '2025-10-10 01:06:07'),
+(156, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 367, '{\"role_id\": 4, \"permiso_id\": 70}', NULL, '2025-10-10 01:06:07'),
+(157, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 368, '{\"role_id\": 4, \"permiso_id\": 74}', NULL, '2025-10-10 01:06:07'),
+(158, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 369, '{\"role_id\": 4, \"permiso_id\": 18}', NULL, '2025-10-10 01:06:07'),
+(159, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 370, '{\"role_id\": 4, \"permiso_id\": 20}', NULL, '2025-10-10 01:06:07'),
+(160, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 371, '{\"role_id\": 4, \"permiso_id\": 22}', NULL, '2025-10-10 01:06:07'),
+(161, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 372, '{\"role_id\": 4, \"permiso_id\": 23}', NULL, '2025-10-10 01:06:07'),
+(162, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 373, '{\"role_id\": 4, \"permiso_id\": 24}', NULL, '2025-10-10 01:06:07'),
+(163, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 374, '{\"role_id\": 4, \"permiso_id\": 45}', NULL, '2025-10-10 01:06:07'),
+(164, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 375, '{\"role_id\": 4, \"permiso_id\": 49}', NULL, '2025-10-10 01:06:07'),
+(165, NULL, 'PERMISO_AGREGADO', 'rol_permisos', 376, '{\"role_id\": 4, \"permiso_id\": 32}', NULL, '2025-10-10 01:06:07');
 
 -- --------------------------------------------------------
 
@@ -464,9 +505,10 @@ CREATE TABLE `mascotas` (
 
 INSERT INTO `mascotas` (`id`, `dueño_id`, `nombre`, `especie`, `raza`, `edad`, `peso`, `notas`, `foto`, `creado_en`) VALUES
 (1, 18, 'Tommy', 'Perro', 'Bulldog', 2, 45.00, NULL, 'uploads/mascotas/mascota_1_1758770429.png', '2025-09-12 23:33:54'),
-(2, 20, 'Hanibal', 'Gato', 'Criollo', 5, 6.00, '2\r\n', NULL, '2025-10-01 01:07:53'),
+(2, 20, 'Hanibal Lecter', 'Gato', 'Criollo', 5, 6.00, '212324\r\n', NULL, '2025-10-01 01:07:53'),
 (3, 20, 'Winnie', 'Ave', 'criolla', 2, 1.00, 'qwe', NULL, '2025-10-01 01:15:36'),
-(6, 28, 'Puppy', 'Roedor', 'Roedor', 3, 1.00, 'Mera Rata', NULL, '2025-10-04 00:23:29');
+(6, 28, 'Puppy', 'Roedor', 'Roedora', 3, 1.00, 'Mera Rata', NULL, '2025-10-04 00:23:29'),
+(7, 28, 'Noah', 'Gato', 'Persa', 3, 3.00, 'Gata castrada', NULL, '2025-10-04 21:54:34');
 
 -- --------------------------------------------------------
 
@@ -534,7 +576,8 @@ CREATE TABLE `notificaciones` (
   `intentos` int(11) DEFAULT 0,
   `programado_en` datetime DEFAULT NULL,
   `enviado_en` datetime DEFAULT NULL,
-  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
+  `creado_en` timestamp NOT NULL DEFAULT current_timestamp(),
+  `notificacion_vista` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Indica si la notificación fue vista'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -583,9 +626,7 @@ INSERT INTO `permisos` (`id`, `modulo`, `nombre`, `descripcion`, `accion`, `orde
 (5, 'citas', 'citas.crear', 'Crear nuevas citas', 'crear', 11, 1, '2025-09-11 23:57:03', NULL),
 (6, 'citas', 'citas.editar', 'Editar citas existentes', 'editar', 12, 1, '2025-09-11 23:57:03', NULL),
 (7, 'citas', 'citas.eliminar', 'Eliminar/cancelar citas', 'eliminar', 13, 1, '2025-09-11 23:57:03', NULL),
-(8, 'citas', 'citas.confirmar', 'Confirmar estado de citas', 'confirmar', 14, 1, '2025-09-11 23:57:03', NULL),
 (9, 'citas', 'citas.calendario', 'Ver calendario de citas', 'calendario', 15, 1, '2025-09-11 23:57:03', NULL),
-(10, 'citas', 'citas.exportar', 'Exportar listado de citas', 'exportar', 16, 1, '2025-09-11 23:57:03', NULL),
 (11, 'clientes', 'clientes.ver', 'Ver listado de clientes', 'ver', 20, 1, '2025-09-11 23:57:03', NULL),
 (12, 'clientes', 'clientes.crear', 'Registrar nuevos clientes', 'crear', 21, 1, '2025-09-11 23:57:03', NULL),
 (13, 'clientes', 'clientes.editar', 'Editar información de clientes', 'editar', 22, 1, '2025-09-11 23:57:03', NULL),
@@ -655,22 +696,8 @@ INSERT INTO `permisos` (`id`, `modulo`, `nombre`, `descripcion`, `accion`, `orde
 (77, 'facturacion', 'facturacion.editar', 'Editar facturas', 'editar', 122, 1, '2025-09-11 23:57:03', NULL),
 (78, 'facturacion', 'facturacion.anular', 'Anular facturas', 'anular', 123, 1, '2025-09-11 23:57:03', NULL),
 (79, 'facturacion', 'facturacion.pagos', 'Registrar pagos', 'pagos', 124, 1, '2025-09-11 23:57:03', NULL),
-(80, 'facturacion', 'facturacion.imprimir', 'Imprimir facturas', 'imprimir', 125, 1, '2025-09-11 23:57:03', NULL);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `reportes`
---
-
-CREATE TABLE `reportes` (
-  `id` int(11) NOT NULL,
-  `admin_id` int(11) NOT NULL,
-  `titulo` varchar(150) DEFAULT NULL,
-  `tipo` enum('financiero','servicio','clientes','mascotas','otros') DEFAULT 'otros',
-  `contenido` text DEFAULT NULL,
-  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+(80, 'facturacion', 'facturacion.imprimir', 'Imprimir facturas', 'imprimir', 125, 1, '2025-09-11 23:57:03', NULL),
+(81, 'peluqueria', 'Peluqueria.ver', 'Ver calendario de peluqueria', 'ver', 1, 1, '2025-10-11 22:29:45', NULL);
 
 -- --------------------------------------------------------
 
@@ -700,194 +727,24 @@ INSERT INTO `roles` (`id`, `nombre`, `descripcion`, `creado_en`) VALUES
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `rol_permisos`
+-- Estructura de tabla para la tabla `role_permissions`
 --
 
+CREATE TABLE `role_permissions` (
+  `role_id` int(11) NOT NULL,
+  `permission_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura Stand-in para la vista `rol_permisos`
+-- (Véase abajo para la vista actual)
+--
 CREATE TABLE `rol_permisos` (
-  `id` int(11) NOT NULL,
-  `role_id` int(11) NOT NULL COMMENT 'ID del rol',
-  `permiso_id` int(11) NOT NULL COMMENT 'ID del permiso',
-  `concedido_por` int(11) DEFAULT NULL COMMENT 'Usuario que otorgó el permiso',
-  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Relación entre roles y permisos';
-
---
--- Volcado de datos para la tabla `rol_permisos`
---
-
-INSERT INTO `rol_permisos` (`id`, `role_id`, `permiso_id`, `concedido_por`, `creado_en`) VALUES
-(1, 1, 1, NULL, '2025-09-11 23:57:03'),
-(2, 1, 2, NULL, '2025-09-11 23:57:03'),
-(3, 1, 3, NULL, '2025-09-11 23:57:03'),
-(4, 1, 4, NULL, '2025-09-11 23:57:03'),
-(5, 1, 5, NULL, '2025-09-11 23:57:03'),
-(6, 1, 6, NULL, '2025-09-11 23:57:03'),
-(7, 1, 7, NULL, '2025-09-11 23:57:03'),
-(8, 1, 8, NULL, '2025-09-11 23:57:03'),
-(9, 1, 9, NULL, '2025-09-11 23:57:03'),
-(10, 1, 10, NULL, '2025-09-11 23:57:03'),
-(11, 1, 11, NULL, '2025-09-11 23:57:03'),
-(12, 1, 12, NULL, '2025-09-11 23:57:03'),
-(13, 1, 13, NULL, '2025-09-11 23:57:03'),
-(14, 1, 14, NULL, '2025-09-11 23:57:03'),
-(15, 1, 15, NULL, '2025-09-11 23:57:03'),
-(16, 1, 16, NULL, '2025-09-11 23:57:03'),
-(17, 1, 17, NULL, '2025-09-11 23:57:03'),
-(18, 1, 18, NULL, '2025-09-11 23:57:03'),
-(19, 1, 19, NULL, '2025-09-11 23:57:03'),
-(20, 1, 20, NULL, '2025-09-11 23:57:03'),
-(21, 1, 21, NULL, '2025-09-11 23:57:03'),
-(22, 1, 22, NULL, '2025-09-11 23:57:03'),
-(23, 1, 23, NULL, '2025-09-11 23:57:03'),
-(24, 1, 24, NULL, '2025-09-11 23:57:03'),
-(25, 1, 25, NULL, '2025-09-11 23:57:03'),
-(26, 1, 26, NULL, '2025-09-11 23:57:03'),
-(27, 1, 27, NULL, '2025-09-11 23:57:03'),
-(28, 1, 28, NULL, '2025-09-11 23:57:03'),
-(29, 1, 29, NULL, '2025-09-11 23:57:03'),
-(30, 1, 30, NULL, '2025-09-11 23:57:03'),
-(31, 1, 31, NULL, '2025-09-11 23:57:03'),
-(32, 1, 32, NULL, '2025-09-11 23:57:03'),
-(33, 1, 33, NULL, '2025-09-11 23:57:03'),
-(34, 1, 34, NULL, '2025-09-11 23:57:03'),
-(35, 1, 35, NULL, '2025-09-11 23:57:03'),
-(36, 1, 36, NULL, '2025-09-11 23:57:03'),
-(37, 1, 37, NULL, '2025-09-11 23:57:03'),
-(38, 1, 38, NULL, '2025-09-11 23:57:03'),
-(39, 1, 39, NULL, '2025-09-11 23:57:03'),
-(40, 1, 40, NULL, '2025-09-11 23:57:03'),
-(41, 1, 41, NULL, '2025-09-11 23:57:03'),
-(42, 1, 42, NULL, '2025-09-11 23:57:03'),
-(43, 1, 43, NULL, '2025-09-11 23:57:03'),
-(44, 1, 44, NULL, '2025-09-11 23:57:03'),
-(45, 1, 45, NULL, '2025-09-11 23:57:03'),
-(46, 1, 46, NULL, '2025-09-11 23:57:03'),
-(47, 1, 47, NULL, '2025-09-11 23:57:03'),
-(48, 1, 48, NULL, '2025-09-11 23:57:03'),
-(49, 1, 49, NULL, '2025-09-11 23:57:03'),
-(50, 1, 50, NULL, '2025-09-11 23:57:03'),
-(51, 1, 51, NULL, '2025-09-11 23:57:03'),
-(52, 1, 52, NULL, '2025-09-11 23:57:03'),
-(53, 1, 53, NULL, '2025-09-11 23:57:03'),
-(54, 1, 54, NULL, '2025-09-11 23:57:03'),
-(55, 1, 55, NULL, '2025-09-11 23:57:03'),
-(56, 1, 56, NULL, '2025-09-11 23:57:03'),
-(57, 1, 57, NULL, '2025-09-11 23:57:03'),
-(58, 1, 58, NULL, '2025-09-11 23:57:03'),
-(59, 1, 59, NULL, '2025-09-11 23:57:03'),
-(60, 1, 60, NULL, '2025-09-11 23:57:03'),
-(61, 1, 61, NULL, '2025-09-11 23:57:03'),
-(62, 1, 62, NULL, '2025-09-11 23:57:03'),
-(63, 1, 63, NULL, '2025-09-11 23:57:03'),
-(64, 1, 64, NULL, '2025-09-11 23:57:03'),
-(65, 1, 65, NULL, '2025-09-11 23:57:03'),
-(66, 1, 66, NULL, '2025-09-11 23:57:03'),
-(67, 1, 67, NULL, '2025-09-11 23:57:03'),
-(68, 1, 68, NULL, '2025-09-11 23:57:03'),
-(69, 1, 69, NULL, '2025-09-11 23:57:03'),
-(70, 1, 70, NULL, '2025-09-11 23:57:03'),
-(71, 1, 71, NULL, '2025-09-11 23:57:03'),
-(72, 1, 72, NULL, '2025-09-11 23:57:03'),
-(73, 1, 73, NULL, '2025-09-11 23:57:03'),
-(74, 1, 74, NULL, '2025-09-11 23:57:03'),
-(75, 1, 75, NULL, '2025-09-11 23:57:03'),
-(76, 1, 76, NULL, '2025-09-11 23:57:03'),
-(77, 1, 77, NULL, '2025-09-11 23:57:03'),
-(78, 1, 78, NULL, '2025-09-11 23:57:03'),
-(79, 1, 79, NULL, '2025-09-11 23:57:03'),
-(80, 1, 80, NULL, '2025-09-11 23:57:03'),
-(286, 4, 9, NULL, '2025-09-11 23:57:03'),
-(287, 4, 6, NULL, '2025-09-11 23:57:03'),
-(288, 4, 4, NULL, '2025-09-11 23:57:03'),
-(289, 4, 15, NULL, '2025-09-11 23:57:03'),
-(290, 4, 16, NULL, '2025-09-11 23:57:03'),
-(291, 4, 11, NULL, '2025-09-11 23:57:03'),
-(292, 4, 2, NULL, '2025-09-11 23:57:03'),
-(293, 4, 1, NULL, '2025-09-11 23:57:03'),
-(294, 4, 39, NULL, '2025-09-11 23:57:03'),
-(295, 4, 40, NULL, '2025-09-11 23:57:03'),
-(296, 4, 44, NULL, '2025-09-11 23:57:03'),
-(297, 4, 43, NULL, '2025-09-11 23:57:03'),
-(298, 4, 42, NULL, '2025-09-11 23:57:03'),
-(299, 4, 38, NULL, '2025-09-11 23:57:03'),
-(300, 4, 74, NULL, '2025-09-11 23:57:03'),
-(301, 4, 70, NULL, '2025-09-11 23:57:03'),
-(302, 4, 24, NULL, '2025-09-11 23:57:03'),
-(303, 4, 20, NULL, '2025-09-11 23:57:03'),
-(304, 4, 23, NULL, '2025-09-11 23:57:03'),
-(305, 4, 22, NULL, '2025-09-11 23:57:03'),
-(306, 4, 18, NULL, '2025-09-11 23:57:03'),
-(307, 4, 49, NULL, '2025-09-11 23:57:03'),
-(308, 4, 45, NULL, '2025-09-11 23:57:03'),
-(309, 4, 32, NULL, '2025-09-11 23:57:03'),
-(317, 5, 9, NULL, '2025-09-11 23:57:03'),
-(318, 5, 4, NULL, '2025-09-11 23:57:03'),
-(319, 5, 15, NULL, '2025-09-11 23:57:03'),
-(320, 5, 11, NULL, '2025-09-11 23:57:03'),
-(321, 5, 1, NULL, '2025-09-11 23:57:03'),
-(322, 5, 23, NULL, '2025-09-11 23:57:03'),
-(323, 5, 18, NULL, '2025-09-11 23:57:03'),
-(324, 5, 32, NULL, '2025-09-11 23:57:03'),
-(332, 6, 4, NULL, '2025-09-11 23:57:03'),
-(333, 6, 1, NULL, '2025-09-11 23:57:03'),
-(334, 6, 75, NULL, '2025-09-11 23:57:03'),
-(335, 6, 38, NULL, '2025-09-11 23:57:03'),
-(336, 6, 22, NULL, '2025-09-11 23:57:03'),
-(337, 6, 18, NULL, '2025-09-11 23:57:03'),
-(346, 2, 11, NULL, '2025-09-12 23:36:58'),
-(347, 2, 15, NULL, '2025-09-12 23:36:58'),
-(348, 2, 16, NULL, '2025-09-12 23:36:58'),
-(349, 2, 17, NULL, '2025-09-12 23:36:58'),
-(350, 2, 18, NULL, '2025-09-12 23:36:58'),
-(351, 2, 22, NULL, '2025-09-12 23:36:58'),
-(352, 2, 23, NULL, '2025-09-12 23:36:58'),
-(353, 2, 24, NULL, '2025-09-12 23:36:58');
-
---
--- Disparadores `rol_permisos`
---
-DELIMITER $$
-CREATE TRIGGER `tr_audit_rol_permisos_delete` AFTER DELETE ON `rol_permisos` FOR EACH ROW BEGIN
-    INSERT INTO logs_actividad (
-        usuario_id, 
-        accion, 
-        entidad, 
-        entidad_id, 
-        meta
-    ) VALUES (
-        NULL,
-        'PERMISO_ELIMINADO',
-        'rol_permisos',
-        OLD.id,
-        JSON_OBJECT(
-            'role_id', OLD.role_id,
-            'permiso_id', OLD.permiso_id
-        )
-    );
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `tr_audit_rol_permisos_insert` AFTER INSERT ON `rol_permisos` FOR EACH ROW BEGIN
-    INSERT INTO logs_actividad (
-        usuario_id, 
-        accion, 
-        entidad, 
-        entidad_id, 
-        meta
-    ) VALUES (
-        NEW.concedido_por,
-        'PERMISO_AGREGADO',
-        'rol_permisos',
-        NEW.id,
-        JSON_OBJECT(
-            'role_id', NEW.role_id,
-            'permiso_id', NEW.permiso_id
-        )
-    );
-END
-$$
-DELIMITER ;
+`role_id` int(11)
+,`permiso_id` int(11)
+);
 
 -- --------------------------------------------------------
 
@@ -911,7 +768,7 @@ CREATE TABLE `servicios` (
 
 INSERT INTO `servicios` (`id`, `nombre`, `descripcion`, `precio`, `duracion_min`, `activo`, `creado_en`) VALUES
 (1, 'Peluqueria', 'Hacer baño a la mascota', 45000.00, 30, 1, '2025-09-13 00:40:17'),
-(2, 'Baño y Cortes', 'buena', 67000.00, 34, 1, '2025-10-01 02:29:06');
+(2, 'Bañado y Cortes', 'Con jabon, secadora y olores', 67000.00, 60, 1, '2025-10-01 02:29:06');
 
 -- --------------------------------------------------------
 
@@ -934,6 +791,60 @@ CREATE TABLE `solicitudes` (
 
 INSERT INTO `solicitudes` (`id`, `usuario_id`, `tipo`, `fecha_inicio`, `fecha_fin`, `motivo`) VALUES
 (3, 4, 'vacaciones', '2025-10-03', '2025-10-27', '');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `tickets`
+--
+
+CREATE TABLE `tickets` (
+  `id` int(11) NOT NULL,
+  `usuario_id` int(11) NOT NULL COMMENT 'ID del usuario que crea el ticket',
+  `asignado_a` int(11) DEFAULT NULL COMMENT 'ID del usuario de soporte asignado',
+  `asunto` varchar(255) NOT NULL,
+  `descripcion` text DEFAULT NULL,
+  `rol_problema` varchar(255) DEFAULT NULL,
+  `estado` enum('Abierto','En Proceso','Cerrado') NOT NULL DEFAULT 'Abierto',
+  `prioridad` enum('Baja','Media','Alta','Urgente') NOT NULL DEFAULT 'Media',
+  `creado_en` timestamp NOT NULL DEFAULT current_timestamp(),
+  `actualizado_en` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `notificacion_vista` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Indica si el ticket ya fue notificado o visto',
+  `notificacion_admin_vista` tinyint(1) NOT NULL DEFAULT 1 COMMENT '0 = no visto por admin, 1 = visto'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `tickets`
+--
+
+INSERT INTO `tickets` (`id`, `usuario_id`, `asignado_a`, `asunto`, `descripcion`, `rol_problema`, `estado`, `prioridad`, `creado_en`, `actualizado_en`, `notificacion_vista`, `notificacion_admin_vista`) VALUES
+(1, 9, 1, 'Falla en sistema', 'falla prueba 1', 'recepcionista', 'Abierto', 'Media', '2025-10-11 21:41:27', '2025-10-12 00:45:31', 1, 1),
+(2, 9, 1, 'Falla en sistema', 'fall de prueba 2', 'veterinario', 'Abierto', 'Media', '2025-10-11 21:52:37', '2025-10-11 23:21:33', 1, 1),
+(3, 9, 1, 'Falla en sistema', 'prueba 3', 'veterinario', 'Abierto', 'Media', '2025-10-11 23:11:25', '2025-10-11 23:21:33', 1, 1),
+(4, 9, 1, 'Falla en sistema', 'prueba 4', 'admin', 'Cerrado', 'Media', '2025-10-11 23:22:02', '2025-10-12 00:45:35', 1, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `ticket_mensajes`
+--
+
+CREATE TABLE `ticket_mensajes` (
+  `id` int(11) NOT NULL,
+  `ticket_id` int(11) NOT NULL,
+  `usuario_id` int(11) NOT NULL COMMENT 'ID del autor del mensaje',
+  `mensaje` text NOT NULL,
+  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `ticket_mensajes`
+--
+
+INSERT INTO `ticket_mensajes` (`id`, `ticket_id`, `usuario_id`, `mensaje`, `creado_en`) VALUES
+(0, 4, 1, 'ya se realizo todos los cambios y funcionamiento', '2025-10-11 23:29:43'),
+(0, 4, 9, 'Gracias', '2025-10-12 00:39:13'),
+(0, 1, 9, 'Hamos una prueba', '2025-10-12 00:39:29');
 
 -- --------------------------------------------------------
 
@@ -987,7 +898,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `docusu`, `nombre`, `apellido`, `email`, `telefono`, `password`, `role_id`, `estado`, `creado_en`, `reset_token`, `reset_expira`) VALUES
-(1, '0000000001', 'Super', 'Admin', 'andres.rojast98@gmail.com', NULL, '$2y$10$tl9ee/EuUcY6JBbJHjooY.bhoBjsgzAgHPo7liYyF0iI9I7AfdSpG', 1, 1, '2025-09-07 04:07:20', '7e9361722c5a938319871bd551397c6ee595a07e801d64d25cf621da84529cd4', '2025-09-25 05:35:44'),
+(1, '0000000001', 'Super', 'Admin', 'andres.rojast98@gmail.com', NULL, '$2y$10$tl9ee/EuUcY6JBbJHjooY.bhoBjsgzAgHPo7liYyF0iI9I7AfdSpG', 1, 1, '2025-09-07 04:07:20', 'bb30e79b94bdad536066225ed38c1b7325a3d79f52bfb68d84aafd0240d9270d', '2025-10-12 02:08:24'),
 (3, '0000000003', 'Andres', 'Rojas', 'andres_rojast9@outlook.com', '3105551234', '$2y$10$NRlwUgWy2YLDciO4nard/uA2Lyr38A13B4.MXSoOzyQEK8KiFPvOW', 4, 1, '2025-09-07 04:07:20', '4f26bf98b6bb2b8b77d91d837bf7bba33b66292bc667fea994d98c05c5671eb3', '2025-09-25 04:26:56'),
 (4, '0000000004', 'Recepcion', 'Prueba', 'recepcion@vetsmart.test', '3218765432', '$2b$12$SVWcXtiXWXzaQgOaKFTBM.XOpui0aB96ScYWR9TZGfdmYXCsqpU4.', 3, 1, '2025-09-07 04:07:20', '0', '0000-00-00 00:00:00'),
 (5, '0000000005', 'Peluquero', 'Prueba', 'peluquero@vetsmart.test', '3009900011', '$2b$12$C6/ANKFcycDsIGX5iM9stu2ZIGSDGxJnjbGUbt.B/gjf4ZiuttpOC', 5, 1, '2025-09-07 04:07:20', '0', '0000-00-00 00:00:00'),
@@ -995,8 +906,8 @@ INSERT INTO `usuarios` (`id`, `docusu`, `nombre`, `apellido`, `email`, `telefono
 (18, '987654321', 'paula', 'Real', 'paula@prueba.com', '654321596', '$2y$10$6Acda2HFqvmYyKQ.iAW85eU7F7PdoSf25JLcQFcSg6G.ZnechUgUC', 6, 1, '2025-09-12 23:25:35', '', NULL),
 (20, '49876321', 'Andres', 'Rojas Sterlin', 'segunda@prueba.com', '3144928505', '$2y$10$6uM4.6Sv82unVdTeb3EphedyHBBcaPxQowVsmIG376blrKkpAvQzS', 6, 1, '2025-10-01 00:19:46', '', NULL),
 (21, '98765132', 'Yakeline', 'Sterlin', 'peyahe-77@outlook.com', '3124285749', '$2y$10$Alhov8AGbeVuSTDSn0/yEur9xBoPicIsiJXkFHxtjgb9jIdgCLRs6', 6, 1, '2025-10-01 00:28:22', '', NULL),
-(25, '7418529', 'Luis', 'Arevalo', 'luis@example.com', '951847', '$2y$10$4INL.cpc3ESrncuamkwvZ.Bmq8DNekB2K4vVrJXvLAEq0sdfAa4oC', 4, 1, '2025-10-03 02:02:39', '', NULL),
-(28, '6549873285', 'Chayane', 'ernesto', 'chayanne@ejemplo.com', '7589648512', '$2y$10$LryNrogzbn7H.NS14C023.Jh8CoGXvkLmZVicbirxYQO8WPNt0PMG', 6, 1, '2025-10-04 00:22:57', '', NULL);
+(25, '74185291', 'Luisa', 'Arevaloa', 'luisa@example.com', '9518471', '$2y$10$4INL.cpc3ESrncuamkwvZ.Bmq8DNekB2K4vVrJXvLAEq0sdfAa4oC', 3, 1, '2025-10-03 02:02:39', '', NULL),
+(28, '6549873281', 'Chayanne', 'Ernesto', 'chayanne@ejemplo.com', '75896485', '$2y$10$LryNrogzbn7H.NS14C023.Jh8CoGXvkLmZVicbirxYQO8WPNt0PMG', 6, 1, '2025-10-04 00:22:57', '', NULL);
 
 -- --------------------------------------------------------
 
@@ -1057,6 +968,15 @@ CREATE TABLE `v_roles_permisos_count` (
 -- --------------------------------------------------------
 
 --
+-- Estructura para la vista `rol_permisos`
+--
+DROP TABLE IF EXISTS `rol_permisos`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `rol_permisos`  AS SELECT `role_permissions`.`role_id` AS `role_id`, `role_permissions`.`permission_id` AS `permiso_id` FROM `role_permissions` ;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura para la vista `v_roles_permisos`
 --
 DROP TABLE IF EXISTS `v_roles_permisos`;
@@ -1077,12 +997,12 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 
 --
--- Indices de la tabla `archivos`
+-- Indices de la tabla `auditoria`
 --
-ALTER TABLE `archivos`
+ALTER TABLE `auditoria`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `subido_por` (`subido_por`),
-  ADD KEY `idx_archivos_entidad` (`entidad`,`entidad_id`);
+  ADD KEY `usuario_id` (`usuario_id`),
+  ADD KEY `creado_en` (`creado_en`);
 
 --
 -- Indices de la tabla `bloqueos`
@@ -1140,15 +1060,6 @@ ALTER TABLE `historial_citas`
   ADD PRIMARY KEY (`id`),
   ADD KEY `cita_id` (`cita_id`),
   ADD KEY `cambiado_por` (`cambiado_por`);
-
---
--- Indices de la tabla `historial_medico`
---
-ALTER TABLE `historial_medico`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `mascota_id` (`mascota_id`),
-  ADD KEY `cita_id` (`cita_id`),
-  ADD KEY `creado_por` (`creado_por`);
 
 --
 -- Indices de la tabla `horarios_semana`
@@ -1218,13 +1129,6 @@ ALTER TABLE `permisos`
   ADD KEY `idx_permisos_modulo_orden` (`modulo`,`orden`);
 
 --
--- Indices de la tabla `reportes`
---
-ALTER TABLE `reportes`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `admin_id` (`admin_id`);
-
---
 -- Indices de la tabla `roles`
 --
 ALTER TABLE `roles`
@@ -1232,15 +1136,11 @@ ALTER TABLE `roles`
   ADD UNIQUE KEY `nombre` (`nombre`);
 
 --
--- Indices de la tabla `rol_permisos`
+-- Indices de la tabla `role_permissions`
 --
-ALTER TABLE `rol_permisos`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `idx_rol_permiso_unico` (`role_id`,`permiso_id`),
-  ADD KEY `idx_role` (`role_id`),
-  ADD KEY `idx_permiso` (`permiso_id`),
-  ADD KEY `idx_concedido_por` (`concedido_por`),
-  ADD KEY `idx_rol_permisos_lookup` (`role_id`,`permiso_id`);
+ALTER TABLE `role_permissions`
+  ADD PRIMARY KEY (`role_id`,`permission_id`),
+  ADD KEY `permission_id` (`permission_id`);
 
 --
 -- Indices de la tabla `servicios`
@@ -1254,6 +1154,12 @@ ALTER TABLE `servicios`
 ALTER TABLE `solicitudes`
   ADD PRIMARY KEY (`id`),
   ADD KEY `usuario_id` (`usuario_id`);
+
+--
+-- Indices de la tabla `tickets`
+--
+ALTER TABLE `tickets`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indices de la tabla `turnos_empleado`
@@ -1285,9 +1191,9 @@ ALTER TABLE `vacunas`
 --
 
 --
--- AUTO_INCREMENT de la tabla `archivos`
+-- AUTO_INCREMENT de la tabla `auditoria`
 --
-ALTER TABLE `archivos`
+ALTER TABLE `auditoria`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -1300,19 +1206,19 @@ ALTER TABLE `bloqueos`
 -- AUTO_INCREMENT de la tabla `citas`
 --
 ALTER TABLE `citas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT de la tabla `cliente_detalles`
 --
 ALTER TABLE `cliente_detalles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT de la tabla `config`
 --
 ALTER TABLE `config`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT de la tabla `consultas`
@@ -1324,18 +1230,12 @@ ALTER TABLE `consultas`
 -- AUTO_INCREMENT de la tabla `emp_det`
 --
 ALTER TABLE `emp_det`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `historial_citas`
 --
 ALTER TABLE `historial_citas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `historial_medico`
---
-ALTER TABLE `historial_medico`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -1354,13 +1254,13 @@ ALTER TABLE `login_intentos`
 -- AUTO_INCREMENT de la tabla `logs_actividad`
 --
 ALTER TABLE `logs_actividad`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=119;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=166;
 
 --
 -- AUTO_INCREMENT de la tabla `mascotas`
 --
 ALTER TABLE `mascotas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT de la tabla `modulos`
@@ -1390,25 +1290,13 @@ ALTER TABLE `perfil`
 -- AUTO_INCREMENT de la tabla `permisos`
 --
 ALTER TABLE `permisos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
-
---
--- AUTO_INCREMENT de la tabla `reportes`
---
-ALTER TABLE `reportes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
 --
 ALTER TABLE `roles`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
---
--- AUTO_INCREMENT de la tabla `rol_permisos`
---
-ALTER TABLE `rol_permisos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=354;
 
 --
 -- AUTO_INCREMENT de la tabla `servicios`
@@ -1423,6 +1311,12 @@ ALTER TABLE `solicitudes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT de la tabla `tickets`
+--
+ALTER TABLE `tickets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT de la tabla `turnos_empleado`
 --
 ALTER TABLE `turnos_empleado`
@@ -1432,7 +1326,7 @@ ALTER TABLE `turnos_empleado`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT de la tabla `vacunas`
@@ -1443,12 +1337,6 @@ ALTER TABLE `vacunas`
 --
 -- Restricciones para tablas volcadas
 --
-
---
--- Filtros para la tabla `archivos`
---
-ALTER TABLE `archivos`
-  ADD CONSTRAINT `archivos_ibfk_1` FOREIGN KEY (`subido_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
 
 --
 -- Filtros para la tabla `bloqueos`
@@ -1494,14 +1382,6 @@ ALTER TABLE `historial_citas`
   ADD CONSTRAINT `historial_citas_ibfk_2` FOREIGN KEY (`cambiado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
 
 --
--- Filtros para la tabla `historial_medico`
---
-ALTER TABLE `historial_medico`
-  ADD CONSTRAINT `historial_medico_ibfk_1` FOREIGN KEY (`mascota_id`) REFERENCES `mascotas` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `historial_medico_ibfk_2` FOREIGN KEY (`cita_id`) REFERENCES `citas` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `historial_medico_ibfk_3` FOREIGN KEY (`creado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
-
---
 -- Filtros para la tabla `horarios_semana`
 --
 ALTER TABLE `horarios_semana`
@@ -1545,18 +1425,11 @@ ALTER TABLE `perfil`
   ADD CONSTRAINT `perfil_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE;
 
 --
--- Filtros para la tabla `reportes`
+-- Filtros para la tabla `role_permissions`
 --
-ALTER TABLE `reportes`
-  ADD CONSTRAINT `reportes_ibfk_1` FOREIGN KEY (`admin_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE;
-
---
--- Filtros para la tabla `rol_permisos`
---
-ALTER TABLE `rol_permisos`
-  ADD CONSTRAINT `fk_rol_permisos_permiso` FOREIGN KEY (`permiso_id`) REFERENCES `permisos` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_rol_permisos_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_rol_permisos_usuario` FOREIGN KEY (`concedido_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+ALTER TABLE `role_permissions`
+  ADD CONSTRAINT `role_permissions_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `role_permissions_ibfk_2` FOREIGN KEY (`permission_id`) REFERENCES `permisos` (`id`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `solicitudes`
