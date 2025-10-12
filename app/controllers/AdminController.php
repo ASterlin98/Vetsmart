@@ -856,50 +856,24 @@ public function exportarExcel()
 {
     $desde = $_GET['desde'] ?? date('Y-m-01');
     $hasta = $_GET['hasta'] ?? date('Y-m-t');
-}
 
-public function soporte()
-{
-    require_once APP_ROOT . '/models/Ticket.php';
-    $ticketModel = new Ticket($this->pdo);
-    $admin_id = $_SESSION['user']['id'];
-    $tickets = $ticketModel->getTicketsByAdminId($admin_id);
-    $this->view('admin/soporte/index', ['tickets' => $tickets], 'main_admin');
-}
-
-public function verTicket($id)
-{
-    require_once APP_ROOT . '/models/Ticket.php';
-    $ticketModel = new Ticket($this->pdo);
-    $ticket = $ticketModel->getById((int)$id);
-
-    if ($ticket && $ticket['usuario_id'] == $_SESSION['user']['id']) {
-        $ticketModel->markAsSeenByAdmin($id);
-        $mensajes = $ticketModel->getMessagesByTicketId($id);
-        $this->view('admin/soporte/ver', ['ticket' => $ticket, 'mensajes' => $mensajes], 'main_admin');
-    } else {
-        header('Location: /vetsmart/admin/soporte');
-        exit;
-    }
-}
-
-$stmt = $this->db->prepare("
-    SELECT 
-        c.id,
-        DATE(c.fecha) AS fecha,       -- solo la fecha
-        TIME(c.fecha) AS hora,        -- solo la hora
-        s.nombre AS servicio,
-        m.nombre AS mascota,
-        cli.nombre AS cliente,
-        u.nombre AS empleado
-    FROM citas c
-    JOIN servicios s ON c.servicio_id = s.id
-    JOIN mascotas m ON c.mascota_id = m.id
-    JOIN usuarios cli ON m.dueño_id = cli.id
-    JOIN usuarios u ON c.empleado_id = u.id
-    WHERE c.fecha BETWEEN :desde AND :hasta
-    ORDER BY c.fecha ASC
-");
+    $stmt = $this->pdo->prepare("
+        SELECT 
+            c.id,
+            DATE(c.fecha) AS fecha,
+            TIME(c.fecha) AS hora,
+            s.nombre AS servicio,
+            m.nombre AS mascota,
+            cli.nombre AS cliente,
+            u.nombre AS empleado
+        FROM citas c
+        JOIN servicios s ON c.servicio_id = s.id
+        JOIN mascotas m ON c.mascota_id = m.id
+        JOIN usuarios cli ON m.dueño_id = cli.id
+        JOIN usuarios u ON c.empleado_id = u.id
+        WHERE c.fecha BETWEEN :desde AND :hasta
+        ORDER BY c.fecha ASC
+    ");
 
     $stmt->execute([
         ':desde' => $desde,
@@ -950,6 +924,32 @@ $stmt = $this->db->prepare("
     $writer->save('php://output');
     exit;
 }
+
+public function soporte()
+{
+    require_once APP_ROOT . '/models/Ticket.php';
+    $ticketModel = new Ticket($this->pdo);
+    $admin_id = $_SESSION['user']['id'];
+    $tickets = $ticketModel->getTicketsByAdminId($admin_id);
+    $this->view('admin/soporte/index', ['tickets' => $tickets], 'main_admin');
+}
+
+public function verTicket($id)
+{
+    require_once APP_ROOT . '/models/Ticket.php';
+    $ticketModel = new Ticket($this->pdo);
+    $ticket = $ticketModel->getById((int)$id);
+
+    if ($ticket && $ticket['usuario_id'] == $_SESSION['user']['id']) {
+        $ticketModel->markAsSeenByAdmin($id);
+        $mensajes = $ticketModel->getMessagesByTicketId($id);
+        $this->view('admin/soporte/ver', ['ticket' => $ticket, 'mensajes' => $mensajes], 'main_admin');
+    } else {
+        header('Location: /vetsmart/admin/soporte');
+        exit;
+    }
+}
+
 
 /* ==================================================
  *  FINANZAS
