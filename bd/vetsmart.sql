@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 30-10-2025 a las 20:52:20
+-- Tiempo de generación: 12-11-2025 a las 00:38:44
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -38,6 +38,13 @@ CREATE TABLE `atenciones_peluqueria` (
   `creado_en` timestamp NULL DEFAULT current_timestamp(),
   `actualizado_en` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `atenciones_peluqueria`
+--
+
+INSERT INTO `atenciones_peluqueria` (`id`, `cita_id`, `inicio_at`, `fin_at`, `precio_final`, `notas`, `creado_por`, `creado_en`, `actualizado_en`) VALUES
+(1, 80, '2025-11-11 17:45:43', '2025-11-11 17:45:43', 45000.00, '', NULL, '2025-11-11 22:45:43', NULL);
 
 -- --------------------------------------------------------
 
@@ -105,7 +112,13 @@ INSERT INTO `citas` (`id`, `cliente_id`, `mascota_id`, `empleado_id`, `servicio_
 (72, 51, 60, 4, 8, '2025-10-27 16:00:00', 30, 'pendiente', '', NULL, '2025-10-27 14:24:06', 4, '2025-10-29 08:17:46'),
 (73, 55, 66, 62, 10, '2025-10-27 16:00:00', 30, '', '', NULL, '2025-10-27 14:24:25', 4, '2025-10-29 08:17:56'),
 (74, 51, 60, 62, 9, '2025-10-27 14:00:00', 30, 'pendiente', '', NULL, '2025-10-27 16:14:07', NULL, NULL),
-(75, 49, 13, 9, 8, '2025-10-28 09:00:00', 30, 'completada', '', NULL, '2025-10-28 12:42:45', 4, '2025-10-29 08:17:41');
+(75, 49, 13, 9, 8, '2025-10-28 09:00:00', 30, 'completada', '', NULL, '2025-10-28 12:42:45', 4, '2025-10-29 08:17:41'),
+(78, 25, 77, 63, 9, '2025-11-14 12:30:00', 30, 'pendiente', '', 25, '2025-11-11 21:03:26', NULL, NULL),
+(79, 52, 61, 3, 5, '2025-11-19 11:00:00', 30, 'pendiente', '', NULL, '2025-11-11 22:06:54', NULL, NULL),
+(80, 58, 71, 5, 1, '2025-11-19 20:45:00', 30, 'completada', '', NULL, '2025-11-11 22:45:18', NULL, NULL),
+(81, 53, 63, 5, 12, '2025-11-14 08:45:00', 60, 'confirmada', '', NULL, '2025-11-11 22:45:35', NULL, NULL),
+(82, 54, 65, 5, 2, '2025-11-15 10:49:00', 60, 'confirmada', '', NULL, '2025-11-11 22:49:34', NULL, NULL),
+(83, 55, 66, 5, 1, '2025-11-11 08:51:00', 30, 'confirmada', '', NULL, '2025-11-11 22:51:52', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -329,6 +342,14 @@ CREATE TABLE `login_intentos` (
   `intentos` int(11) DEFAULT 1,
   `ultima_fecha` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `login_intentos`
+--
+
+INSERT INTO `login_intentos` (`id`, `usuario_id`, `ip`, `intentos`, `ultima_fecha`) VALUES
+(1, 50, NULL, 3, '2025-11-11 17:30:32'),
+(2, 51, NULL, 3, '2025-11-11 17:34:40');
 
 -- --------------------------------------------------------
 
@@ -1074,41 +1095,44 @@ CREATE TABLE `usuarios` (
   `password` varchar(255) NOT NULL,
   `role_id` int(11) NOT NULL,
   `estado` tinyint(1) DEFAULT 1,
+  `is_blocked` tinyint(1) NOT NULL DEFAULT 0,
   `creado_en` timestamp NOT NULL DEFAULT current_timestamp(),
   `reset_token` varchar(64) NOT NULL,
   `reset_expira` datetime DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `failed_login_attempts` int(11) DEFAULT 0,
+  `is_locked` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `usuarios`
 --
 
-INSERT INTO `usuarios` (`id`, `docusu`, `nombre`, `apellido`, `email`, `telefono`, `direccion`, `foto`, `password`, `role_id`, `estado`, `creado_en`, `reset_token`, `reset_expira`, `created_at`) VALUES
-(1, '0000000001', 'Super', 'Admin', 'andres.rojast98@gmail.com', NULL, NULL, NULL, '$2y$10$tl9ee/EuUcY6JBbJHjooY.bhoBjsgzAgHPo7liYyF0iI9I7AfdSpG', 1, 1, '2025-09-07 09:07:20', 'ac256e97f66ebddd81b7dd573b162620c690f5c5e7871dd2f7c0f8ce9e176cd6', '2025-10-27 15:25:17', '2025-10-23 17:49:18'),
-(3, '0000000003', 'Andres', 'Rojas', 'andres_rojast9@outlook.com', '3105551234', NULL, NULL, '$2y$10$NRlwUgWy2YLDciO4nard/uA2Lyr38A13B4.MXSoOzyQEK8KiFPvOW', 4, 1, '2025-09-07 09:07:20', '4f26bf98b6bb2b8b77d91d837bf7bba33b66292bc667fea994d98c05c5671eb3', '2025-09-25 04:26:56', '2025-10-23 17:49:18'),
-(4, '0000000004', 'Recepcion', 'Prueba', 'luisestebanarevalo312@gmail.com', '3218765432', NULL, NULL, '$2y$10$u2YClzlnZ8XD8lEODbo0RuDQonVmQk6XMGrvMRk5quV7RXWMHBzIC', 3, 1, '2025-09-07 09:07:20', '0', '0000-00-00 00:00:00', '2025-10-23 17:49:18'),
-(5, '0000000005', 'Peluquero', 'Prueba', 'luisarevalo219@outlook.com', '3009900011', NULL, NULL, '$2y$10$mtsj43n328Cwdc2WJcbDsuWA31cytl4o7mTiW4V0h7Yidd5UMu5vW', 5, 1, '2025-09-07 09:07:20', '0', '0000-00-00 00:00:00', '2025-10-23 17:49:18'),
-(9, '1073715080', 'Heyder', 'Sterlin', 'andres@prueba.com', '3154448877', NULL, NULL, '$2y$10$3b1zN67p.pUPWdm4dDbMSuess8EOMuTFqivGRcfRbYo3Sbvm/KkyK', 2, 1, '2025-09-09 07:50:02', '', NULL, '2025-10-23 17:49:18'),
-(25, '74185291', 'Luis', 'Arevalo', 'luis_earevalo@soy.sena.edu.co', '9518471', '', NULL, '$2y$10$ojqTLNlZ7ye3IhJ5QPLHFOJ0XVS3U7nnpt5zauBW1luGgLW7t9IN2', 6, 1, '2025-10-03 07:02:39', '', NULL, '2025-10-23 17:49:18'),
-(48, '1013265581', 'Luis', 'Arévalo', 'luisestebanarevalo@gmail.com', '3202029121', 'Cra 5a-E #5A-63', NULL, '$2y$10$qVKmYNCxejo5mm1FRlbSw.yxwrnIFqZqbPHSnZVFWFKO94eXt6VY.', 3, 1, '2025-10-27 12:58:24', '', NULL, '2025-10-27 12:58:24'),
-(49, '9999999', 'Andresita', 'Rojas', 'andresperrita@hot.com', '87654329', 'Cra 5a', NULL, '$2y$10$12I/3yMxhGB6Smz0oDhq3.94F9HHRKn/nZMvbIAu1PAWwEJxht1ua', 6, 1, '2025-10-27 13:00:32', '', NULL, '2025-10-27 13:00:32'),
-(50, '1001', 'Carlos', 'Pérez', 'carlosperez@mail.com', '3101111111', 'Calle 10 #12-34, Bogotá', NULL, '123456', 6, 1, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15'),
-(51, '1002', 'María', 'López', 'marialopez@mail.com', '3102222222', 'Carrera 20 #45-10, Bogotá', NULL, '123456', 6, 1, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15'),
-(52, '1003', 'Manuel', 'Gómez', 'andresgomez@mail.com', '3103333333', 'Av. 68 #30-40, Bogotá', NULL, '123456', 6, 1, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15'),
-(53, '1004', 'Sofía', 'Rodríguez', 'sofiarodriguez@mail.com', '3104444444', 'Calle 80 #50-60, Bogotá', NULL, '123456', 6, 1, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15'),
-(54, '1005', 'Juan', 'Martínez', 'juanmartinez@mail.com', '3105555555', 'Carrera 15 #25-70, Bogotá', NULL, '123456', 6, 1, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15'),
-(55, '1006', 'Camila', 'Fernández', 'camilafernandez@mail.com', '3106666666', 'Transversal 48 #23-12, Bogotá', NULL, '123456', 6, 1, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15'),
-(56, '1007', 'David', 'Rojas', 'davidrojas@mail.com', '3107777777', 'Calle 5 #67-89, Bogotá', NULL, '123456', 6, 1, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15'),
-(57, '1008', 'Valentina', 'Ruiz', 'valentinaruiz@mail.com', '3108888888', 'Carrera 11 #45-33, Bogotá', NULL, '123456', 6, 1, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15'),
-(58, '1009', 'Felipe', 'Castro', 'felipecastro@mail.com', '3109999999', 'Av. 19 #120-45, Bogotá', NULL, '123456', 6, 1, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15'),
-(59, '1010', 'Laura', 'Moreno', 'lauramoreno@mail.com', '3200000000', 'Calle 100 #90-30, Bogotá', NULL, '123456', 6, 1, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15'),
-(60, '2001', 'Daniel', 'Mendoza', 'danielmendoza@vetsmart.com', '3101010101', 'Calle 12 #8-10, Bogotá', NULL, '$2y$10$eTwzvKX9v1qzAaNlV9gf0ORx7bQ8m4YFQPl4X6w19DulcPD5qvC7m', 4, 1, '2025-10-27 14:21:34', '', NULL, '2025-10-27 14:21:34'),
-(61, '2002', 'Paula', 'Jiménez', 'paulajimenez@vetsmart.com', '3102020202', 'Carrera 15 #45-12, Bogotá', NULL, '$2y$10$eTwzvKX9v1qzAaNlV9gf0ORx7bQ8m4YFQPl4X6w19DulcPD5qvC7m', 4, 1, '2025-10-27 14:21:34', '', NULL, '2025-10-27 14:21:34'),
-(62, '2003', 'Lucía', 'Gómez', 'luciarecepcion@vetsmart.com', '3103030303', 'Av. 19 #100-22, Bogotá', NULL, '$2y$10$eTwzvKX9v1qzAaNlV9gf0ORx7bQ8m4YFQPl4X6w19DulcPD5qvC7m', 3, 1, '2025-10-27 14:21:34', '', NULL, '2025-10-27 14:21:34'),
-(63, '2004', 'Carlos', 'Torres', 'carlostorres@vetsmart.com', '3104040404', 'Calle 80 #50-60, Bogotá', NULL, '$2y$10$eTwzvKX9v1qzAaNlV9gf0ORx7bQ8m4YFQPl4X6w19DulcPD5qvC7m', 5, 1, '2025-10-27 14:21:34', '', NULL, '2025-10-27 14:21:34'),
-(64, '2005', 'Fernanda', 'Ruiz', 'fernandaruiz@vetsmart.com', '3105050505', 'Carrera 30 #22-11, Bogotá', NULL, '$2y$10$eTwzvKX9v1qzAaNlV9gf0ORx7bQ8m4YFQPl4X6w19DulcPD5qvC7m', 5, 1, '2025-10-27 14:21:34', '', NULL, '2025-10-27 14:21:34'),
-(65, '45678976', 'Valentina', 'Fernandez', 'correo@ejmplo.com', '33455666', 'Cra 5a-E #5A-63', NULL, '$2y$10$jcr/HnBUa4qX6CFXtGKHlegJpstc.LdAxrhop9vL.T3EW5.5Wi4jG', 6, 1, '2025-10-27 16:20:19', '', NULL, '2025-10-27 16:20:19');
+INSERT INTO `usuarios` (`id`, `docusu`, `nombre`, `apellido`, `email`, `telefono`, `direccion`, `foto`, `password`, `role_id`, `estado`, `is_blocked`, `creado_en`, `reset_token`, `reset_expira`, `created_at`, `failed_login_attempts`, `is_locked`) VALUES
+(1, '0000000001', 'Super', 'Admin', 'andres.rojast98@gmail.com', NULL, NULL, NULL, '$2y$10$tl9ee/EuUcY6JBbJHjooY.bhoBjsgzAgHPo7liYyF0iI9I7AfdSpG', 1, 1, 0, '2025-09-07 09:07:20', 'daaa041f17c251a63abd36815707f54ca8e8e6a46da84b9f2d3ba1b3292e8957', '2025-11-12 00:58:00', '2025-10-23 17:49:18', 0, 0),
+(3, '0000000003', 'Andres', 'Rojas', 'andres_rojast9@outlook.com', '3105551234', NULL, NULL, '$2y$10$NRlwUgWy2YLDciO4nard/uA2Lyr38A13B4.MXSoOzyQEK8KiFPvOW', 4, 1, 0, '2025-09-07 09:07:20', '4f26bf98b6bb2b8b77d91d837bf7bba33b66292bc667fea994d98c05c5671eb3', '2025-09-25 04:26:56', '2025-10-23 17:49:18', 0, 0),
+(4, '0000000004', 'Recepcion', 'Prueba', 'luisestebanarevalo312@gmail.com', '3218765432', NULL, NULL, '$2y$10$u2YClzlnZ8XD8lEODbo0RuDQonVmQk6XMGrvMRk5quV7RXWMHBzIC', 3, 1, 0, '2025-09-07 09:07:20', '0', '0000-00-00 00:00:00', '2025-10-23 17:49:18', 0, 0),
+(5, '0000000005', 'Peluquero', 'Prueba', 'luisarevalo219@outlook.com', '3009900011', NULL, NULL, '$2y$10$mtsj43n328Cwdc2WJcbDsuWA31cytl4o7mTiW4V0h7Yidd5UMu5vW', 5, 1, 0, '2025-09-07 09:07:20', '0', '0000-00-00 00:00:00', '2025-10-23 17:49:18', 0, 0),
+(9, '1073715080', 'Heyder', 'Sterlin', 'andres@prueba.com', '3154448877', NULL, NULL, '$2y$10$3b1zN67p.pUPWdm4dDbMSuess8EOMuTFqivGRcfRbYo3Sbvm/KkyK', 2, 1, 0, '2025-09-09 07:50:02', '', NULL, '2025-10-23 17:49:18', 0, 0),
+(25, '74185291', 'Luis', 'Arevalo', 'luis_earevalo@soy.sena.edu.co', '9518471', '', NULL, '$2y$10$ojqTLNlZ7ye3IhJ5QPLHFOJ0XVS3U7nnpt5zauBW1luGgLW7t9IN2', 6, 1, 0, '2025-10-03 07:02:39', '', NULL, '2025-10-23 17:49:18', 0, 0),
+(48, '1013265581', 'Luis', 'Arévalo', 'luisestebanarevalo@gmail.com', '3202029121', 'Cra 5a-E #5A-63', NULL, '$2y$10$qVKmYNCxejo5mm1FRlbSw.yxwrnIFqZqbPHSnZVFWFKO94eXt6VY.', 3, 1, 0, '2025-10-27 12:58:24', '', NULL, '2025-10-27 12:58:24', 0, 0),
+(49, '9999999', 'Andresita', 'Rojas', 'andresperrita@hot.com', '87654329', 'Cra 5a', NULL, '$2y$10$12I/3yMxhGB6Smz0oDhq3.94F9HHRKn/nZMvbIAu1PAWwEJxht1ua', 6, 1, 0, '2025-10-27 13:00:32', '', NULL, '2025-10-27 13:00:32', 0, 0),
+(50, '1001', 'Carlos', 'Pérez', 'carlosperez@mail.com', '3101111111', 'Calle 10 #12-34, Bogotá', NULL, '123456', 6, 1, 0, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15', 0, 0),
+(51, '1002', 'María', 'López', 'marialopez@mail.com', '3102222222', 'Carrera 20 #45-10, Bogotá', NULL, '123456', 6, 1, 1, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15', 0, 0),
+(52, '1003', 'Manuel', 'Gómez', 'andresgomez@mail.com', '3103333333', 'Av. 68 #30-40, Bogotá', NULL, '123456', 6, 1, 0, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15', 0, 0),
+(53, '1004', 'Sofía', 'Rodríguez', 'sofiarodriguez@mail.com', '3104444444', 'Calle 80 #50-60, Bogotá', NULL, '123456', 6, 1, 0, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15', 0, 0),
+(54, '1005', 'Juan', 'Martínez', 'juanmartinez@mail.com', '3105555555', 'Carrera 15 #25-70, Bogotá', NULL, '123456', 6, 1, 0, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15', 0, 0),
+(55, '1006', 'Camila', 'Fernández', 'camilafernandez@mail.com', '3106666666', 'Transversal 48 #23-12, Bogotá', NULL, '123456', 6, 1, 0, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15', 0, 0),
+(56, '1007', 'David', 'Rojas', 'davidrojas@mail.com', '3107777777', 'Calle 5 #67-89, Bogotá', NULL, '123456', 6, 1, 0, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15', 0, 0),
+(57, '1008', 'Valentina', 'Ruiz', 'valentinaruiz@mail.com', '3108888888', 'Carrera 11 #45-33, Bogotá', NULL, '123456', 6, 1, 0, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15', 0, 0),
+(58, '1009', 'Felipe', 'Castro', 'felipecastro@mail.com', '3109999999', 'Av. 19 #120-45, Bogotá', NULL, '123456', 6, 1, 0, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15', 0, 0),
+(59, '1010', 'Laura', 'Moreno', 'lauramoreno@mail.com', '3200000000', 'Calle 100 #90-30, Bogotá', NULL, '123456', 6, 1, 0, '2025-10-27 13:07:15', '', NULL, '2025-10-27 13:07:15', 0, 0),
+(60, '2001', 'Daniel', 'Mendoza', 'danielmendoza@vetsmart.com', '3101010101', 'Calle 12 #8-10, Bogotá', NULL, '$2y$10$eTwzvKX9v1qzAaNlV9gf0ORx7bQ8m4YFQPl4X6w19DulcPD5qvC7m', 4, 1, 0, '2025-10-27 14:21:34', '', NULL, '2025-10-27 14:21:34', 0, 0),
+(61, '2002', 'Paula', 'Jiménez', 'paulajimenez@vetsmart.com', '3102020202', 'Carrera 15 #45-12, Bogotá', NULL, '$2y$10$eTwzvKX9v1qzAaNlV9gf0ORx7bQ8m4YFQPl4X6w19DulcPD5qvC7m', 4, 1, 0, '2025-10-27 14:21:34', '', NULL, '2025-10-27 14:21:34', 0, 0),
+(62, '2003', 'Lucía', 'Gómez', 'luciarecepcion@vetsmart.com', '3103030303', 'Av. 19 #100-22, Bogotá', NULL, '$2y$10$eTwzvKX9v1qzAaNlV9gf0ORx7bQ8m4YFQPl4X6w19DulcPD5qvC7m', 3, 1, 0, '2025-10-27 14:21:34', '', NULL, '2025-10-27 14:21:34', 0, 0),
+(63, '2004', 'Carlos', 'Torres', 'carlostorres@vetsmart.com', '3104040404', 'Calle 80 #50-60, Bogotá', NULL, '$2y$10$eTwzvKX9v1qzAaNlV9gf0ORx7bQ8m4YFQPl4X6w19DulcPD5qvC7m', 5, 1, 0, '2025-10-27 14:21:34', '', NULL, '2025-10-27 14:21:34', 0, 0),
+(64, '2005', 'Fernanda', 'Ruiz', 'fernandaruiz@vetsmart.com', '3105050505', 'Carrera 30 #22-11, Bogotá', NULL, '$2y$10$eTwzvKX9v1qzAaNlV9gf0ORx7bQ8m4YFQPl4X6w19DulcPD5qvC7m', 5, 1, 0, '2025-10-27 14:21:34', '', NULL, '2025-10-27 14:21:34', 0, 0),
+(65, '45678976', 'Valentina', 'Fernandez', 'correo@ejmplo.com', '33455666', 'Cra 5a-E #5A-63', NULL, '$2y$10$jcr/HnBUa4qX6CFXtGKHlegJpstc.LdAxrhop9vL.T3EW5.5Wi4jG', 6, 1, 0, '2025-10-27 16:20:19', '', NULL, '2025-10-27 16:20:19', 0, 0);
 
 -- --------------------------------------------------------
 
@@ -1454,7 +1478,7 @@ ALTER TABLE `vacunas`
 -- AUTO_INCREMENT de la tabla `atenciones_peluqueria`
 --
 ALTER TABLE `atenciones_peluqueria`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `auditoria`
@@ -1472,7 +1496,7 @@ ALTER TABLE `bloqueos`
 -- AUTO_INCREMENT de la tabla `citas`
 --
 ALTER TABLE `citas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT de la tabla `cliente_detalles`
@@ -1526,7 +1550,7 @@ ALTER TABLE `inventario_movimientos`
 -- AUTO_INCREMENT de la tabla `login_intentos`
 --
 ALTER TABLE `login_intentos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `logs_actividad`
