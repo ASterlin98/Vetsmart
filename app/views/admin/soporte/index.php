@@ -1,0 +1,69 @@
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Centro de Soporte</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/vetsmart/admin/dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item active">Soporte</li>
+    </ol>
+
+    <div class="mb-4">
+        <a href="/vetsmart/admin/reportesSoporte" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>
+            Crear Nuevo Ticket
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-ticket-alt me-1"></i>
+            Mis Tickets de Soporte
+        </div>
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Asunto</th>
+                        <th>Estado</th>
+                        <th>Prioridad</th>
+                        <th>Última Actualización</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($tickets)): ?>
+                        <tr>
+                            <td colspan="6" class="text-center">No has creado ningún ticket de soporte.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($tickets as $ticket): ?>
+                            <tr>
+                                <td>#<?= htmlspecialchars($ticket['id']) ?></td>
+                                <td><?= htmlspecialchars($ticket['asunto']) ?></td>
+                                <td>
+                                    <span class="badge
+                                        <?php
+                                            switch ($ticket['estado']) {
+                                                case 'Abierto': echo 'bg-success'; break;
+                                                case 'En Proceso': echo 'bg-info'; break;
+                                                case 'Cerrado': echo 'bg-secondary'; break;
+                                                default: echo 'bg-light text-dark';
+                                            }
+                                        ?>">
+                                        <?= htmlspecialchars($ticket['estado']) ?>
+                                    </span>
+                                </td>
+                                <td><?= htmlspecialchars($ticket['prioridad']) ?></td>
+                                <td><?= date('d/m/Y H:i', strtotime($ticket['actualizado_en'])) ?></td>
+                                <td>
+                                    <a href="/vetsmart/admin/soporte/<?= $ticket['id'] ?>" class="btn btn-sm btn-info">
+                                        Ver
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
