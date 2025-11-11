@@ -18,6 +18,7 @@ $nav_links = [
     ['url' => '/vetsmart/admin/finanzas', 'icon' => '💰', 'text' => 'Finanzas'],
     ['url' => '/vetsmart/admin/reportes', 'icon' => '📊', 'text' => 'Reportes'],
     ['url' => '/vetsmart/admin/soporte', 'icon' => '🆘', 'text' => 'Soporte', 'badge' => $unseen_tickets_admin ?? 0],
+    ['url' => '/vetsmart/admin/locked_users', 'icon' => '🔒', 'text' => 'Usuarios Bloqueados'],
 ];
 
 // Incluye el layout unificado
