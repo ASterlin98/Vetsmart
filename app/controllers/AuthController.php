@@ -30,15 +30,69 @@ class AuthController extends Controller
         $userModel = new Usuario();
         $user = $userModel->findByEmail($email);
 
-        if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['user'] = $user;
-            header('Location: /vetsmart/dashboard');
+        // Si no existe usuario
+        if (!$user) {
+            $_SESSION['error'] = 'Credenciales inválidas';
+            header('Location: /vetsmart/login');
             exit;
         }
 
-        $_SESSION['error'] = 'Credenciales inválidas';
-        header('Location: /vetsmart/login');
-        exit;
+        // Si está bloqueado
+        if ($userModel->estaBloqueado($user['id'])) {
+            $_SESSION['error'] = 'Tu usuario ha sido bloqueado. Comunícate con el administrador.';
+            header('Location: /vetsmart/login');
+            exit;
+        }
+
+        // Solo bloquear si no es admin/superadmin
+        if (!in_array($user['role_id'], [1,2])) {
+            // Buscar intentos
+            $db = Database::getInstance();
+            $stmt = $db->prepare("SELECT intentos FROM login_intentos WHERE usuario_id = ?");
+            $stmt->execute([$user['id']]);
+            $row = $stmt->fetch();
+            $intentos = $row ? (int)$row['intentos'] : 0;
+
+            if ($user && password_verify($password, $user['password'])) {
+                // Login exitoso: resetear intentos
+                $db->prepare("DELETE FROM login_intentos WHERE usuario_id = ?")->execute([$user['id']]);
+                $_SESSION['user'] = $user;
+                header('Location: /vetsmart/dashboard');
+                exit;
+            } else {
+                $intentos++;
+                if ($row) {
+                    $db->prepare("UPDATE login_intentos SET intentos = ?, ultima_fecha = NOW() WHERE usuario_id = ?")
+                        ->execute([$intentos, $user['id']]);
+                } else {
+                    $db->prepare("INSERT INTO login_intentos (usuario_id, intentos, ultima_fecha) VALUES (?, ?, NOW())")
+                        ->execute([$user['id'], $intentos]);
+                }
+                // Si supera 3 intentos, bloquear
+                if ($intentos >= 3) {
+                    $userModel->bloquear($user['id']);
+                    $_SESSION['error'] = 'Tu usuario ha sido bloqueado por exceder los intentos. Comunícate con el administrador.';
+                    header('Location: /vetsmart/login');
+                    exit;
+                } else {
+                    $restantes = 3 - $intentos;
+                    $_SESSION['error'] = 'Credenciales inválidas. Te quedan ' . $restantes . ' intento(s) antes de ser bloqueado.';
+                    header('Location: /vetsmart/login');
+                    exit;
+                }
+            }
+        } else {
+            // Admin/superadmin: solo validar credenciales
+            if ($user && password_verify($password, $user['password'])) {
+                $_SESSION['user'] = $user;
+                header('Location: /vetsmart/dashboard');
+                exit;
+            } else {
+                $_SESSION['error'] = 'Credenciales inválidas';
+                header('Location: /vetsmart/login');
+                exit;
+            }
+        }
     }
 
     public function logout()

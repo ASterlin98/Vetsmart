@@ -12,11 +12,29 @@ class AdminController extends Controller
 {
     private $pdo;
 
-    public function __construct($pdo)
+    /**
+     * Desbloquear usuario (solo admin)
+     */
+    public function desbloquearUsuario($id)
     {
-        parent::__construct($pdo);
-        $this->pdo = $pdo;
+        // Solo desbloquear si no es admin/superadmin
+        $stmt = $this->pdo->prepare("SELECT role_id FROM usuarios WHERE id = ?");
+        $stmt->execute([$id]);
+        $role = $stmt->fetchColumn();
+        if (in_array($role, [1,2])) {
+            $_SESSION['flash_error'] = "No puedes bloquear/desbloquear administradores.";
+            header("Location: /vetsmart/admin/empleados");
+            exit;
+        }
+        // Desbloquear usuario
+        $this->pdo->prepare("UPDATE usuarios SET is_blocked = 0 WHERE id = ?")->execute([$id]);
+        // Limpiar intentos fallidos
+        $this->pdo->prepare("DELETE FROM login_intentos WHERE usuario_id = ?")->execute([$id]);
+        $_SESSION['flash_success'] = "Usuario desbloqueado correctamente.";
+        header("Location: /vetsmart/admin/empleados");
+        exit;
     }
+    // El bloque anterior ya existe, eliminar duplicado
 
     // --- Compatibilidad: alias publicos que tu router puede llamar ---
     public function empleados() { return $this->empleadosIndex(); }

@@ -27,6 +27,35 @@ class Usuario {
         return $row ?: null;
     }
 
+    /**
+     * Bloquea un usuario (excepto admin/superadmin)
+     */
+    public function bloquear($id) {
+        $sql = "UPDATE usuarios SET is_blocked = 1 WHERE id = ? AND role_id NOT IN (1,2)";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([$id]);
+    }
+
+    /**
+     * Desbloquea un usuario
+     */
+    public function desbloquear($id) {
+        $sql = "UPDATE usuarios SET is_blocked = 0 WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([$id]);
+    }
+
+    /**
+     * Verifica si el usuario está bloqueado
+     */
+    public function estaBloqueado($id) {
+        $sql = "SELECT is_blocked FROM usuarios WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+        return $row ? (bool)$row['is_blocked'] : false;
+    }
+
 public function saveResetToken($id, $token, $expira) {
     $sql = "UPDATE usuarios SET reset_token = ?, reset_expira = ? WHERE id = ?";
     $stmt = $this->db->prepare($sql);

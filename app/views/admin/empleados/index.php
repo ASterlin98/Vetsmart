@@ -45,33 +45,39 @@ $roles = $roles ?? [];
                     </tr>
                 <?php else: ?>
                     <?php foreach ($empleados as $e): ?>
-                        <tr>
-                            <td class="fw-bold"><?= htmlspecialchars($e['nombre'].' '.$e['apellido']) ?></td>
-                            <td><span class="badge bg-info"><?= htmlspecialchars($e['rol'] ?? '-') ?></span></td>
-                            <td><?= htmlspecialchars($e['email'] ?? '-') ?></td>
-                            <td><?= htmlspecialchars($e['telefono'] ?? '-') ?></td>
-                            <td><?= htmlspecialchars($e['docusu'] ?? '-') ?></td>
-                            <td><?= htmlspecialchars($e['especialidad'] ?? '-') ?></td>
-                            <td><?= $e['salario'] ? '$'.number_format($e['salario'], 2) : '-' ?></td>
-                            <td><?= $e['fecha_ingreso'] ?? '-' ?></td>
-                            <td>
-                                <?= $e['activo'] 
-                                    ? '<span class="badge bg-success">Activo</span>' 
-                                    : '<span class="badge bg-secondary">Inactivo</span>' ?>
-                            </td>
-                            <td>
-                                <button class="btn btn-warning btn-sm" 
-                                    data-bs-toggle="modal" data-bs-target="#empleadoModal"
-                                    onclick='openEditarEmpleado(<?= json_encode($e) ?>)'>
-                                    ✏️
-                                </button>
-                                <a href="/vetsmart/admin/empleados/<?= $e['id'] ?>/eliminar" 
-                                onclick="return confirm('¿Seguro de eliminar este empleado?')" 
-                                class="btn btn-danger btn-sm">
-                                    🗑
-                                </a>
-                            </td>
-                        </tr>
+            <tr>
+              <td class="fw-bold"><?= htmlspecialchars($e['nombre'].' '.$e['apellido']) ?></td>
+              <td><span class="badge bg-info"><?= htmlspecialchars($e['rol'] ?? '-') ?></span></td>
+              <td><?= htmlspecialchars($e['email'] ?? '-') ?></td>
+              <td><?= htmlspecialchars($e['telefono'] ?? '-') ?></td>
+              <td><?= htmlspecialchars($e['docusu'] ?? '-') ?></td>
+              <td><?= htmlspecialchars($e['especialidad'] ?? '-') ?></td>
+              <td><?= $e['salario'] ? '$'.number_format($e['salario'], 2) : '-' ?></td>
+              <td><?= $e['fecha_ingreso'] ?? '-' ?></td>
+              <td>
+                <?= $e['activo'] 
+                  ? '<span class="badge bg-success">Activo</span>' 
+                  : '<span class="badge bg-secondary">Inactivo</span>' ?>
+                <?php if (!empty($e['is_blocked']) && $e['is_blocked']): ?>
+                  <span class="badge bg-danger">Bloqueado</span>
+                <?php endif; ?>
+              </td>
+              <td>
+                <button class="btn btn-warning btn-sm" 
+                  data-bs-toggle="modal" data-bs-target="#empleadoModal"
+                  onclick='openEditarEmpleado(<?= json_encode($e) ?>)'>
+                  ✏️
+                </button>
+                <a href="/vetsmart/admin/empleados/<?= $e['id'] ?>/eliminar" 
+                onclick="return confirm('¿Seguro de eliminar este empleado?')" 
+                class="btn btn-danger btn-sm">
+                  🗑
+                </a>
+                <?php if (!empty($e['is_blocked']) && $e['is_blocked']): ?>
+                  <a href="/vetsmart/admin/desbloquear_usuario/<?= $e['id'] ?>" class="btn btn-success btn-sm" onclick="return confirm('¿Desbloquear este usuario?')">🔓 Desbloquear</a>
+                <?php endif; ?>
+              </td>
+            </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </tbody>
