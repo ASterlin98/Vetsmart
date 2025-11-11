@@ -91,6 +91,10 @@
           </div>
         </div>
         <div class="card-body p-0">
+          <?php 
+            // Debug: mostrar cuantas citas hay
+            $totalProximas = count($proximas ?? []);
+          ?>
           <?php if (!empty($proximas ?? [])): ?>
             <div class="appointments-timeline">
               <?php foreach (($proximas ?? []) as $index => $cita): ?>

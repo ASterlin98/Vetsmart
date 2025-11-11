@@ -92,7 +92,6 @@ class PeluqueroController extends Controller
         // Contadores: sumar citas + cpeluq (si existe)
         $st = $this->pdo->prepare("SELECT COUNT(*)
                                     FROM citas c
-                                    INNER JOIN servicios s ON s.id = c.servicio_id
                                     WHERE c.empleado_id=? AND DATE(c.fecha)=?");
         $st->execute([$empId, $hoy]);
         $citasHoyCitas = (int)$st->fetchColumn();
@@ -106,7 +105,7 @@ class PeluqueroController extends Controller
 
         $inProc = implode(",", array_fill(0, count($estadosProc), '?'));
         $st1 = $this->pdo->prepare("SELECT COUNT(*)
-                                     FROM citas c INNER JOIN servicios s ON s.id=c.servicio_id
+                                     FROM citas c
                                      WHERE c.empleado_id=? AND c.estado IN ($inProc)");
         $st1->execute(array_merge([$empId], $estadosProc));
         $enProcesoCitas = (int)$st1->fetchColumn();
@@ -121,7 +120,7 @@ class PeluqueroController extends Controller
 
         $inPend = implode(",", array_fill(0, count($estadosPend), '?'));
         $st2 = $this->pdo->prepare("SELECT COUNT(*)
-                                     FROM citas c INNER JOIN servicios s ON s.id=c.servicio_id
+                                     FROM citas c
                                      WHERE c.empleado_id=? AND c.estado IN ($inPend) AND DATE(c.fecha)>=?");
         $st2->execute(array_merge([$empId], $estadosPend, [$hoy]));
         $pendientesCitas = (int)$st2->fetchColumn();
@@ -136,7 +135,7 @@ class PeluqueroController extends Controller
 
         $inComp = implode(",", array_fill(0, count($estadosComp), '?'));
         $st3 = $this->pdo->prepare("SELECT COUNT(*)
-                                     FROM citas c INNER JOIN servicios s ON s.id=c.servicio_id
+                                     FROM citas c
                                      WHERE c.empleado_id=? AND c.estado IN ($inComp) AND DATE(c.fecha)=?");
         $st3->execute(array_merge([$empId], $estadosComp, [$hoy]));
         $completadasHoyCitas = (int)$st3->fetchColumn();
@@ -158,12 +157,16 @@ class PeluqueroController extends Controller
              JOIN usuarios u ON u.id=c.cliente_id
              WHERE c.empleado_id=?
                AND c.estado IN (" . implode(',', array_fill(0, count(array_merge($estadosPend, $estadosProc)), '?')) . ")
-               AND DATE(c.fecha) >= DATE(NOW())
              ORDER BY c.fecha ASC, c.id ASC
-             LIMIT 10"
+             LIMIT 20"
         );
         $st4->execute(array_merge([$empId], array_merge($estadosPend, $estadosProc)));
         $proximasCitas = $st4->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        
+        // Filtrar solo las próximas (desde hoy en adelante)
+        $proximasCitas = array_filter($proximasCitas, function($cita) {
+            return strtotime($cita['fecha']) >= strtotime(date('Y-m-d'));
+        });
         $proximasCp = [];
         try {
             $qP = $this->pdo->prepare(
@@ -492,10 +495,15 @@ class PeluqueroController extends Controller
             $sql = "INSERT INTO citas (cliente_id, mascota_id, empleado_id, servicio_id, fecha, duracion_min, estado, notas)
                     VALUES (?, ?, ?, ?, ?, ?, 'confirmada', ?)";
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([$cliente_id, $mascota_id, $empId, $servicio_id, $fecha_hora, $duracion, $notas]);
+            $result = $stmt->execute([$cliente_id, $mascota_id, $empId, $servicio_id, $fecha_hora, $duracion, $notas]);
 
-            $_SESSION['flash_success'] = 'Cita agendada correctamente.';
-            header('Location: /vetsmart/peluquero/agenda');
+            if ($result) {
+                $_SESSION['flash_success'] = 'Cita agendada correctamente.';
+                header('Location: /vetsmart/peluquero/dashboard');
+            } else {
+                $_SESSION['flash_error'] = 'Error al guardar la cita. Intenta de nuevo.';
+                header('Location: /vetsmart/peluquero/agenda/agendar');
+            }
             exit;
         } catch (Throwable $e) {
             error_log("Error al guardar cita: " . $e->getMessage());
@@ -505,4 +513,91 @@ class PeluqueroController extends Controller
         }
     }
 
+    /**
+     * Mostrar reportes de peluquería
+     */
+    public function reportesIndex(): void
+    {
+        $this->verificarSesion();
+        $empId = (int)($_SESSION['user']['id'] ?? 0);
+
+        // Obtener estadísticas del mes
+        $mesActual = date('Y-m');
+        
+        // Total de citas en el mes
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*) FROM citas 
+            WHERE empleado_id = ? AND DATE_FORMAT(fecha, '%Y-%m') = ?
+        ");
+        $stmt->execute([$empId, $mesActual]);
+        $totalCitasMes = (int)$stmt->fetchColumn();
+
+        // Citas completadas en el mes
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*) FROM citas 
+            WHERE empleado_id = ? AND DATE_FORMAT(fecha, '%Y-%m') = ? AND estado = 'completada'
+        ");
+        $stmt->execute([$empId, $mesActual]);
+        $citasCompletadasMes = (int)$stmt->fetchColumn();
+
+        // Ingresos del mes (suma de precios de servicios realizados)
+        $stmt = $this->pdo->prepare("
+            SELECT SUM(s.precio) FROM citas c
+            JOIN servicios s ON s.id = c.servicio_id
+            WHERE c.empleado_id = ? AND DATE_FORMAT(c.fecha, '%Y-%m') = ? AND c.estado = 'completada'
+        ");
+        $stmt->execute([$empId, $mesActual]);
+        $ingresosMes = (float)($stmt->fetchColumn() ?? 0);
+
+        // Clientes atendidos en el mes
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(DISTINCT cliente_id) FROM citas 
+            WHERE empleado_id = ? AND DATE_FORMAT(fecha, '%Y-%m') = ? AND estado = 'completada'
+        ");
+        $stmt->execute([$empId, $mesActual]);
+        $clientesAtendidos = (int)$stmt->fetchColumn();
+
+        // Servicios más solicitados
+        $stmt = $this->pdo->prepare("
+            SELECT s.nombre, COUNT(c.id) as cantidad
+            FROM citas c
+            JOIN servicios s ON s.id = c.servicio_id
+            WHERE c.empleado_id = ? AND DATE_FORMAT(c.fecha, '%Y-%m') = ?
+            GROUP BY s.id, s.nombre
+            ORDER BY cantidad DESC
+            LIMIT 5
+        ");
+        $stmt->execute([$empId, $mesActual]);
+        $serviciosMasUsados = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        // Últimas 10 citas realizadas
+        $stmt = $this->pdo->prepare("
+            SELECT c.id, DATE(c.fecha) AS fecha, TIME(c.fecha) AS hora, 
+                   s.nombre AS servicio, m.nombre AS mascota,
+                   CONCAT(u.nombre, ' ', u.apellido) AS cliente, c.estado,
+                   s.precio
+            FROM citas c
+            JOIN servicios s ON s.id = c.servicio_id
+            JOIN mascotas m ON m.id = c.mascota_id
+            JOIN usuarios u ON u.id = c.cliente_id
+            WHERE c.empleado_id = ? AND DATE_FORMAT(c.fecha, '%Y-%m') = ?
+            ORDER BY c.fecha DESC
+            LIMIT 10
+        ");
+        $stmt->execute([$empId, $mesActual]);
+        $ultimasCitas = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        $content = $this->renderView('peluquero/reportes', compact(
+            'totalCitasMes',
+            'citasCompletadasMes',
+            'ingresosMes',
+            'clientesAtendidos',
+            'serviciosMasUsados',
+            'ultimasCitas',
+            'mesActual'
+        ));
+        require APP_ROOT . '/views/layouts/main_peluquero.php';
+    }
+
 }
+

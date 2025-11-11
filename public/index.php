@@ -256,6 +256,12 @@ try {
         exit;
     }
     
+    // Reportes Peluquero
+    if ($path === '/peluquero/reportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        (new PeluqueroController($pdo))->reportesIndex();
+        exit;
+    }
+    
     // Agendar cita de peluquería (formulario)
     if ($path === '/peluquero/agenda/agendar' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         (new PeluqueroController($pdo))->agendarCita();
