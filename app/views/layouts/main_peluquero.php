@@ -1,74 +1,19 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel del Peluquero | VetSmart</title>
-  <?php require __DIR__ . '/admin_head.php'; ?>
-</head>
-<body>
+<?php
+// app/views/layouts/main_peluquero.php
 
-  <!-- Header Elegante -->
-  <header class="header">
-    <h1><i class="fas fa-paw"></i> VetSmart</h1>
-    <div class="d-flex align-items-center gap-2">
-      <a href="/vetsmart/logout" class="btn-logout">
-        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-      </a>
-    </div>
-  </header>
+// Define el título de la página
+$title = 'Panel del Peluquero';
 
-  <div class="wrapper">
-    <!-- Sidebar Elegante - FIJO -->
-    <div class="sidebar">
-      <div class="user-info">
-        <div class="user-avatar">
-          <?= strtoupper(substr(htmlspecialchars($_SESSION['user']['nombre'] ?? 'P'), 0, 1)) ?>
-        </div>
-        <h2>
-          <?= htmlspecialchars($_SESSION['user']['nombre'] ?? '') ?>
-          <?= htmlspecialchars($_SESSION['user']['apellido'] ?? '') ?>
-        </h2>
-        <p>Peluquero</p>
-      </div>
-      
-      <nav class="sidebar-nav">
-        <a href="/vetsmart/peluquero/dashboard" class="nav-item active">
-          <i class="fas fa-home"></i>
-          <span>Dashboard</span>
-        </a>
-        <a href="/vetsmart/peluquero/agenda" class="nav-item">
-          <i class="fas fa-calendar-alt"></i>
-          <span>Mi Agenda</span>
-        </a>
-        <a href="/vetsmart/peluquero/citas" class="nav-item">
-          <i class="fas fa-scissors"></i>
-          <span>Citas de Peluquería</span>
-        </a>
-        <a href="/vetsmart/peluquero/clientes" class="nav-item">
-          <i class="fas fa-dog"></i>
-          <span>Clientes y Mascotas</span>
-        </a>
-        <a href="/vetsmart/peluquero/servicios" class="nav-item">
-          <i class="fas fa-concierge-bell"></i>
-          <span>Servicios Ofrecidos</span>
-        </a>
-      </nav>
-    </div>
+// Define el título del encabezado
+$header_title = '✂️ VetSmart Peluquero';
 
-    <!-- Content Area Elegante - CON MARGEN PARA EL SIDEBAR FIJO -->
-    <div class="content">
-      <main class="main-content">
-        <?= $content ?? 'Contenido del dashboard se cargará aquí' ?>
-      </main>
+// Define los enlaces de navegación para el peluquero
+$nav_links = [
+    ['url' => '/vetsmart/peluquero/dashboard', 'icon' => '<i class="fas fa-home"></i>', 'text' => 'Dashboard'],
+    ['url' => '/vetsmart/peluquero/agenda', 'icon' => '<i class="fas fa-calendar-alt"></i>', 'text' => 'Mi Agenda'],
+    ['url' => '/vetsmart/peluquero/citas', 'icon' => '<i class="fas fa-cut"></i>', 'text' => 'Citas de Peluquería'],
+    ['url' => '/vetsmart/peluquero/reportes', 'icon' => '<i class="fas fa-chart-bar"></i>', 'text' => 'Reportes'],
+];
 
-      <footer>
-        © <?= date("Y") ?> VetSmart. Todos los derechos reservados.
-      </footer>
-    </div>
-  </div>
-
-  <?php require __DIR__ . '/admin_footer.php'; ?>
-
-</body>
-</html>
+// Incluye el layout unificado
+require __DIR__ . '/unified_layout.php';
