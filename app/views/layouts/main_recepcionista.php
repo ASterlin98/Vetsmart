@@ -21,7 +21,6 @@ $nav_links = [
     ['url' => '/vetsmart/recepcionista/agenda', 'icon' => 'fas fa-calendar-alt', 'text' => 'Agenda'],
     ['url' => '/vetsmart/recepcionista/citas', 'icon' => 'fas fa-plus-circle', 'text' => 'Crear Cita'],
     ['url' => '/vetsmart/recepcionista/clientes', 'icon' => 'fas fa-users', 'text' => 'Gestión de Clientes'],
-    ['url' => '/vetsmart/recepcionista/pagos', 'icon' => 'fas fa-dollar-sign', 'text' => 'Gestión de Pagos'],
     ['url' => '/vetsmart/recepcionista/reportes', 'icon' => 'fas fa-chart-bar', 'text' => 'Reportes'],
 ];
 

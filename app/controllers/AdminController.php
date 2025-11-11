@@ -10,31 +10,42 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class AdminController extends Controller
 {
-    private $pdo;
-
     /**
-     * Desbloquear usuario (solo admin)
+     * Desbloquear usuario por ID
      */
     public function desbloquearUsuario($id)
     {
-        // Solo desbloquear si no es admin/superadmin
-        $stmt = $this->pdo->prepare("SELECT role_id FROM usuarios WHERE id = ?");
-        $stmt->execute([$id]);
-        $role = $stmt->fetchColumn();
-        if (in_array($role, [1,2])) {
-            $_SESSION['flash_error'] = "No puedes bloquear/desbloquear administradores.";
-            header("Location: /vetsmart/admin/empleados");
-            exit;
-        }
-        // Desbloquear usuario
-        $this->pdo->prepare("UPDATE usuarios SET is_blocked = 0 WHERE id = ?")->execute([$id]);
-        // Limpiar intentos fallidos
-        $this->pdo->prepare("DELETE FROM login_intentos WHERE usuario_id = ?")->execute([$id]);
-        $_SESSION['flash_success'] = "Usuario desbloqueado correctamente.";
-        header("Location: /vetsmart/admin/empleados");
+        // Solo permitir desbloquear roles 3,4,5,6
+        $stmt = $this->pdo->prepare("UPDATE usuarios SET is_blocked = 0 WHERE id = :id AND role_id IN (3,4,5,6)");
+        $stmt->execute([':id' => $id]);
+        // Redirigir de vuelta a la lista de bloqueados
+        header("Location: /vetsmart/admin/locked_users");
         exit;
     }
-    // El bloque anterior ya existe, eliminar duplicado
+    private $pdo;
+
+    public function __construct($pdo)
+    {
+        parent::__construct($pdo);
+        $this->pdo = $pdo;
+    }
+
+    /**
+     * Mostrar usuarios bloqueados
+     */
+    public function lockedUsers()
+    {
+    $sql = "SELECT u.id, u.nombre, u.apellido, u.docusu, u.email, u.telefono, u.role_id, r.nombre AS rol, u.is_blocked
+        FROM usuarios u
+        JOIN roles r ON u.role_id = r.id
+        WHERE u.is_blocked = 1 AND u.role_id IN (3,4,5,6)
+        ORDER BY u.id DESC";
+        $stmt = $this->pdo->query($sql);
+        $empleados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->view("admin/empleados/locked_users", [
+            'empleados' => $empleados
+        ], "main_admin");
+    }
 
     // --- Compatibilidad: alias publicos que tu router puede llamar ---
     public function empleados() { return $this->empleadosIndex(); }

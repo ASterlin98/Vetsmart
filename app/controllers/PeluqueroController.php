@@ -158,11 +158,11 @@ class PeluqueroController extends Controller
              JOIN usuarios u ON u.id=c.cliente_id
              WHERE c.empleado_id=?
                AND c.estado IN (" . implode(',', array_fill(0, count(array_merge($estadosPend, $estadosProc)), '?')) . ")
-               AND DATE(c.fecha) >= ?
-             ORDER BY c.fecha ASC
+               AND DATE(c.fecha) >= DATE(NOW())
+             ORDER BY c.fecha ASC, c.id ASC
              LIMIT 10"
         );
-        $st4->execute(array_merge([$empId], array_merge($estadosPend, $estadosProc), [$hoy]));
+        $st4->execute(array_merge([$empId], array_merge($estadosPend, $estadosProc)));
         $proximasCitas = $st4->fetchAll(PDO::FETCH_ASSOC) ?: [];
         $proximasCp = [];
         try {
@@ -420,5 +420,89 @@ class PeluqueroController extends Controller
         require APP_ROOT . '/views/layouts/main_peluquero.php';
     }
 
-    
+    /**
+     * Mostrar formulario para agendar cita
+     */
+    public function agendarCita(): void
+    {
+        $this->verificarSesion();
+        $empId = (int)($_SESSION['user']['id'] ?? 0);
+
+        // Obtener servicios de peluquería (filtrando por nombre)
+        $sql = "SELECT id, nombre, precio, duracion_min FROM servicios 
+                WHERE activo=1 AND (LOWER(nombre) LIKE '%peluquer%' OR LOWER(nombre) LIKE '%bañ%' OR LOWER(nombre) LIKE '%cort%')
+                ORDER BY nombre ASC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        $servicios = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        // Obtener clientes
+        $sql = "SELECT DISTINCT u.id, CONCAT(u.nombre, ' ', u.apellido) AS nombre_completo, u.email
+                FROM usuarios u
+                WHERE u.role_id = 6 AND u.estado = 1
+                ORDER BY u.nombre ASC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        $content = $this->renderView('peluquero/agendar_cita', [
+            'servicios' => $servicios,
+            'clientes' => $clientes,
+            'empleado_id' => $empId
+        ]);
+        require APP_ROOT . '/views/layouts/main_peluquero.php';
+    }
+
+    /**
+     * Guardar nueva cita de peluquería
+     */
+    public function guardarCitaPeluqueria(): void
+    {
+        $this->verificarSesion();
+        $empId = (int)($_SESSION['user']['id'] ?? 0);
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /vetsmart/peluquero/agenda');
+            exit;
+        }
+
+        try {
+            $cliente_id = (int)($_POST['cliente_id'] ?? 0);
+            $mascota_id = (int)($_POST['mascota_id'] ?? 0);
+            $servicio_id = (int)($_POST['servicio_id'] ?? 0);
+            $fecha = trim((string)($_POST['fecha'] ?? ''));
+            $hora = trim((string)($_POST['hora'] ?? ''));
+            $notas = trim((string)($_POST['notas'] ?? ''));
+
+            if (!$cliente_id || !$mascota_id || !$servicio_id || !$fecha || !$hora) {
+                $_SESSION['flash_error'] = 'Por favor completa todos los campos obligatorios.';
+                header('Location: /vetsmart/peluquero/agenda/agendar');
+                exit;
+            }
+
+            // Crear datetime para la cita
+            $fecha_hora = $fecha . ' ' . $hora . ':00';
+
+            // Obtener duración del servicio
+            $stmt = $this->pdo->prepare("SELECT duracion_min FROM servicios WHERE id = ?");
+            $stmt->execute([$servicio_id]);
+            $duracion = (int)($stmt->fetchColumn() ?? 60);
+
+            // Insertar cita
+            $sql = "INSERT INTO citas (cliente_id, mascota_id, empleado_id, servicio_id, fecha, duracion_min, estado, notas)
+                    VALUES (?, ?, ?, ?, ?, ?, 'confirmada', ?)";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([$cliente_id, $mascota_id, $empId, $servicio_id, $fecha_hora, $duracion, $notas]);
+
+            $_SESSION['flash_success'] = 'Cita agendada correctamente.';
+            header('Location: /vetsmart/peluquero/agenda');
+            exit;
+        } catch (Throwable $e) {
+            error_log("Error al guardar cita: " . $e->getMessage());
+            $_SESSION['flash_error'] = 'Error al guardar la cita. Intenta de nuevo.';
+            header('Location: /vetsmart/peluquero/agenda/agendar');
+            exit;
+        }
+    }
+
 }

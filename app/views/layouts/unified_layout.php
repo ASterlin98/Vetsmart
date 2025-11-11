@@ -234,7 +234,7 @@
         <?php if (isset($nav_links)): ?>
             <?php foreach ($nav_links as $link): ?>
                 <a href="<?= $link['url'] ?>" class="<?= strpos($_SERVER['REQUEST_URI'], $link['url']) !== false ? 'active' : '' ?>">
-                    <?= $link['icon'] ?> <span><?= $link['text'] ?></span>
+                    <i class="<?= $link['icon'] ?>"></i> <span><?= $link['text'] ?></span>
                     <?php if (isset($link['badge'])): ?>
                         <span class="badge bg-danger ms-auto"><?= $link['badge'] ?></span>
                     <?php endif; ?>

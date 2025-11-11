@@ -256,6 +256,17 @@ try {
         exit;
     }
     
+    // Agendar cita de peluquería (formulario)
+    if ($path === '/peluquero/agenda/agendar' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        (new PeluqueroController($pdo))->agendarCita();
+        exit;
+    }
+    
+    // Guardar cita de peluquería
+    if ($path === '/peluquero/guardar-cita-peluqueria' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        (new PeluqueroController($pdo))->guardarCitaPeluqueria();
+        exit;
+    }
 
     // Reportes Peluquero (PDF)
     if (preg_match('#^/reportes/peluquero/(\d+)/pdf$#', (string)$path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -837,6 +848,22 @@ if ($path === '/admin/empleados' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $controller = new AdminController($pdo);
     // tu  se llama empleadosIndex()
     $controller->empleadosIndex();
+    exit;
+}
+
+// Mostrar usuarios bloqueados (admin)
+if ($path === '/admin/locked_users' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    require_once APP_ROOT . '/controllers/AdminController.php';
+    $controller = new AdminController($pdo);
+    $controller->lockedUsers();
+    exit;
+}
+
+// Desbloquear usuario (admin)
+if (preg_match('#^/admin/desbloquear_usuario/(\d+)$#', $path, $m)) {
+    require_once APP_ROOT . '/controllers/AdminController.php';
+    $controller = new AdminController($pdo);
+    $controller->desbloquearUsuario($m[1]);
     exit;
 }
 

@@ -6,6 +6,9 @@ declare(strict_types=1);
   <div class="d-flex align-items-center justify-content-between mb-3">
     <h2 class="mb-0">Mi agenda (semana)</h2>
     <div class="d-flex gap-2">
+      <a class="btn btn-primary btn-sm" href="/vetsmart/peluquero/agenda/agendar">
+        <i class="fas fa-plus me-2"></i>Agendar Cita
+      </a>
       <?php
         $desdeDT = DateTime::createFromFormat('Y-m-d', (string)($desde ?? date('Y-m-d'))) ?: new DateTime('today');
         $prev = (clone $desdeDT)->modify('-7 days')->format('Y-m-d');

@@ -3,6 +3,7 @@
 
 return [
     'GET' => [
+        'admin/locked_users' => 'AdminController@lockedUsers',
         ''                       => 'HomeController@index',
         'auth/login'             => 'AuthController@showLogin',
         'auth/forgot'            => 'AuthController@forgot',

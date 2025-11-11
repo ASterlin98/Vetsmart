@@ -1,439 +1,396 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VetSmart - Dashboard</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg-primary: #ffffff;
-      --bg-secondary: #f8fafc;
-      --bg-card: #ffffff;
-      --bg-hover: #f1f5f9;
-      --text-primary: #1e293b;
-      --text-secondary: #64748b;
-      --text-muted: #94a3b8;
-      --accent-primary: #06b6d4;
-      --accent-secondary: #0ea5e9;
-      --border-color: #e2e8f0;
-      --shadow-color: rgba(0, 0, 0, 0.08);
-      --shadow-hover: rgba(0, 0, 0, 0.12);
-    }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%);
-      color: var(--text-primary);
-      line-height: 1.6;
-      min-height: 100vh;
-      padding: 0;
+<?php
+// Variables de estadísticas
+$mascotasTotal = $mascotasTotal ?? 0;
+$proximasCitas = $proximasCitas ?? 0;
+$proximaCitaFecha = $proximaCitaFecha ?? null;
+$perfilCompleto = $perfilCompleto ?? 0;
+$consultasTotales = $consultasTotales ?? 0;
+$reportesDisponibles = $reportesDisponibles ?? 1;
+?>
+
+<style>
+    .dashboard-section {
+        margin-bottom: 2rem;
     }
 
-    .dashboard-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
     }
 
-    .dashboard-welcome {
-      background: var(--bg-primary);
-      border-radius: 20px;
-      padding: 2.5rem;
-      box-shadow: 0 4px 20px var(--shadow-color);
-      border: 1px solid var(--border-color);
-      margin-bottom: 2rem;
+    .section-title i {
+        color: #06b6d4;
+        font-size: 1.8rem;
     }
 
-    .welcome-header {
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .welcome-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 1rem;
-      color: white;
-      font-size: 1.5rem;
-      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
-    }
-
-    .welcome-header h1 {
-      color: var(--text-primary);
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-
-    .welcome-header .text-muted {
-      color: var(--text-muted) !important;
-      font-size: 1.1rem;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-      gap: 1.5rem;
-      margin-top: 2rem;
+    .dashboard-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
     }
 
     .dashboard-card {
-      background: var(--bg-card);
-      border-radius: 16px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 20px var(--shadow-color);
-      border: 1px solid var(--border-color);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      position: relative;
-      overflow: hidden;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
     }
 
     .dashboard-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #06b6d4 0%, #0ea5e9 100%);
     }
 
     .dashboard-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 30px var(--shadow-hover);
-      border-color: var(--accent-primary);
-      background: var(--bg-hover);
+        transform: translateY(-8px);
+        box-shadow: 0 12px 35px rgba(6, 182, 212, 0.15);
+        border-color: #06b6d4;
     }
 
-    .dashboard-card:hover::before {
-      transform: scaleX(1);
+    .card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
     }
 
     .card-icon {
-      width: 50px;
-      height: 50px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      border: 1px solid rgba(6, 182, 212, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--accent-primary);
-      font-size: 1.25rem;
-      margin-bottom: 1rem;
-      transition: all 0.3s ease;
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 2px solid rgba(6, 182, 212, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #06b6d4;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
     }
 
     .dashboard-card:hover .card-icon {
-      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-      color: white;
-      transform: scale(1.05);
+        background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
+        color: white;
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(6, 182, 212, 0.3);
     }
 
-    .card-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
+    .card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
     }
 
-    .card-content h3 {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 0.75rem;
+    .card-description {
+        font-size: 0.9rem;
+        color: #64748b;
+        line-height: 1.5;
     }
 
-    .card-content p {
-      color: var(--text-secondary);
-      font-size: 0.95rem;
-      line-height: 1.5;
-      margin-bottom: 1.5rem;
-      flex: 1;
-    }
-
-    .card-stats {
-      display: flex;
-      align-items: baseline;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      padding: 0.75rem;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
+    .card-stat {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1px solid rgba(6, 182, 212, 0.2);
+        border-radius: 12px;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
 
     .stat-number {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--accent-primary);
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #06b6d4;
     }
 
     .stat-label {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      font-weight: 500;
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
     }
 
-    .card-link {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.75rem 1rem;
-      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-      color: white;
-      text-decoration: none;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
-      margin-top: auto;
-      border: none;
+    .card-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        margin-top: auto;
     }
 
-    .card-link:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
-      color: white;
+    .card-action:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(6, 182, 212, 0.4);
+        color: white;
+        text-decoration: none;
     }
 
-    .card-link i {
-      transition: transform 0.3s ease;
+    .card-action i {
+        transition: transform 0.3s ease;
     }
 
-    .card-link:hover i {
-      transform: translateX(3px);
+    .card-action:hover i {
+        transform: translateX(3px);
     }
 
-    /* Responsive */
-    @media (max-width: 768px) {
-      .dashboard-container {
-        padding: 1rem;
-      }
-      
-      .dashboard-welcome {
+    .welcome-banner {
+        background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
+        color: white;
         padding: 2rem;
         border-radius: 16px;
-      }
-      
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-      
-      .welcome-header .d-flex {
-        flex-direction: column;
-        text-align: center;
-      }
-      
-      .welcome-icon {
-        margin-right: 0;
-        margin-bottom: 1rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .dashboard-card {
-        padding: 1.25rem;
-      }
-      
-      .card-stats {
-        flex-direction: column;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 8px 30px rgba(6, 182, 212, 0.3);
+        display: flex;
         align-items: center;
-        text-align: center;
-        gap: 0.25rem;
-      }
-      
-      .welcome-header h1 {
-        font-size: 1.5rem;
-      }
-    }
-
-    /* Efectos sutiles adicionales */
-    .dashboard-card {
-      backdrop-filter: blur(10px);
+        gap: 1.5rem;
     }
 
     .welcome-icon {
-      backdrop-filter: blur(10px);
+        width: 80px;
+        height: 80px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        flex-shrink: 0;
     }
-  </style>
-</head>
-<body>
-  <div class="dashboard-container">
-    <div class="dashboard-welcome">
-      <div class="welcome-header mb-4">
-        <div class="d-flex align-items-center">
-          <div class="welcome-icon">
-            <i class="fas fa-user-circle"></i>
-          </div>
-          <div>
-            <h1 class="h3 mb-1">Bienvenido, <?= htmlspecialchars($nombre ?? 'Usuario') ?> <?= htmlspecialchars($apellido ?? '') ?></h1>
-            <p class="text-muted mb-0">Este es tu panel de control personal</p>
-          </div>
-        </div>
-      </div>
 
-      <div class="dashboard-grid">
-        <div class="dashboard-card">
-          <div class="card-icon">
-            <i class="fas fa-paw"></i>
-          </div>
-          <div class="card-content">
-            <h3>Mis Mascotas</h3>
-            <p>Consulta y gestiona la información de tus mascotas registradas en el sistema</p>
-            <div class="card-stats">
-              <span class="stat-number"><?= (int)($mascotasTotal ?? 0) ?></span>
-              <span class="stat-label">mascotas activas</span>
-            </div>
-            <a href="/vetsmart/cliente/mascotas" class="card-link">
-              <span>Gestionar mascotas</span>
-              <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-        </div>
+    .welcome-content h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
 
-        <div class="dashboard-card">
-          <div class="card-icon">
-            <i class="fas fa-calendar-check"></i>
-          </div>
-          <div class="card-content">
-            <h3>Mis Citas</h3>
-            <p>Revisa el estado de tus citas y próximas atenciones programadas</p>
-            <div class="card-stats">
-              <span class="stat-number"><?= (int)($proximasCitas ?? 0) ?></span>
-              <span class="stat-label">
-                <?php if (isset($proximaCitaFecha) && $proximaCitaFecha): ?>
-                  próxima: <?= htmlspecialchars($proximaCitaFecha) ?>
-                <?php else: ?>
-                  sin próximas
-                <?php endif; ?>
-              </span>
-            </div>
-            <a href="/vetsmart/cliente/citas" class="card-link">
-              <span>Ver citas</span>
-              <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-        </div>
+    .welcome-content p {
+        font-size: 1rem;
+        opacity: 0.95;
+        margin: 0;
+    }
 
-        <div class="dashboard-card">
-          <div class="card-icon">
-            <i class="fas fa-id-badge"></i>
-          </div>
-          <div class="card-content">
-            <h3>Mi Perfil</h3>
-            <p>Consulta y actualiza tus datos personales registrados en el sistema</p>
-            <div class="card-stats">
-              <span class="stat-number"><?= (int)($perfilCompleto ?? 0) ?>%</span>
-              <span class="stat-label">perfil completo</span>
-            </div>
-            <a href="/vetsmart/cliente/perfil" class="card-link">
-              <span>Ver perfil</span>
-              <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-        </div>
-
-        <div class="dashboard-card">
-          <div class="card-icon">
-            <i class="fas fa-file-medical"></i>
-          </div>
-          <div class="card-content">
-            <h3>Historial Clínico</h3>
-            <p>Accede al historial médico completo de todas tus mascotas</p>
-            <div class="card-stats">
-              <span class="stat-number"><?= (int)($consultasTotales ?? 0) ?></span>
-              <span class="stat-label">consultas totales</span>
-            </div>
-            <a href="/vetsmart/cliente/historial" class="card-link">
-              <span>Ver historial</span>
-              <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-        </div>
-        
-        <div class="dashboard-card">
-          <div class="card-icon">
-            <i class="fas fa-chart-bar"></i>
-          </div>
-          <div class="card-content">
-            <h3>Reportes</h3>
-            <p>Visualiza reportes y estadísticas del cuidado de tus mascotas</p>
-            <div class="card-stats">
-              <span class="stat-number"><?= (int)($reportesDisponibles ?? 1) ?></span>
-              <span class="stat-label">reportes disponibles</span>
-            </div>
-            <a href="/vetsmart/cliente/reportes" class="card-link">
-              <span>Ver reportes</span>
-              <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // Efectos interactivos adicionales
-    document.addEventListener('DOMContentLoaded', function() {
-      // Añadir efecto de carga progresiva a las tarjetas
-      const cards = document.querySelectorAll('.dashboard-card');
-      cards.forEach((card, index) => {
-        card.style.animationDelay = `${index * 0.1}s`;
-      });
-
-      // Efecto de parpadeo suave para números importantes
-      const statNumbers = document.querySelectorAll('.stat-number');
-      statNumbers.forEach(number => {
-        if (parseInt(number.textContent) > 0) {
-          number.style.animation = 'pulse 2s infinite';
+    @media (max-width: 768px) {
+        .dashboard-cards {
+            grid-template-columns: 1fr;
         }
-      });
-    });
 
-    // Añadir animación de pulso
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-      }
-      
-      .dashboard-card {
-        animation: fadeInUp 0.6s ease-out both;
-      }
-      
-      @keyframes fadeInUp {
+        .welcome-banner {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .card-header {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.25rem;
+        }
+    }
+
+    @keyframes fadeInUp {
         from {
-          opacity: 0;
-          transform: translateY(30px);
+            opacity: 0;
+            transform: translateY(30px);
         }
         to {
-          opacity: 1;
-          transform: translateY(0);
+            opacity: 1;
+            transform: translateY(0);
         }
-      }
-    `;
-    document.head.appendChild(style);
-  </script>
-</body>
-</html>
+    }
+
+    .dashboard-card {
+        animation: fadeInUp 0.6s ease-out both;
+    }
+
+    .dashboard-section:nth-child(1) { animation-delay: 0s; }
+    .dashboard-section:nth-child(2) { animation-delay: 0.1s; }
+    .dashboard-section:nth-child(3) { animation-delay: 0.2s; }
+</style>
+
+<!-- Bienvenida -->
+<div class="welcome-banner">
+    <div class="welcome-icon">
+        <i class="fas fa-user-circle"></i>
+    </div>
+    <div class="welcome-content">
+        <h2>Bienvenido, <?= htmlspecialchars($nombre ?? 'Usuario') ?> <?= htmlspecialchars($apellido ?? '') ?></h2>
+        <p>Este es tu panel de control personal. Aquí puedes gestionar tus mascotas, citas y más.</p>
+    </div>
+</div>
+
+<!-- Mascotas -->
+<div class="dashboard-section">
+    <div class="section-title">
+        <i class="fas fa-paw"></i>
+        Mis Mascotas
+    </div>
+    <div class="dashboard-cards">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-paw"></i>
+                </div>
+                <div>
+                    <div class="card-title">Gestión de Mascotas</div>
+                    <div class="card-description">Consulta y gestiona la información de tus mascotas registradas</div>
+                </div>
+            </div>
+            <div class="card-stat">
+                <div>
+                    <div class="stat-number"><?= (int)($mascotasTotal ?? 0) ?></div>
+                    <div class="stat-label">mascotas activas</div>
+                </div>
+            </div>
+            <a href="/vetsmart/cliente/mascotas" class="card-action">
+                <span>Gestionar mascotas</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Citas y Consultas -->
+<div class="dashboard-section">
+    <div class="section-title">
+        <i class="fas fa-calendar-check"></i>
+        Citas y Consultas
+    </div>
+    <div class="dashboard-cards">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div>
+                    <div class="card-title">Mis Citas</div>
+                    <div class="card-description">Revisa el estado de tus citas programadas</div>
+                </div>
+            </div>
+            <div class="card-stat">
+                <div>
+                    <div class="stat-number"><?= (int)($proximasCitas ?? 0) ?></div>
+                    <div class="stat-label">
+                        <?php if (isset($proximaCitaFecha) && $proximaCitaFecha): ?>
+                            próxima: <?= htmlspecialchars($proximaCitaFecha) ?>
+                        <?php else: ?>
+                            sin próximas
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <a href="/vetsmart/cliente/citas" class="card-action">
+                <span>Ver citas</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-file-medical"></i>
+                </div>
+                <div>
+                    <div class="card-title">Historial Clínico</div>
+                    <div class="card-description">Accede al historial médico completo</div>
+                </div>
+            </div>
+            <div class="card-stat">
+                <div>
+                    <div class="stat-number"><?= (int)($consultasTotales ?? 0) ?></div>
+                    <div class="stat-label">consultas totales</div>
+                </div>
+            </div>
+            <a href="/vetsmart/cliente/historial" class="card-action">
+                <span>Ver historial</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Información Personal y Reportes -->
+<div class="dashboard-section">
+    <div class="section-title">
+        <i class="fas fa-chart-bar"></i>
+        Mi Información
+    </div>
+    <div class="dashboard-cards">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-id-badge"></i>
+                </div>
+                <div>
+                    <div class="card-title">Mi Perfil</div>
+                    <div class="card-description">Consulta y actualiza tus datos personales</div>
+                </div>
+            </div>
+            <div class="card-stat">
+                <div>
+                    <div class="stat-number"><?= (int)($perfilCompleto ?? 0) ?>%</div>
+                    <div class="stat-label">perfil completo</div>
+                </div>
+            </div>
+            <a href="/vetsmart/cliente/perfil" class="card-action">
+                <span>Ver perfil</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div>
+                    <div class="card-title">Reportes</div>
+                    <div class="card-description">Visualiza estadísticas del cuidado de tus mascotas</div>
+                </div>
+            </div>
+            <div class="card-stat">
+                <div>
+                    <div class="stat-number"><?= (int)($reportesDisponibles ?? 1) ?></div>
+                    <div class="stat-label">reportes disponibles</div>
+                </div>
+            </div>
+            <a href="/vetsmart/cliente/reportes" class="card-action">
+                <span>Ver reportes</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>

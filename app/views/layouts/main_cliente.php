@@ -9,11 +9,11 @@ $header_title = '🐾 VetSmart Cliente';
 
 // Define los enlaces de navegación para el cliente
 $nav_links = [
-    ['url' => '/vetsmart/cliente/dashboard', 'icon' => '<i class="fas fa-home"></i>', 'text' => 'Dashboard'],
-    ['url' => '/vetsmart/cliente/citas', 'icon' => '<i class="fas fa-calendar-alt"></i>', 'text' => 'Mis Citas'],
-    ['url' => '/vetsmart/cliente/mascotas', 'icon' => '<i class="fas fa-paw"></i>', 'text' => 'Mis Mascotas'],
-    ['url' => '/vetsmart/cliente/historial', 'icon' => '<i class="fas fa-file-medical"></i>', 'text' => 'Historial Clínico'],
-    ['url' => '/vetsmart/cliente/reportes', 'icon' => '<i class="fas fa-chart-bar"></i>', 'text' => 'Reportes'],
+    ['url' => '/vetsmart/cliente/dashboard', 'icon' => 'fas fa-home', 'text' => 'Dashboard'],
+    ['url' => '/vetsmart/cliente/citas', 'icon' => 'fas fa-calendar-alt', 'text' => 'Mis Citas'],
+    ['url' => '/vetsmart/cliente/mascotas', 'icon' => 'fas fa-paw', 'text' => 'Mis Mascotas'],
+    ['url' => '/vetsmart/cliente/historial', 'icon' => 'fas fa-file-medical', 'text' => 'Historial Clínico'],
+    ['url' => '/vetsmart/cliente/reportes', 'icon' => 'fas fa-chart-bar', 'text' => 'Reportes'],
 ];
 
 // Incluye el layout unificado
