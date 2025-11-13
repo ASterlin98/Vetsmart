@@ -1,7 +1,17 @@
 <?php
-// app/views/veterinario/pacientes/index.php (versión visual mejorada)
+// app/views/veterinario/pacientes/index.php (versión visual mejorada con límite de 10 + paginación)
 $mascotas = $mascotas ?? [];
 $q = $q ?? '';
+
+// paginación básica
+$totalMascotas = count($mascotas);
+$porPagina = 5;
+$paginaActual = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$totalPaginas = ceil($totalMascotas / $porPagina);
+$inicio = ($paginaActual - 1) * $porPagina;
+
+// limitar los resultados por página
+$mascotas = array_slice($mascotas, $inicio, $porPagina);
 ?>
 
 <!DOCTYPE html>
@@ -20,6 +30,22 @@ $q = $q ?? '';
     .badge-species { background: linear-gradient(90deg,#eef2ff,#f8fafc); color:#0f172a; border-radius:8px; padding:4px 8px; font-size:0.8rem; }
     .table thead th { border-bottom: 0; }
     .empty-state { padding:48px; }
+    .pagination .page-item .page-link {
+      color: #2563eb;
+      border: none;
+      border-radius: 6px;
+      margin: 0 2px;
+      transition: all 0.2s ease;
+    }
+    .pagination .page-item.active .page-link {
+      background-color: #2563eb;
+      color: #fff;
+      font-weight: 600;
+    }
+    .pagination .page-item .page-link:hover {
+      background-color: #e0e7ff;
+      color: #1e3a8a;
+    }
     @media (max-width: 991px) {
       .d-desktop-only { display:none !important; }
     }
@@ -58,7 +84,7 @@ $q = $q ?? '';
           <p class="mb-0">Aún no se han registrado mascotas. Usa el botón "Nueva mascota" para añadir un paciente.</p>
         </div>
       <?php else: ?>
-        <!-- Desktop: tabla; Mobile: lista cards -->
+        <!-- Desktop: tabla -->
         <div class="card p-3">
           <div class="table-responsive">
             <table id="tablaMascotas" class="table table-striped table-hover align-middle">
@@ -103,8 +129,32 @@ $q = $q ?? '';
           </div>
         </div>
 
+        <!-- ✅ Paginación -->
+        <div class="d-flex justify-content-between align-items-center mt-3 px-3">
+          <div class="text-muted small">
+            Mostrando <strong><?= $inicio + 1 ?></strong> -
+            <strong><?= min($inicio + $porPagina, $totalMascotas) ?></strong>
+            de <strong><?= $totalMascotas ?></strong> resultados
+          </div>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item <?= ($paginaActual <= 1) ? 'disabled' : '' ?>">
+                <a class="page-link" href="?page=<?= $paginaActual - 1 ?>&q=<?= urlencode($q) ?>"><i class="bi bi-chevron-left"></i></a>
+              </li>
+              <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+                <li class="page-item <?= ($i == $paginaActual) ? 'active' : '' ?>">
+                  <a class="page-link" href="?page=<?= $i ?>&q=<?= urlencode($q) ?>"><?= $i ?></a>
+                </li>
+              <?php endfor; ?>
+              <li class="page-item <?= ($paginaActual >= $totalPaginas) ? 'disabled' : '' ?>">
+                <a class="page-link" href="?page=<?= $paginaActual + 1 ?>&q=<?= urlencode($q) ?>"><i class="bi bi-chevron-right"></i></a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+
         <!-- Mobile list -->
-        <div class="d-lg-none">
+        <div class="d-lg-none mt-3">
           <div class="row g-3">
             <?php foreach ($mascotas as $m): ?>
               <div class="col-12">
@@ -142,7 +192,6 @@ $q = $q ?? '';
   const resetBtn = document.getElementById('resetBtn');
   const tabla = document.getElementById('tablaMascotas');
 
-  // cliente-side filter para la tabla (desktop) y para cards (mobile)
   function filterRows(q) {
     const query = q.trim().toLowerCase();
     if (!tabla) return;

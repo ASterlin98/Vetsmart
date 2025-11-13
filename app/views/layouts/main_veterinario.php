@@ -11,8 +11,8 @@ $header_title = '👨‍⚕️ VetSmart Veterinario';
 $nav_links = [
     ['url' => '/vetsmart/veterinario/dashboard', 'icon' => 'fas fa-home', 'text' => 'Dashboard'],
     ['url' => '/vetsmart/veterinario/agenda', 'icon' => 'fas fa-calendar-alt', 'text' => 'Mi Agenda'],
-    ['url' => '/vetsmart/veterinario/citas', 'icon' => 'fas fa-stethoscope', 'text' => 'Consultas'],
-    ['url' => '/vetsmart/veterinario/historial', 'icon' => 'fas fa-file-medical', 'text' => 'Historial Clínico'],
+    ['url' => '/vetsmart/veterinario/pacientes', 'icon' => 'fas fa-stethoscope', 'text' => 'Consultas'],
+    ['url' => '/vetsmart/veterinario/consultas', 'icon' => 'fas fa-file-medical', 'text' => 'Historial Clínico'],
     ['url' => '/vetsmart/veterinario/reportes', 'icon' => 'fas fa-chart-bar', 'text' => 'Reportes'],
 ];
 
@@ -20,7 +20,7 @@ $nav_links = [
 require __DIR__ . '/unified_layout.php';
 
 // Incluye el modal específico para esta vista
-$modalPath = __DIR__ . '/../veterinario/citas/_modal.php';
+$modalPath = __DIR__ . '/../veterinario/pacientes/_modal.php';
 if (file_exists($modalPath)) {
     require $modalPath;
 }

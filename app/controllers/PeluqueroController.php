@@ -16,8 +16,11 @@ class PeluqueroController extends Controller
     private function verificarSesion(): void
     {
         $u = $_SESSION['user'] ?? [];
-        $rol = $u['role_name'] ?? ($u['role'] ?? '');
-        if ($rol !== 'peluquero') {
+        // Aceptar varias formas de identificar el rol: role_name (string) o role/role_id (numérico)
+        $roleName = strtolower((string)($u['role_name'] ?? $u['role'] ?? ''));
+        $roleId = (int)($u['role_id'] ?? $u['role'] ?? 0);
+        // Role id 5 corresponde a peluquero en tu esquema de roles
+        if ($roleName !== 'peluquero' && $roleId !== 5) {
             header('Location: /vetsmart/login');
             exit;
         }

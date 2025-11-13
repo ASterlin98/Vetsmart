@@ -94,9 +94,9 @@ public function updatePassword($id, $hash) {
             $userId = $this->db->lastInsertId();
 
             // Guardar en cliente_detalles
-            $sql2 = "INSERT INTO cliente_detalles (idusu, telefono) VALUES (:idusu, :telefono)";
+            $sql2 = "INSERT INTO usuario (id, telefono) VALUES (:id, :telefono)";
             $stmt2 = $this->db->prepare($sql2);
-            $stmt2->execute([':idusu' => $userId, ':telefono' => $telefono]);
+            $stmt2->execute([':id' => $userId, ':telefono' => $telefono]);
 
             return $userId;
         }

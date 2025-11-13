@@ -331,8 +331,8 @@ document.addEventListener('DOMContentLoaded', function () {
         selectedRoleName.textContent = roleName;
         loadingSpinner.style.display = 'block';
 
-        // USAR rutas relativas evita problemas con window.location.origin o entornos locales
-        const fetchUrl = `/vetsmart/app/api/permissions_api.php?role_id=${encodeURIComponent(roleId)}`;
+        // Usar nuevo endpoint en el router
+        const fetchUrl = `/vetsmart/super_admin/permisos/obtener?role_id=${encodeURIComponent(roleId)}`;
 
         fetch(fetchUrl)
             .then(response => {
@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 loadingSpinner.style.display = 'none';
                 if (data.error) throw new Error(data.error);
-                renderPermissions(data.all_permissions || {}, data.assigned_permissions || []);
+                renderPermissions(data.permisos || {});
                 saveBtn.style.display = 'block';
             })
             .catch(error => {
@@ -352,36 +352,35 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     });
 
-    function renderPermissions(allPermissions, assignedPermissions) {
+    function renderPermissions(permisosAgrupados) {
         permissionsContent.innerHTML = '';
-        for (const moduleName in allPermissions) {
+        for (const modulo in permisosAgrupados) {
             const moduleContainer = document.createElement('div');
-            moduleContainer.className = 'permission-module';
+            moduleContainer.className = 'permission-module mb-4';
 
             const moduleTitle = document.createElement('h5');
-            moduleTitle.textContent = moduleName.replace(/_/g, ' ');
+            moduleTitle.className = 'border-bottom pb-2';
+            moduleTitle.textContent = modulo.replace(/_/g, ' ').toUpperCase();
             moduleContainer.appendChild(moduleTitle);
 
             const permissionGroup = document.createElement('div');
             permissionGroup.className = 'permission-group';
 
-            allPermissions[moduleName].forEach(permission => {
-                const isChecked = assignedPermissions.includes(String(permission.id)) || assignedPermissions.includes(Number(permission.id));
-
+            permisosAgrupados[modulo].forEach(permiso => {
                 const itemDiv = document.createElement('div');
-                itemDiv.className = 'form-check form-switch permission-item';
+                itemDiv.className = 'form-check form-switch permission-item mb-2';
 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.className = 'form-check-input';
-                checkbox.value = permission.id;
-                checkbox.id = `perm-${permission.id}`;
-                checkbox.checked = isChecked;
+                checkbox.value = permiso.id;
+                checkbox.id = `perm-${permiso.id}`;
+                checkbox.checked = permiso.asignado || false;
 
                 const label = document.createElement('label');
                 label.className = 'form-check-label';
-                label.htmlFor = `perm-${permission.id}`;
-                label.textContent = permission.descripcion || permission.nombre;
+                label.htmlFor = `perm-${permiso.id}`;
+                label.innerHTML = `<strong>${permiso.nombre}</strong><br><small class="text-muted">${permiso.descripcion || ''}</small>`;
 
                 itemDiv.appendChild(checkbox);
                 itemDiv.appendChild(label);
@@ -407,7 +406,8 @@ document.addEventListener('DOMContentLoaded', function () {
         loadingSpinner.style.display = 'block';
         saveBtn.disabled = true;
 
-        const postUrl = `/vetsmart/app/api/permissions_api.php`;
+        // Usar nuevo endpoint en el router
+        const postUrl = `/vetsmart/super_admin/permisos/guardar`;
 
         fetch(postUrl, {
             method: 'POST',
@@ -416,8 +416,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                role_id: roleId,
-                permission_ids: checkedPermissions
+                role_id: parseInt(roleId),
+                permission_ids: checkedPermissions.map(id => parseInt(id))
             })
         })
         .then(response => response.json().then(data => ({ status: response.status, body: data })))
@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 feedbackMessage.textContent = body.message || 'Permisos actualizados con éxito.';
                 feedbackMessage.classList.add('alert', 'alert-success');
             } else {
-                throw new Error(body.message || 'Ocurrió un error desconocido.');
+                throw new Error(body.error || body.message || 'Ocurrió un error desconocido.');
             }
         })
         .catch(error => {

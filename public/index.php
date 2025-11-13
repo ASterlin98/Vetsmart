@@ -550,74 +550,74 @@ try {
         exit;
     }
 
-    // Consultas veterinario
-    if ($path === '/veterinario/consultas') {
+    // Consultas veterinario (aliases: consultas, historial-clinico, historial)
+    if ($path === '/veterinario/consultas' || $path === '/veterinario/historial-clinico' || $path === '/veterinario/historial') {
         $controller = new ConsultasController($pdo);
         $controller->index();
         exit;
     }
 
-    if ($path === '/veterinario/consultas/crear') {
+    if ($path === '/veterinario/consultas/crear' || $path === '/veterinario/historial-clinico/crear' || $path === '/veterinario/historial/crear') {
         $controller = new ConsultasController($pdo);
         $controller->crear();
         exit;
     }
 
-    // crear con mascota preseleccionada: /veterinario/consultas/crear/12
-    if (preg_match('#^/veterinario/consultas/crear/(\d+)$#', $path, $m)) {
+    // crear con mascota preseleccionada: /veterinario/consultas/crear/12, /veterinario/historial-clinico/crear/12, o /veterinario/historial/crear/12
+    if (preg_match('#^/veterinario/(consultas|historial-clinico|historial)/crear/(\d+)$#', $path, $m)) {
         $controller = new ConsultasController($pdo);
-        $controller->crear($m[1]);
+        $controller->crear($m[2]);
         exit;
     }
 
-    if ($path === '/veterinario/consultas/guardar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (($path === '/veterinario/consultas/guardar' || $path === '/veterinario/historial-clinico/guardar' || $path === '/veterinario/historial/guardar') && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $controller = new ConsultasController($pdo);
         $controller->guardar();
         exit;
     }
 
-    if (preg_match('#^/veterinario/consultas/ver/(\d+)$#', $path, $m)) {
+    if (preg_match('#^/veterinario/(consultas|historial-clinico|historial)/ver/(\d+)$#', $path, $m)) {
         $controller = new ConsultasController($pdo);
-        $controller->ver($m[1]);
+        $controller->ver($m[2]);
         exit;
     }
 
-    if (preg_match('#^/veterinario/consultas/editar/(\d+)$#', $path, $m)) {
+    if (preg_match('#^/veterinario/(consultas|historial-clinico|historial)/editar/(\d+)$#', $path, $m)) {
         $controller = new ConsultasController($pdo);
-        $controller->editar($m[1]);
+        $controller->editar($m[2]);
         exit;
     }
 
-    if (preg_match('#^/veterinario/consultas/actualizar/(\d+)$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (preg_match('#^/veterinario/(consultas|historial-clinico|historial)/actualizar/(\d+)$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $controller = new ConsultasController($pdo);
-        $controller->actualizar($m[1]);
+        $controller->actualizar($m[2]);
         exit;
     }
 
     // Ver / Editar consulta (desde modal - usan VeterinarioController en tu proyecto)
-    if (preg_match('#^/veterinario/consultas/(\d+)/ver$#', $path, $m)) {
+    if (preg_match('#^/veterinario/(consultas|historial-clinico|historial)/(\d+)/ver$#', $path, $m)) {
         $controller = new VeterinarioController($pdo);
-        $controller->verConsulta($m[1]);
+        $controller->verConsulta($m[2]);
         exit;
     }
 
-    if (preg_match('#^/veterinario/consultas/(\d+)/editar$#', $path, $m)) {
+    if (preg_match('#^/veterinario/(consultas|historial-clinico|historial)/(\d+)/editar$#', $path, $m)) {
         $controller = new VeterinarioController($pdo);
-        $controller->editarConsulta($m[1]);
+        $controller->editarConsulta($m[2]);
         exit;
     }
 
     // Actualizar consulta (POST) (tu proyecto usa ConsultasController para esto)
-    if (preg_match('#^/veterinario/consultas/actualizar/(\d+)$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (preg_match('#^/veterinario/(consultas|historial-clinico|historial)/actualizar/(\d+)$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $controller = new ConsultasController($pdo);
-        $controller->actualizar($m[1]);
+        $controller->actualizar($m[2]);
         exit;
     }
 
     // Eliminar consulta
-    if (preg_match('#^/veterinario/consultas/(\d+)/eliminar$#', $path, $m)) {
+    if (preg_match('#^/veterinario/(consultas|historial-clinico|historial)/(\d+)/eliminar$#', $path, $m)) {
         $controller = new ConsultasController($pdo);
-        $controller->eliminar($m[1]);
+        $controller->eliminar($m[2]);
         exit;
     }
 
@@ -659,7 +659,7 @@ try {
     }
 
     // mostrar calendario veterinario (mis-citas)
-    if ($path === '/veterinario/mis-citas') {
+    if ($path === '/veterinario/mis-citas' || $path === '/veterinario/agenda') {
         $controller = new VeterinarioController($pdo);
         $controller->misCitas();
         exit;
@@ -1050,6 +1050,18 @@ if ($path === '/super_admin/exportarReportes' && $_SERVER['REQUEST_METHOD'] === 
 if ($path === '/super_admin/permisos' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $controller = new SuperAdminController($pdo);
     $controller->permisos();
+    exit;
+}
+// API: Obtener permisos de un rol específico
+if ($path === '/super_admin/permisos/obtener' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new SuperAdminController($pdo);
+    $controller->obtenerPermisosRol();
+    exit;
+}
+// API: Guardar permisos de un rol
+if ($path === '/super_admin/permisos/guardar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new SuperAdminController($pdo);
+    $controller->guardarPermisosRol();
     exit;
 }
 if ($path === '/super_admin/guardarPermiso' && $_SERVER['REQUEST_METHOD'] === 'POST') {

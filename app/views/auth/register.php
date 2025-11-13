@@ -7,6 +7,11 @@
   <title>Registro - VetSmart</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <script src="https://cdn.tailwindcss.com"></script>
+  <?php $siteKey = $siteKey ?? ($recaptcha_site_key ?? ''); ?>
+  <?php if (!empty($siteKey)): ?>
+    <!-- reCAPTCHA v3: carga el script con tu site key; el token se genera automáticamente -->
+    <script src="https://www.google.com/recaptcha/api.js?render=<?= htmlspecialchars($siteKey) ?>"></script>
+  <?php endif; ?>
 </head>
 <body class="min-h-screen flex items-center justify-center"
       style="background-image: url('/vetsmart/public/assets/css/img5.jpg'); background-size: cover; background-position: center;">
@@ -43,8 +48,11 @@
       <input id="password" name="password" type="password" placeholder="Contraseña nueva" required
         class="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none">
 
+      <!-- Input oculto para el token reCAPTCHA v3 -->
+      <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response" value="">
+
       <button type="submit"
-        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition">
+        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition mt-3">
         Registrarme
       </button>
     </form>
@@ -55,5 +63,28 @@
       </a>
     </p>
   </div>
+
+  <?php if (!empty($siteKey)): ?>
+  <script>
+    // reCAPTCHA v3: ejecutar cuando el formulario se envía
+    document.querySelector('form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Obtener el site key desde el script de reCAPTCHA
+      const siteKey = '<?= htmlspecialchars($siteKey) ?>';
+      
+      grecaptcha.execute(siteKey, { action: 'register' }).then(function(token) {
+        // Guardar el token en el input oculto
+        document.getElementById('g-recaptcha-response').value = token;
+        
+        // Enviar el formulario
+        document.querySelector('form').submit();
+      }).catch(function(err) {
+        console.error('reCAPTCHA error:', err);
+        alert('Error al verificar reCAPTCHA. Por favor intenta de nuevo.');
+      });
+    });
+  </script>
+  <?php endif; ?>
 </body>
 </html>

@@ -411,14 +411,7 @@ function avatar_color_for($text) {
       const direccion = this.getAttribute('data-direccion') || '';
       const ciudad = this.getAttribute('data-ciudad') || '';
 
-      // poblar campos de sólo lectura
-      document.getElementById('view_nombre').innerText = nombre || '-';
-      document.getElementById('view_apellido').innerText = apellido || '-';
-      document.getElementById('view_docusu').innerText = docusu || '-';
-      document.getElementById('view_email').innerText = email || '-';
-      document.getElementById('view_telefono').innerText = telefono || '-';
-      document.getElementById('view_direccion').innerText = direccion || '-';
-      document.getElementById('view_ciudad').innerText = ciudad || '-';
+
 
       // link a ficha completa
       const link = document.getElementById('view_full_link');

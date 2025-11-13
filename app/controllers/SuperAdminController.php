@@ -418,4 +418,106 @@ class SuperAdminController extends Controller
         header('Location: /vetsmart/super_admin/permisos');
         exit;
     }
+
+    /**
+     * API: Obtiene los permisos disponibles y los asignados a un rol específico.
+     * Devuelve JSON con estructura para mostrar checkboxes por módulo.
+     */
+    public function obtenerPermisosRol()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        $roleId = $_GET['role_id'] ?? null;
+        if (!$roleId || !is_numeric($roleId) || (int)$roleId <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'role_id inválido']);
+            exit;
+        }
+
+        if (!$this->rolePermissionModel || !$this->permisoModel) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Modelos no disponibles']);
+            exit;
+        }
+
+        try {
+            // Obtener todos los permisos agrupados por módulo
+            $permisosAgrupados = $this->rolePermissionModel->getAllPermissionsGroupedByModule();
+            
+            // Obtener los IDs de permisos asignados a este rol
+            $permisosAsignados = $this->rolePermissionModel->getPermissionIdsByRoleId((int)$roleId);
+            $permisosAsignadosIds = array_map('intval', $permisosAsignados);
+
+            // Construir respuesta con módulos y permisos
+            $respuesta = [];
+            foreach ($permisosAgrupados as $modulo => $permisos) {
+                $permisosModulo = [];
+                foreach ($permisos as $permiso) {
+                    $permisosModulo[] = [
+                        'id' => (int)$permiso['id'],
+                        'nombre' => $permiso['nombre'],
+                        'descripcion' => $permiso['descripcion'],
+                        'asignado' => in_array((int)$permiso['id'], $permisosAsignadosIds)
+                    ];
+                }
+                $respuesta[$modulo] = $permisosModulo;
+            }
+
+            echo json_encode(['success' => true, 'permisos' => $respuesta]);
+            exit;
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => $e->getMessage()]);
+            exit;
+        }
+    }
+
+    /**
+     * API: Guarda los permisos asignados a un rol.
+     * Espera JSON POST con role_id y array de permission_ids.
+     */
+    public function guardarPermisosRol()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        if (!$this->rolePermissionModel) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => 'Modelo RolePermission no disponible']);
+            exit;
+        }
+
+        // Leer JSON del body
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $roleId = $input['role_id'] ?? null;
+        $permissionIds = $input['permission_ids'] ?? [];
+
+        if (!$roleId || !is_numeric($roleId) || (int)$roleId <= 0) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'role_id inválido']);
+            exit;
+        }
+
+        // Proteger super admin
+        if ((int)$roleId === 1) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'No se pueden modificar permisos del Super Admin']);
+            exit;
+        }
+
+        try {
+            $resultado = $this->rolePermissionModel->updatePermissionsForRole((int)$roleId, $permissionIds);
+            if ($resultado) {
+                echo json_encode(['success' => true, 'message' => 'Permisos guardados correctamente']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'error' => 'Error al guardar permisos']);
+            }
+            exit;
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
+        }
+    }
 }

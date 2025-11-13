@@ -242,14 +242,31 @@ class AuthController extends Controller
     {
         $error = $_SESSION['error'] ?? null;
         unset($_SESSION['error']);
-        $this->view('auth/register', compact('error'));
+        // Cargar site key para reCAPTCHA (si está configurado)
+        $rec = require __DIR__ . '/../config/recaptcha.php';
+        $siteKey = $rec['site_key'] ?? '';
+        $this->view('auth/register', compact('error', 'siteKey'));
     }
 
 
     public function register()
     {
-        if (!\CSRF::validate($_POST['csrf_token'] ?? '')) {
+        // Validar CSRF (nombre del campo usado en views: _csrf)
+        if (!\CSRF::validate($_POST['_csrf'] ?? '')) {
             die("Token inválido");
+        }
+
+        // Validar reCAPTCHA
+        $recaptchaResponse = $_POST['g-recaptcha-response'] ?? null;
+        $recConfig = require __DIR__ . '/../config/recaptcha.php';
+        $secret = $recConfig['secret_key'] ?? '';
+        if (empty($secret) || empty($recaptchaResponse)) {
+            $this->view('auth/register', ['error' => 'Por favor completa el reCAPTCHA.', 'siteKey' => $recConfig['site_key'] ?? '']);
+            return;
+        }
+        if (!$this->verifyRecaptcha($recaptchaResponse, $secret)) {
+            $this->view('auth/register', ['error' => 'reCAPTCHA inválido. Intenta de nuevo.', 'siteKey' => $recConfig['site_key'] ?? '']);
+            return;
         }
 
         $usuarioModel = new Usuario();
@@ -264,7 +281,8 @@ class AuthController extends Controller
         // Validar duplicados
         if ($usuarioModel->existsByEmailOrDoc($email, $docusu)) {
             $this->view("auth/register", [
-                "error" => "Ya existe un usuario con ese correo o documento."
+                "error" => "Ya existe un usuario con ese correo o documento.",
+                'siteKey' => $recConfig['site_key'] ?? ''
             ]);
             return;
         }
@@ -313,6 +331,16 @@ class AuthController extends Controller
             exit;
         }
 
+        // Validar reCAPTCHA antes de crear
+        $recaptchaResponse = $_POST['g-recaptcha-response'] ?? null;
+        $recConfig = require __DIR__ . '/../config/recaptcha.php';
+        $secret = $recConfig['secret_key'] ?? '';
+        if (empty($secret) || empty($recaptchaResponse) || !$this->verifyRecaptcha($recaptchaResponse, $secret)) {
+            $_SESSION['error'] = "Por favor completa el reCAPTCHA correctamente.";
+            header("Location: /vetsmart/auth/register");
+            exit;
+        }
+
         $usuarioModel = new Usuario();
 
         // Evitar duplicados
@@ -341,5 +369,64 @@ class AuthController extends Controller
             header("Location: /vetsmart/auth/register");
             exit;
         }
+    }
+
+    /**
+     * Verifica la respuesta de reCAPTCHA v3 con el servidor de Google.
+     * Devuelve true si success=true y el score está por encima del threshold.
+     * Para v3, también valida el score contra el threshold configurado.
+     */
+    private function verifyRecaptcha(string $token, string $secret): bool
+    {
+        if (empty($token) || empty($secret)) return false;
+
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
+        $data = http_build_query([
+            'secret' => $secret,
+            'response' => $token,
+            'remoteip' => $_SERVER['REMOTE_ADDR'] ?? null
+        ]);
+
+        // Preferir cURL si está disponible
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Para dev/local
+            $res = curl_exec($ch);
+            if ($res === false) {
+                curl_close($ch);
+                return false;
+            }
+            curl_close($ch);
+        } else {
+            // Fallback a file_get_contents
+            $opts = ['http' => ['method' => 'POST', 'header' => "Content-type: application/x-www-form-urlencoded\r\n", 'content' => $data, 'timeout' => 5]];
+            $context = stream_context_create($opts);
+            $res = @file_get_contents($url, false, $context);
+            if ($res === false) return false;
+        }
+
+        $obj = json_decode($res, true);
+        
+        // Validar success
+        if (!isset($obj['success']) || $obj['success'] !== true) {
+            return false;
+        }
+
+        // Para reCAPTCHA v3, validar el score contra el threshold
+        $recConfig = require __DIR__ . '/../config/recaptcha.php';
+        $threshold = $recConfig['score_threshold'] ?? 0.5;
+        $score = $obj['score'] ?? 0;
+
+        // Si el score está por debajo del threshold, rechazar
+        if ($score < $threshold) {
+            // Opcionalmente registrar esto: error_log("reCAPTCHA v3 score bajo: {$score}, threshold: {$threshold}");
+            return false;
+        }
+
+        return true;
     }
 }
