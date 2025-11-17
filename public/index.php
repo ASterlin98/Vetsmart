@@ -934,13 +934,13 @@ if (preg_match('#^/admin/horarios/(\d+)/editar-semana$#', $path, $m) && $_SERVER
     exit;
 }
 // Actualizar
-if (preg_match('#^/admin/horarios/(\d+)/actualizarHorarioSemana$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if (preg_match('#^/admin/horarios/(\d+)/actualizar-horario-semana$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new AdminController($pdo);
     $controller->actualizarHorarioSemana((int)$m[1]);
     exit;
 }
 // Eliminar
-if (preg_match('#^/admin/horarios/(\d+)/eliminarSemana$#', $path, $m)) {
+if (preg_match('#^/admin/horarios/(\d+)/eliminar-semana$#', $path, $m)) {
     $controller = new AdminController($pdo);
     $controller->eliminarSemana((int)$m[1]);
     exit;
@@ -960,13 +960,13 @@ if (preg_match('#^/admin/horarios/(\d+)/editar-turno$#', $path, $m) && $_SERVER[
     exit;
 }
 // Actualizar
-if (preg_match('#^/admin/horarios/(\d+)/actualizarTurno$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if (preg_match('#^/admin/horarios/(\d+)/actualizar-turno$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new AdminController($pdo);
     $controller->actualizarTurno((int)$m[1]);
     exit;
 }
 // Eliminar
-if (preg_match('#^/admin/horarios/(\d+)/eliminarTurno$#', $path, $m)) {
+if (preg_match('#^/admin/horarios/(\d+)/eliminar-turno$#', $path, $m)) {
     $controller = new AdminController($pdo);
     $controller->eliminarTurno((int)$m[1]);
     exit;
@@ -986,13 +986,13 @@ if (preg_match('#^/admin/horarios/(\d+)/editar-solicitud$#', $path, $m) && $_SER
     exit;
 }
 // Actualizar
-if (preg_match('#^/admin/horarios/(\d+)/actualizarSolicitud$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if (preg_match('#^/admin/horarios/(\d+)/actualizar-solicitud$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new AdminController($pdo);
     $controller->actualizarSolicitud((int)$m[1]);
     exit;
 }
 // Eliminar
-if (preg_match('#^/admin/horarios/(\d+)/eliminarSolicitud$#', $path, $m)) {
+if (preg_match('#^/admin/horarios/(\d+)/eliminar-solicitud$#', $path, $m)) {
     $controller = new AdminController($pdo);
     $controller->eliminarSolicitud((int)$m[1]);
     exit;

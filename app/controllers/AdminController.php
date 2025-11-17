@@ -462,13 +462,20 @@ public function actualizarHorarioSemana($id) {
     exit;
 }
 
-public function eliminarHorarioSemana($id) {
-    $stmt = $this->pdo->prepare("DELETE FROM horarios_semana WHERE id = :id");
-    $stmt->execute([':id' => $id]);
+public function eliminarSemana($id)
+{
+    try {
+        $stmt = $this->pdo->prepare("DELETE FROM horarios_semana WHERE id = :id");
+        $stmt->execute([':id' => $id]);
 
-    $_SESSION['flash_success'] = "Horario eliminado.";
-    header("Location: /vetsmart/admin/horarios");
-    exit;
+        $_SESSION['flash_success'] = "Horario eliminado.";
+        header("Location: /vetsmart/admin/horarios");
+        exit;
+    } catch (Exception $e) {
+        $_SESSION['flash_error'] = "Error al eliminar horario: " . $e->getMessage();
+        header("Location: /vetsmart/admin/horarios");
+        exit;
+    }
 }
 public function editarTurno($id) {
     $stmt = $this->pdo->prepare("SELECT * FROM turnos_empleado WHERE id = :id");
