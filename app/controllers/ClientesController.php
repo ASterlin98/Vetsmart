@@ -89,10 +89,13 @@ public function guardar() {
             $errors = $this->clienteModel->checkDuplicados($email, $docusu, (int)$id);
 
             if (!empty($errors)) {
-                $cliente = $this->clienteModel->getById($id);
+                // Si hay errores, repoblar el formulario con los datos enviados,
+                // manteniendo el ID original.
+                $clienteData = $_POST;
+                $clienteData['id'] = $id;
                 $this->view('admin/clientes/editar', [
                     'error' => implode(' ', $errors),
-                    'cliente' => $cliente
+                    'cliente' => $clienteData
                 ], 'main_admin');
                 return;
             }
