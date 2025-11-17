@@ -36,60 +36,29 @@ public function guardar() {
         exit;
     }
 
-    // Detectar AJAX
-    $isAjax = (
-        (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
-        || (strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false)
-    );
+    $email = $_POST['email'] ?? '';
+    $docusu = $_POST['docusu'] ?? '';
+
+    $errors = $this->clienteModel->checkDuplicados($email, $docusu);
+
+    if (!empty($errors)) {
+        $this->view('admin/clientes/crear', [
+            'error' => implode(' ', $errors),
+            'cliente' => $_POST // Repopulate form
+        ], 'main_admin');
+        return;
+    }
 
     try {
-        // intentar crear y obtener ID del nuevo cliente
-        $newId = null;
-        if (method_exists($this->clienteModel, 'crear')) {
-            // suponemos que crear() devuelve lastInsertId o al menos inserta
-            $maybe = $this->clienteModel->crear($_POST);
-            if ($maybe) $newId = $maybe;
-        }
-
-        // fallback a lastInsertId si no fue devuelto por el modelo
-        if (empty($newId) && isset($this->db) && $this->db instanceof PDO) {
-            $newId = $this->db->lastInsertId();
-        }
-
-        // obtener el registro creado para devolver al front (si es posible)
-        $cliente = null;
-        if ($newId) {
-            try {
-                $cliente = $this->clienteModel->getById($newId);
-            } catch (Exception $e) {
-                // ignore: devolvemos lo mínimo
-                $cliente = null;
-            }
-        }
-
-        if ($isAjax) {
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode([
-                'success' => true,
-                'id' => $newId,
-                'cliente' => $cliente
-            ]);
-            exit;
-        } else {
-            header('Location: /vetsmart/admin/clientes');
-            exit;
-        }
+        $newId = $this->clienteModel->crear($_POST);
+        header('Location: /vetsmart/admin/clientes');
+        exit;
     } catch (Exception $e) {
-        // log para debugging
         error_log('ClientesController::guardar error: ' . $e->getMessage());
-        if ($isAjax) {
-            header('Content-Type: application/json; charset=utf-8', true, 500);
-            echo json_encode(['success' => false, 'message' => 'Error guardando cliente.']);
-            exit;
-        } else {
-            $this->view('admin/clientes/crear', ['error' => $e->getMessage()], 'main_admin');
-            exit;
-        }
+        $this->view('admin/clientes/crear', [
+            'error' => 'Error al guardar el cliente. Por favor, intente de nuevo.',
+            'cliente' => $_POST
+        ], 'main_admin');
     }
 }
 
@@ -114,8 +83,34 @@ public function guardar() {
 
     public function actualizar($id) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->clienteModel->actualizar($id, $_POST);
-            header("Location: /vetsmart/admin/clientes/$id");
+            $email = $_POST['email'] ?? '';
+            $docusu = $_POST['docusu'] ?? '';
+
+            $errors = $this->clienteModel->checkDuplicados($email, $docusu, (int)$id);
+
+            if (!empty($errors)) {
+                // Si hay errores, repoblar el formulario con los datos enviados,
+                // manteniendo el ID original.
+                $clienteData = $_POST;
+                $clienteData['id'] = $id;
+                $this->view('admin/clientes/editar', [
+                    'error' => implode(' ', $errors),
+                    'cliente' => $clienteData
+                ], 'main_admin');
+                return;
+            }
+
+            try {
+                $this->clienteModel->actualizar($id, $_POST);
+                header("Location: /vetsmart/admin/clientes");
+            } catch (Exception $e) {
+                error_log('ClientesController::actualizar error: ' . $e->getMessage());
+                $cliente = $this->clienteModel->getById($id);
+                $this->view('admin/clientes/editar', [
+                    'error' => 'Error al actualizar el cliente.',
+                    'cliente' => $cliente
+                ], 'main_admin');
+            }
         }
     }
 
