@@ -55,7 +55,7 @@
                 <!-- Editar -->
                 <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editarSemana<?= $h['id'] ?>">✏️</button>
                 <!-- Eliminar -->
-                <a href="/vetsmart/admin/horarios/<?= $h['id'] ?>/eliminarSemana" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este horario?')">🗑️</a>
+                <a href="/vetsmart/admin/horarios/<?= $h['id'] ?>/eliminar-semana" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este horario?')">🗑️</a>
             </td>
             </tr>
 
@@ -63,7 +63,7 @@
             <div class="modal fade" id="editarSemana<?= $h['id'] ?>" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
-                <form method="POST" action="/vetsmart/admin/horarios/<?= $h['id'] ?>/actualizarHorarioSemana">
+                <form method="POST" action="/vetsmart/admin/horarios/<?= $h['id'] ?>/actualizar-horario-semana">
                     <div class="modal-header bg-warning text-white">
                     <h5 class="modal-title">Editar Horario Semanal</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -145,7 +145,7 @@
               <td><?= htmlspecialchars($t['notas']) ?></td>
               <td>
                 <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editarTurno<?= $t['id'] ?>">✏️</button>
-                <a href="/vetsmart/admin/horarios/<?= $t['id'] ?>/eliminarTurno" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este turno?')">🗑️</a>
+                <a href="/vetsmart/admin/horarios/<?= $t['id'] ?>/eliminar-turno" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este turno?')">🗑️</a>
             </td>
             </tr>
 
@@ -153,7 +153,7 @@
             <div class="modal fade" id="editarTurno<?= $t['id'] ?>" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
-                <form method="POST" action="/vetsmart/admin/horarios/<?= $t['id'] ?>/actualizarTurno">
+                <form method="POST" action="/vetsmart/admin/horarios/<?= $t['id'] ?>/actualizar-turno">
                     <div class="modal-header bg-warning text-white">
                     <h5 class="modal-title">Editar Turno</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -236,7 +236,7 @@
               <td><?= htmlspecialchars($s['motivo']) ?></td>
 <td>
                 <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editarSolicitud<?= $s['id'] ?>">✏️</button>
-                <a href="/vetsmart/admin/horarios/<?= $s['id'] ?>/eliminarSolicitud" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar esta solicitud?')">🗑️</a>
+                <a href="/vetsmart/admin/horarios/<?= $s['id'] ?>/eliminar-solicitud" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar esta solicitud?')">🗑️</a>
             </td>
             </tr>
 
@@ -244,7 +244,7 @@
             <div class="modal fade" id="editarSolicitud<?= $s['id'] ?>" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
-                <form method="POST" action="/vetsmart/admin/horarios/<?= $s['id'] ?>/actualizarSolicitud">
+                <form method="POST" action="/vetsmart/admin/horarios/<?= $s['id'] ?>/actualizar-solicitud">
                     <div class="modal-header bg-warning text-white">
                     <h5 class="modal-title">Editar Solicitud</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
