@@ -52,8 +52,8 @@ $roles = $roles ?? [];
               <td><?= $e['salario'] ? '$'.number_format($e['salario'], 2) : '-' ?></td>
               <td><?= $e['fecha_ingreso'] ?? '-' ?></td>
               <td>
-                <?= $e['activo'] 
-                  ? '<span class="badge bg-success">Activo</span>' 
+                <?= $e['activo']
+                  ? '<span class="badge bg-success">Activo</span>'
                   : '<span class="badge bg-secondary">Inactivo</span>' ?>
                 <?php if (!empty($e['is_blocked']) && $e['is_blocked']): ?>
                   <span class="badge bg-danger">Bloqueado</span>
