@@ -50,7 +50,7 @@ class Cliente {
     }
 
     public function getById($id) {
-        $sql = "SELECT u.*, cd.telefono AS telefono_cliente, cd.direccion, cd.ciudad, cd.fecha_registro
+        $sql = "SELECT u.*, cd.telefono, cd.direccion, cd.ciudad, cd.fecha_registro
                 FROM usuarios u
                 LEFT JOIN cliente_detalles cd ON u.id = cd.idusu
                 WHERE u.id = ?";
@@ -187,25 +187,43 @@ class Cliente {
     }
 
     public function actualizar($id, $data) {
-        $sql = "UPDATE usuarios SET nombre=?, apellido=?, docusu=?, email=?, telefono=? WHERE id=?";
+        // 1. Actualizar la tabla de usuarios (sin el teléfono)
+        $sql = "UPDATE usuarios SET nombre=?, apellido=?, docusu=?, email=? WHERE id=?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $data['nombre'],
             $data['apellido'],
             $data['docusu'],
             $data['email'],
-            $data['telefono'],
             $id
         ]);
 
-        $sql2 = "UPDATE cliente_detalles SET telefono=?, direccion=?, ciudad=? WHERE idusu=?";
-        $stmt2 = $this->db->prepare($sql2);
-        $stmt2->execute([
-            $data['telefono'] ?? null,
-            $data['direccion'] ?? null,
-            $data['ciudad'] ?? null,
-            $id
-        ]);
+        // 2. Upsert en cliente_detalles
+        $checkSql = "SELECT idusu FROM cliente_detalles WHERE idusu = ?";
+        $checkStmt = $this->db->prepare($checkSql);
+        $checkStmt->execute([$id]);
+
+        if ($checkStmt->fetch()) {
+            // Update
+            $sql2 = "UPDATE cliente_detalles SET telefono=?, direccion=?, ciudad=? WHERE idusu=?";
+            $stmt2 = $this->db->prepare($sql2);
+            $stmt2->execute([
+                $data['telefono'] ?? null,
+                $data['direccion'] ?? null,
+                $data['ciudad'] ?? null,
+                $id
+            ]);
+        } else {
+            // Insert
+            $sql2 = "INSERT INTO cliente_detalles (idusu, telefono, direccion, ciudad, fecha_registro) VALUES (?, ?, ?, ?, NOW())";
+            $stmt2 = $this->db->prepare($sql2);
+            $stmt2->execute([
+                $id,
+                $data['telefono'] ?? null,
+                $data['direccion'] ?? null,
+                $data['ciudad'] ?? null
+            ]);
+        }
     }
 
     public function eliminar($id) {

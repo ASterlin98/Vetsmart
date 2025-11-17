@@ -25,7 +25,7 @@
     </div>
     <div class="mb-3">
         <label>Teléfono</label>
-        <input type="text" name="telefono" class="form-control" value="<?php echo htmlspecialchars($cliente['telefono_cliente']); ?>" required>
+        <input type="text" name="telefono" class="form-control" value="<?php echo htmlspecialchars($cliente['telefono']); ?>" required>
     </div>
     <div class="mb-3">
         <label>Dirección</label>
