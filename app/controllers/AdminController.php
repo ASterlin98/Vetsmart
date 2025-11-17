@@ -428,16 +428,30 @@ public function editarHorarioSemana($id) {
 }
 
 public function actualizarHorarioSemana($id) {
-    $stmt = $this->pdo->prepare("UPDATE horarios_semana SET empleado_id=:empleado_id, dia=:dia, hora_inicio=:hora_inicio, hora_fin=:hora_fin WHERE id=:id");
-    $stmt->execute([
-        ':empleado_id' => $_POST['empleado_id'],
-        ':dia' => $_POST['dia'],
-        ':hora_inicio' => $_POST['hora_inicio'],
-        ':hora_fin' => $_POST['hora_fin'],
-        ':id' => $id
-    ]);
+    try {
+        if (empty($_POST['empleado_id']) || empty($_POST['dia']) || empty($_POST['hora_inicio']) || empty($_POST['hora_fin'])) {
+            throw new Exception("Todos los campos son obligatorios.");
+        }
 
-    $_SESSION['flash_success'] = "Horario actualizado.";
+        $stmt = $this->pdo->prepare("
+            UPDATE horarios_semana
+            SET empleado_id=:empleado_id, dia=:dia, hora_inicio=:hora_inicio, hora_fin=:hora_fin
+            WHERE id=:id
+        ");
+
+        $stmt->execute([
+            ':empleado_id' => (int)$_POST['empleado_id'],
+            ':dia' => $_POST['dia'],
+            ':hora_inicio' => $_POST['hora_inicio'],
+            ':hora_fin' => $_POST['hora_fin'],
+            ':id' => $id
+        ]);
+
+        $_SESSION['flash_success'] = "Horario actualizado correctamente.";
+    } catch (Exception $e) {
+        $_SESSION['flash_error'] = "Error al actualizar el horario: " . $e->getMessage();
+    }
+
     header("Location: /vetsmart/admin/horarios");
     exit;
 }
@@ -474,10 +488,11 @@ public function actualizarTurno($id)
     try {
         $stmt = $this->pdo->prepare("
             UPDATE turnos_empleado
-            SET inicio = :inicio, fin = :fin, tipo = :tipo, notas = :notas
+            SET empleado_id = :empleado_id, inicio = :inicio, fin = :fin, tipo = :tipo, notas = :notas
             WHERE id = :id
         ");
         $stmt->execute([
+            ':empleado_id' => (int)$_POST['empleado_id'],
             ':inicio' => $_POST['inicio'],
             ':fin'    => $_POST['fin'],
             ':tipo'   => $_POST['tipo'],
@@ -535,10 +550,11 @@ public function actualizarSolicitud($id)
     try {
         $stmt = $this->pdo->prepare("
             UPDATE solicitudes
-            SET tipo = :tipo, fecha_inicio = :fecha_inicio, fecha_fin = :fecha_fin, motivo = :motivo
+            SET usuario_id = :usuario_id, tipo = :tipo, fecha_inicio = :fecha_inicio, fecha_fin = :fecha_fin, motivo = :motivo
             WHERE id = :id
         ");
         $stmt->execute([
+            ':usuario_id'   => (int)$_POST['usuario_id'],
             ':tipo'         => $_POST['tipo'],
             ':fecha_inicio' => $_POST['fecha_inicio'],
             ':fecha_fin'    => $_POST['fecha_fin'],
@@ -572,30 +588,6 @@ public function eliminarSolicitud($id)
     }
 }
 
-public function actualizarSemana($id)
-{
-    try {
-        $stmt = $this->pdo->prepare("
-            UPDATE horarios_semana
-            SET dia = :dia, hora_inicio = :hora_inicio, hora_fin = :hora_fin
-            WHERE id = :id
-        ");
-        $stmt->execute([
-            ':dia'         => $_POST['dia'],
-            ':hora_inicio' => $_POST['hora_inicio'],
-            ':hora_fin'    => $_POST['hora_fin'],
-            ':id'          => $id
-        ]);
-
-        $_SESSION['flash_success'] = "Horario semanal actualizado.";
-        header("Location: /vetsmart/admin/horarios");
-        exit;
-    } catch (Exception $e) {
-        $_SESSION['flash_error'] = "Error al actualizar horario: " . $e->getMessage();
-        header("Location: /vetsmart/admin/horarios");
-        exit;
-    }
-}
 
 public function eliminarSemana($id)
 {
