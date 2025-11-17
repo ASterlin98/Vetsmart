@@ -934,9 +934,9 @@ if (preg_match('#^/admin/horarios/(\d+)/editar-semana$#', $path, $m) && $_SERVER
     exit;
 }
 // Actualizar
-if (preg_match('#^/admin/horarios/(\d+)/actualizarSemana$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if (preg_match('#^/admin/horarios/(\d+)/actualizarHorarioSemana$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new AdminController($pdo);
-    $controller->actualizarSemana((int)$m[1]);
+    $controller->actualizarHorarioSemana((int)$m[1]);
     exit;
 }
 // Eliminar

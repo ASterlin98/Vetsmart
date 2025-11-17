@@ -50,13 +50,45 @@ class Cliente {
     }
 
     public function getById($id) {
-        $sql = "SELECT u.*, cd.telefono AS telefono_cliente, cd.direccion, cd.ciudad, cd.fecha_registro
+        $sql = "SELECT u.*, cd.telefono, cd.direccion, cd.ciudad, cd.fecha_registro
                 FROM usuarios u
                 LEFT JOIN cliente_detalles cd ON u.id = cd.idusu
                 WHERE u.id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    public function checkDuplicados(string $email, string $docusu, ?int $excludeId = null): array
+    {
+        $errors = [];
+        // Check email
+        $sql = "SELECT id FROM usuarios WHERE email = :email";
+        $params = [':email' => $email];
+        if ($excludeId) {
+            $sql .= " AND id != :id";
+            $params[':id'] = $excludeId;
+        }
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        if ($stmt->fetch()) {
+            $errors[] = "El correo electrónico ya está registrado.";
+        }
+
+        // Check docusu
+        $sql = "SELECT id FROM usuarios WHERE docusu = :docusu";
+        $params = [':docusu' => $docusu];
+        if ($excludeId) {
+            $sql .= " AND id != :id";
+            $params[':id'] = $excludeId;
+        }
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        if ($stmt->fetch()) {
+            $errors[] = "El documento ya está registrado.";
+        }
+
+        return $errors;
     }
 
     /**
@@ -127,42 +159,9 @@ class Cliente {
     }
 
     public function crear($data) {
-        try {
-            $sql = "INSERT INTO usuarios (nombre, apellido, docusu, email, telefono, password, role_id, estado, creado_en)
-                    VALUES (?, ?, ?, ?, ?, ?, 6, 1, NOW())";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                $data['nombre'],
-                $data['apellido'],
-                $data['docusu'],
-                $data['email'],
-                $data['telefono'],
-                password_hash($data['password'], PASSWORD_BCRYPT)
-            ]);
-
-            $idUsuario = $this->db->lastInsertId();
-
-            $sql2 = "INSERT INTO cliente_detalles (idusu, telefono, direccion, ciudad, fecha_registro)
-                    VALUES (?, ?, ?, ?, NOW())";
-            $stmt2 = $this->db->prepare($sql2);
-            $stmt2->execute([
-                $idUsuario,
-                $data['telefono'] ?? null,
-                $data['direccion'] ?? null,
-                $data['ciudad'] ?? null
-            ]);
-            return $idUsuario;
-        } catch (PDOException $e) {
-            if ($e->getCode() === '23000') {
-                throw new Exception("El correo o documento ya está registrado.");
-            } else {
-                throw $e;
-            }
-        }
-    }
-
-    public function actualizar($id, $data) {
-        $sql = "UPDATE usuarios SET nombre=?, apellido=?, docusu=?, email=?, telefono=? WHERE id=?";
+        // La validación de duplicados ahora se hace en el controlador
+        $sql = "INSERT INTO usuarios (nombre, apellido, docusu, email, telefono, password, role_id, estado, creado_en)
+                VALUES (?, ?, ?, ?, ?, ?, 6, 1, NOW())";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $data['nombre'],
@@ -170,17 +169,61 @@ class Cliente {
             $data['docusu'],
             $data['email'],
             $data['telefono'],
+            password_hash($data['password'], PASSWORD_BCRYPT)
+        ]);
+
+        $idUsuario = $this->db->lastInsertId();
+
+        $sql2 = "INSERT INTO cliente_detalles (idusu, telefono, direccion, ciudad, fecha_registro)
+                VALUES (?, ?, ?, ?, NOW())";
+        $stmt2 = $this->db->prepare($sql2);
+        $stmt2->execute([
+            $idUsuario,
+            $data['telefono'] ?? null,
+            $data['direccion'] ?? null,
+            $data['ciudad'] ?? null
+        ]);
+        return $idUsuario;
+    }
+
+    public function actualizar($id, $data) {
+        // 1. Actualizar la tabla de usuarios (sin el teléfono)
+        $sql = "UPDATE usuarios SET nombre=?, apellido=?, docusu=?, email=? WHERE id=?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            $data['nombre'],
+            $data['apellido'],
+            $data['docusu'],
+            $data['email'],
             $id
         ]);
 
-        $sql2 = "UPDATE cliente_detalles SET telefono=?, direccion=?, ciudad=? WHERE idusu=?";
-        $stmt2 = $this->db->prepare($sql2);
-        $stmt2->execute([
-            $data['telefono'] ?? null,
-            $data['direccion'] ?? null,
-            $data['ciudad'] ?? null,
-            $id
-        ]);
+        // 2. Upsert en cliente_detalles
+        $checkSql = "SELECT idusu FROM cliente_detalles WHERE idusu = ?";
+        $checkStmt = $this->db->prepare($checkSql);
+        $checkStmt->execute([$id]);
+
+        if ($checkStmt->fetch()) {
+            // Update
+            $sql2 = "UPDATE cliente_detalles SET telefono=?, direccion=?, ciudad=? WHERE idusu=?";
+            $stmt2 = $this->db->prepare($sql2);
+            $stmt2->execute([
+                $data['telefono'] ?? null,
+                $data['direccion'] ?? null,
+                $data['ciudad'] ?? null,
+                $id
+            ]);
+        } else {
+            // Insert
+            $sql2 = "INSERT INTO cliente_detalles (idusu, telefono, direccion, ciudad, fecha_registro) VALUES (?, ?, ?, ?, NOW())";
+            $stmt2 = $this->db->prepare($sql2);
+            $stmt2->execute([
+                $id,
+                $data['telefono'] ?? null,
+                $data['direccion'] ?? null,
+                $data['ciudad'] ?? null
+            ]);
+        }
     }
 
     public function eliminar($id) {
