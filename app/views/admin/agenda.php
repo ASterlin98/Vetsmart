@@ -7,12 +7,12 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="fw-bold">📅 Agenda General (Vista Tabular)</h3>
     <div>
-      <a id="exportMonthBtn" 
-   href="/vetsmart/admin/agenda/exportarExcel?desde=<?= date('Y-m-01') ?>&hasta=<?= date('Y-m-t') ?>" 
-   class="btn btn-success btn-sm">
-   📊 Exportar Excel (mes)
-</a>
-
+      <a id="exportBtn"
+         href="#"
+         class="btn btn-success btn-sm"
+         onclick="exportarExcelConFiltros(event)">
+         📊 Exportar Excel
+      </a>
     </div>
   </div>
 
@@ -101,3 +101,20 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
     </div>
   </div>
 </div>
+<script>
+function exportarExcelConFiltros(event) {
+    event.preventDefault();
+
+    const empleado = document.querySelector('select[name="empleado_id"]').value;
+    const servicio = document.querySelector('select[name="servicio_id"]').value;
+    const estado = document.querySelector('select[name="estado"]').value;
+    const desde = document.querySelector('input[name="desde"]').value;
+    const hasta = document.querySelector('input[name="hasta"]').value;
+
+    // Construir la URL con los parámetros
+    const url = `/vetsmart/admin/agenda/exportarExcel?desde=${desde}&hasta=${hasta}&empleado_id=${empleado}&servicio_id=${servicio}&estado=${estado}`;
+
+    // Redirigir
+    window.location.href = url;
+}
+</script>
