@@ -1,28 +1,45 @@
-<h2>Editar Servicio</h2>
-<form method="POST" action="/vetsmart/admin/servicios/<?= $servicio['id'] ?>/actualizar">
-    <div class="mb-3">
-        <label>Nombre</label>
-        <input type="text" name="nombre" class="form-control" value="<?= htmlspecialchars($servicio['nombre']) ?>" required>
+<div class="container-fluid py-3">
+    <h2 class="fw-bold">✏️ Editar Servicio</h2>
+
+    <div class="card p-3 mt-4">
+        <div class="card-body">
+            <form id="servicioForm" method="POST" action="/vetsmart/admin/servicios/<?= htmlspecialchars($servicio['id']) ?>/actualizar">
+                <input type="hidden" name="id" value="<?= htmlspecialchars($servicio['id']) ?>">
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nombre</label>
+                        <input type="text" class="form-control" name="nombre" value="<?= htmlspecialchars($servicio['nombre']) ?>" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Duración (min)</label>
+                        <input type="number" class="form-control" name="duracion_min" value="<?= htmlspecialchars($servicio['duracion_min']) ?>" required>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold">Descripción</label>
+                        <textarea class="form-control" name="descripcion" rows="3"><?= htmlspecialchars($servicio['descripcion']) ?></textarea>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Precio (COP)</label>
+                        <input type="number" class="form-control" name="precio" value="<?= htmlspecialchars($servicio['precio']) ?>" required>
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-center">
+                        <div class="form-check mt-4">
+                            <input type="checkbox" class="form-check-input" name="activo" id="servicio_activo" value="1" <?= $servicio['activo'] ? 'checked' : '' ?>>
+                            <label class="form-check-label fw-semibold" for="servicio_activo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-success shadow-sm">Actualizar Servicio</button>
+                    <a href="/vetsmart/admin/servicios" class="btn btn-secondary shadow-sm">Cancelar</a>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="mb-3">
-        <label>Descripción</label>
-        <textarea name="descripcion" class="form-control" rows="3" required><?= htmlspecialchars($servicio['descripcion']) ?></textarea>
-    </div>
-    <div class="mb-3">
-        <label>Precio (COP)</label>
-        <input type="number" name="precio" class="form-control" value="<?= $servicio['precio'] ?>" required>
-    </div>
-    <div class="mb-3">
-        <label>Duración (minutos)</label>
-        <input type="number" name="duracion_min" class="form-control" value="<?= $servicio['duracion_min'] ?>" required>
-    </div>
-    <div class="mb-3">
-        <label>Estado</label>
-        <select name="activo" class="form-control">
-            <option value="1" <?= $servicio['activo'] ? 'selected' : '' ?>>Activo</option>
-            <option value="0" <?= !$servicio['activo'] ? 'selected' : '' ?>>Inactivo</option>
-        </select>
-    </div>
-    <button type="submit" class="btn btn-success">Actualizar</button>
-    <a href="/vetsmart/admin/servicios" class="btn btn-secondary">Cancelar</a>
-</form>
+</div>

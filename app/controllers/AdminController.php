@@ -7,6 +7,13 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
+use PhpOffice\PhpSpreadsheet\Chart\Layout;
+use PhpOffice\PhpSpreadsheet\Chart\Legend;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
 
 class AdminController extends Controller
 {
@@ -455,13 +462,20 @@ public function actualizarHorarioSemana($id) {
     exit;
 }
 
-public function eliminarHorarioSemana($id) {
-    $stmt = $this->pdo->prepare("DELETE FROM horarios_semana WHERE id = :id");
-    $stmt->execute([':id' => $id]);
+public function eliminarSemana($id)
+{
+    try {
+        $stmt = $this->pdo->prepare("DELETE FROM horarios_semana WHERE id = :id");
+        $stmt->execute([':id' => $id]);
 
-    $_SESSION['flash_success'] = "Horario eliminado.";
-    header("Location: /vetsmart/admin/horarios");
-    exit;
+        $_SESSION['flash_success'] = "Horario eliminado.";
+        header("Location: /vetsmart/admin/horarios");
+        exit;
+    } catch (Exception $e) {
+        $_SESSION['flash_error'] = "Error al eliminar horario: " . $e->getMessage();
+        header("Location: /vetsmart/admin/horarios");
+        exit;
+    }
 }
 public function editarTurno($id) {
     $stmt = $this->pdo->prepare("SELECT * FROM turnos_empleado WHERE id = :id");
@@ -1014,7 +1028,8 @@ public function finanzasIndex()
         LEFT JOIN usuarios u_cli ON ci.cliente_id = u_cli.id
         LEFT JOIN usuarios u_emp ON ci.empleado_id = u_emp.id
         WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
-          AND ci.estado IN ('completado','confirmada','finalizada')  -- estados que generan ingresos
+          AND ci.estado IN ('completado','confirmada','finalizada')
+          AND u_emp.role_id IN (3, 4, 5)  -- Filtrar por roles de empleados
         ORDER BY ci.fecha DESC
     ";
 
@@ -1040,45 +1055,104 @@ public function exportarFinanzasExcel()
     $hasta = $_GET['hasta'] ?? date('Y-m-t');
 
     $sql = "
-        SELECT ci.id, DATE(ci.fecha) AS fecha, s.nombre AS servicio, 
+        SELECT
+            ci.id,
+            DATE(ci.fecha) AS fecha,
+            s.nombre AS servicio,
             CONCAT(u_cli.nombre,' ',u_cli.apellido) AS cliente,
             COALESCE(ci.precio, s.precio, 0) AS valor
         FROM citas ci
         LEFT JOIN servicios s ON ci.servicio_id = s.id
         LEFT JOIN usuarios u_cli ON ci.cliente_id = u_cli.id
+        LEFT JOIN usuarios u_emp ON ci.empleado_id = u_emp.id
         WHERE DATE(ci.fecha) BETWEEN :desde AND :hasta
-        AND ci.estado = 'completado'
+        AND ci.estado IN ('completado','confirmada','finalizada')
+        AND u_emp.role_id IN (3, 4, 5)
         ORDER BY ci.fecha ASC
     ";
     $stmt = $this->pdo->prepare($sql);
     $stmt->execute([':desde'=>$desde, ':hasta'=>$hasta]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // --- AGREGAR DATOS PARA GRÁFICO ---
+    $ingresosPorServicio = [];
+    foreach ($rows as $row) {
+        $servicio = $row['servicio'] ?? 'N/A';
+        $valor = (float)($row['valor'] ?? 0);
+        if (!isset($ingresosPorServicio[$servicio])) {
+            $ingresosPorServicio[$servicio] = 0;
+        }
+        $ingresosPorServicio[$servicio] += $valor;
+    }
+    arsort($ingresosPorServicio); // Ordenar de mayor a menor
+
     $spreadsheet = new Spreadsheet();
+
+    // --- HOJA 1: DATOS CRUDOS ---
     $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle("Finanzas");
+    $sheet->setTitle("Finanzas Detallado");
 
     $headers = ["ID","Fecha","Servicio","Cliente","Valor"];
-    $col = 'A';
-    foreach ($headers as $h) {
-        $sheet->setCellValue($col.'1', $h);
-        $sheet->getStyle($col.'1')->getFont()->setBold(true);
-        $col++;
-    }
+    $sheet->fromArray($headers, null, 'A1');
+    $sheet->fromArray($rows, null, 'A2');
+    $sheet->getStyle('A1:E1')->getFont()->setBold(true);
 
-    $row=2;
-    foreach($rows as $r){
-        $sheet->setCellValue('A'.$row,$r['id']);
-        $sheet->setCellValue('B'.$row,$r['fecha']);
-        $sheet->setCellValue('C'.$row,$r['servicio']);
-        $sheet->setCellValue('D'.$row,$r['cliente']);
-        $sheet->setCellValue('E'.$row,$r['valor']);
-        $row++;
+    // --- HOJA 2: RESUMEN Y GRÁFICO ---
+    $summarySheet = $spreadsheet->createSheet();
+    $summarySheet->setTitle("Resumen y Gráfico");
+
+    $summaryData = [['Servicio', 'Total Ingresos']];
+    foreach ($ingresosPorServicio as $servicio => $total) {
+        $summaryData[] = [$servicio, $total];
     }
+    $summarySheet->fromArray($summaryData, null, 'A1');
+    $summarySheet->getStyle('A1:B1')->getFont()->setBold(true);
+
+    // --- CREACIÓN DEL GRÁFICO ---
+    $dataSeriesLabels = [
+        new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Resumen y Gráfico!$B$1', null, 1),
+    ];
+    $xAxisTickValues = [
+        new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Resumen y Gráfico!$A$2:$A$'.(count($summaryData)), null, count($summaryData)-1),
+    ];
+    $dataSeriesValues = [
+        new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Resumen y Gráfico!$B$2:$B$'.(count($summaryData)), null, count($summaryData)-1),
+    ];
+
+    $series = new DataSeries(
+        DataSeries::TYPE_BARCHART,
+        DataSeries::GROUPING_STANDARD,
+        range(0, count($dataSeriesValues) - 1),
+        $dataSeriesLabels,
+        $xAxisTickValues,
+        $dataSeriesValues
+    );
+    $series->setPlotDirection(DataSeries::DIRECTION_COL);
+
+    $plotArea = new PlotArea(null, [$series]);
+    $legend = new Legend(Legend::POSITION_RIGHT, null, false);
+    $title = new Title('Ingresos Totales por Servicio');
+    $yAxisLabel = new Title('Ingresos (COP)');
+
+    $chart = new Chart(
+        'chart1',
+        $title,
+        $legend,
+        $plotArea,
+        true,
+        0,
+        null,
+        $yAxisLabel
+    );
+
+    $chart->setTopLeftPosition('D2');
+    $chart->setBottomRightPosition('O20');
+    $summarySheet->addChart($chart);
 
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header("Content-Disposition: attachment; filename=finanzas_{$desde}_{$hasta}.xlsx");
     $writer = new Xlsx($spreadsheet);
+    $writer->setIncludeCharts(true);
     $writer->save('php://output');
     exit;
 }
