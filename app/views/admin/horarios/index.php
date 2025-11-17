@@ -63,12 +63,22 @@
             <div class="modal fade" id="editarSemana<?= $h['id'] ?>" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
-                <form method="POST" action="/vetsmart/admin/horarios/<?= $h['id'] ?>/actualizarSemana">
+                <form method="POST" action="/vetsmart/admin/horarios/<?= $h['id'] ?>/actualizarHorarioSemana">
                     <div class="modal-header bg-warning text-white">
                     <h5 class="modal-title">Editar Horario Semanal</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Empleado</label>
+                        <select name="empleado_id" class="form-select" required>
+                            <?php foreach ($empleados as $e): ?>
+                                <option value="<?= $e['id'] ?>" <?= ($e['id'] == $h['empleado_id']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($e['nombre'] . ' ' . $e['apellido']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <label>Día</label>
                         <select name="dia" class="form-select" required>
@@ -150,6 +160,16 @@
                     </div>
                     <div class="modal-body">
                     <div class="mb-3">
+                        <label>Empleado</label>
+                        <select name="empleado_id" class="form-select" required>
+                            <?php foreach ($empleados as $e): ?>
+                                <option value="<?= $e['id'] ?>" <?= ($e['id'] == $t['empleado_id']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($e['nombre'] . ' ' . $e['apellido']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label>Inicio</label>
                         <input type="datetime-local" name="inicio" value="<?= date('Y-m-d\TH:i', strtotime($t['inicio'])) ?>" class="form-control" required>
                     </div>
@@ -230,6 +250,16 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Empleado</label>
+                        <select name="usuario_id" class="form-select" required>
+                            <?php foreach ($empleados as $e): ?>
+                                <option value="<?= $e['id'] ?>" <?= ($e['id'] == $s['usuario_id']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($e['nombre'] . ' ' . $e['apellido']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <label>Tipo</label>
                         <select name="tipo" class="form-select" required>
