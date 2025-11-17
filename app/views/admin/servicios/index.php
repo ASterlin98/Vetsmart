@@ -6,14 +6,27 @@
     <div class="d-flex gap-2">
       <input type="text" id="searchServicio" class="form-control" placeholder="🔍 Buscar servicio...">
       <!-- Botón que abre modal Crear -->
-      <button class="btn btn-primary"
-              data-bs-toggle="modal"
-              data-bs-target="#servicioModal"
-              onclick="openCrearServicio()">
+      <a href="/vetsmart/admin/servicios/crear" class="btn btn-primary">
         ➕ Nuevo Servicio
-      </button>
+      </a>
     </div>
   </div>
+
+  <!-- Mensajes flash -->
+  <?php if (isset($_SESSION['flash_success'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?= $_SESSION['flash_success'] ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php unset($_SESSION['flash_success']); ?>
+  <?php endif; ?>
+  <?php if (isset($_SESSION['flash_error'])): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <?= $_SESSION['flash_error'] ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php unset($_SESSION['flash_error']); ?>
+  <?php endif; ?>
 
   <?php if (empty($servicios)): ?>
     <div class="alert alert-info text-center p-4 rounded shadow-sm">
@@ -47,12 +60,9 @@
                         : '<span class="badge bg-secondary px-3 py-2">Inactivo</span>' ?>
                 </td>
                 <td>
-                  <button class="btn btn-sm btn-warning shadow-sm"
-                          data-bs-toggle="modal"
-                          data-bs-target="#servicioModal"
-                          onclick='openEditarServicio(<?= json_encode($s) ?>)'>
-                    ✏️
-                  </button>
+                  <a href="/vetsmart/admin/servicios/<?= $s['id'] ?>/editar"
+                     class="btn btn-sm btn-warning shadow-sm"
+                     title="Editar">✏️</a>
                   <a href="/vetsmart/admin/servicios/<?= $s['id'] ?>/eliminar" 
                      class="btn btn-sm btn-danger shadow-sm" 
                      onclick="return confirm('¿Eliminar este servicio?')" 
@@ -68,92 +78,7 @@
   <?php endif; ?>
 </div>
 
-<!-- ========== MODAL CREAR/EDITAR SERVICIO ========== -->
-<div class="modal fade" id="servicioModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content shadow-lg border-0 rounded-3">
-      <form id="servicioForm" method="POST">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" id="modalServicioTitle">Nuevo Servicio</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-
-        <div class="modal-body row g-3">
-          <input type="hidden" name="id" id="servicio_id">
-
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Nombre</label>
-            <input type="text" class="form-control" name="nombre" id="servicio_nombre" required>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Duración (min)</label>
-            <input type="number" class="form-control" name="duracion_min" id="servicio_duracion" required>
-          </div>
-
-          <div class="col-md-12">
-            <label class="form-label fw-semibold">Descripción</label>
-            <textarea class="form-control" name="descripcion" id="servicio_descripcion"></textarea>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Precio (COP)</label>
-            <input type="number" class="form-control" name="precio" id="servicio_precio" required>
-          </div>
-
-          <div class="col-md-6 d-flex align-items-center">
-            <div class="form-check mt-4">
-              <input type="checkbox" class="form-check-input" name="activo" id="servicio_activo" checked>
-              <label class="form-check-label fw-semibold" for="servicio_activo">Activo</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-success shadow-sm">Guardar</button>
-          <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">Cancelar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<style>
-/* Botón con gradiente */
-.btn-gradient {
-  background: linear-gradient(45deg, #007bff, #00c6ff);
-  color: #fff;
-  border: none;
-}
-.btn-gradient:hover {
-  background: linear-gradient(45deg, #0056b3, #0099cc);
-  color: #fff;
-}
-</style>
-
 <script>
-function openCrearServicio() {
-    document.getElementById("modalServicioTitle").innerText = "Nuevo Servicio";
-    document.getElementById("servicioForm").action = "/vetsmart/admin/servicios/guardar";
-    document.getElementById("servicio_id").value = "";
-    document.getElementById("servicio_nombre").value = "";
-    document.getElementById("servicio_duracion").value = "";
-    document.getElementById("servicio_descripcion").value = "";
-    document.getElementById("servicio_precio").value = "";
-    document.getElementById("servicio_activo").checked = true;
-}
-
-function openEditarServicio(s) {
-    document.getElementById("modalServicioTitle").innerText = "Editar Servicio";
-    document.getElementById("servicioForm").action = "/vetsmart/admin/servicios/" + s.id + "/actualizar";
-    document.getElementById("servicio_id").value = s.id;
-    document.getElementById("servicio_nombre").value = s.nombre;
-    document.getElementById("servicio_duracion").value = s.duracion_min;
-    document.getElementById("servicio_descripcion").value = s.descripcion;
-    document.getElementById("servicio_precio").value = s.precio;
-    document.getElementById("servicio_activo").checked = s.activo == 1;
-}
-
 /* 🔍 Buscador dinámico */
 document.getElementById("searchServicio").addEventListener("keyup", function() {
     let value = this.value.toLowerCase();

@@ -46,7 +46,20 @@ class ServiciosController extends Controller {
     }
 
     public function eliminar($id) {
-        $this->servicioModel->eliminar($id);
+        try {
+            if ($this->servicioModel->eliminar($id)) {
+                $_SESSION['flash_success'] = "Servicio eliminado correctamente.";
+            } else {
+                $_SESSION['flash_error'] = "No se pudo eliminar el servicio.";
+            }
+        } catch (PDOException $e) {
+            //  código de error para violación de FK
+            if ($e->getCode() == '23000') {
+                $_SESSION['flash_error'] = "No se puede eliminar el servicio porque está asociado a citas existentes. Por favor, reasigne o elimine esas citas primero.";
+            } else {
+                $_SESSION['flash_error'] = "Error en la base de datos: " . $e->getMessage();
+            }
+        }
         header('Location: /vetsmart/admin/servicios');
         exit;
     }
