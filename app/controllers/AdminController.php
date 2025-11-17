@@ -439,13 +439,12 @@ public function actualizarHorarioSemana($id) {
             WHERE id=:id
         ");
 
-        $stmt->execute([
-            ':empleado_id' => (int)$_POST['empleado_id'],
-            ':dia' => $_POST['dia'],
-            ':hora_inicio' => $_POST['hora_inicio'],
-            ':hora_fin' => $_POST['hora_fin'],
-            ':id' => $id
-        ]);
+        $stmt->bindValue(':empleado_id', (int)$_POST['empleado_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':dia', $_POST['dia']);
+        $stmt->bindValue(':hora_inicio', $_POST['hora_inicio']);
+        $stmt->bindValue(':hora_fin', $_POST['hora_fin']);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
 
         $_SESSION['flash_success'] = "Horario actualizado correctamente.";
     } catch (Exception $e) {
@@ -491,14 +490,13 @@ public function actualizarTurno($id)
             SET empleado_id = :empleado_id, inicio = :inicio, fin = :fin, tipo = :tipo, notas = :notas
             WHERE id = :id
         ");
-        $stmt->execute([
-            ':empleado_id' => (int)$_POST['empleado_id'],
-            ':inicio' => $_POST['inicio'],
-            ':fin'    => $_POST['fin'],
-            ':tipo'   => $_POST['tipo'],
-            ':notas'  => $_POST['notas'] ?? null,
-            ':id'     => $id
-        ]);
+        $stmt->bindValue(':empleado_id', (int)$_POST['empleado_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':inicio', $_POST['inicio']);
+        $stmt->bindValue(':fin', $_POST['fin']);
+        $stmt->bindValue(':tipo', $_POST['tipo']);
+        $stmt->bindValue(':notas', $_POST['notas'] ?? null);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
 
         $_SESSION['flash_success'] = "Turno actualizado.";
         header("Location: /vetsmart/admin/horarios");
@@ -553,14 +551,13 @@ public function actualizarSolicitud($id)
             SET usuario_id = :usuario_id, tipo = :tipo, fecha_inicio = :fecha_inicio, fecha_fin = :fecha_fin, motivo = :motivo
             WHERE id = :id
         ");
-        $stmt->execute([
-            ':usuario_id'   => (int)$_POST['usuario_id'],
-            ':tipo'         => $_POST['tipo'],
-            ':fecha_inicio' => $_POST['fecha_inicio'],
-            ':fecha_fin'    => $_POST['fecha_fin'],
-            ':motivo'       => $_POST['motivo'] ?? null,
-            ':id'           => $id
-        ]);
+        $stmt->bindValue(':usuario_id', (int)$_POST['usuario_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':tipo', $_POST['tipo']);
+        $stmt->bindValue(':fecha_inicio', $_POST['fecha_inicio']);
+        $stmt->bindValue(':fecha_fin', $_POST['fecha_fin']);
+        $stmt->bindValue(':motivo', $_POST['motivo'] ?? null);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
 
         $_SESSION['flash_success'] = "Solicitud actualizada.";
         header("Location: /vetsmart/admin/horarios");
