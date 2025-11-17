@@ -883,31 +883,54 @@ public function estadisticasAgendaJson()
 
 public function exportarExcel()
 {
+    // Obtener filtros de la URL
     $desde = $_GET['desde'] ?? date('Y-m-01');
     $hasta = $_GET['hasta'] ?? date('Y-m-t');
+    $empleado_id = $_GET['empleado_id'] ?? null;
+    $servicio_id = $_GET['servicio_id'] ?? null;
+    $estado = $_GET['estado'] ?? null;
 
-    $stmt = $this->pdo->prepare("
+    // Construcción de la consulta
+    $sql = "
         SELECT 
             c.id,
             DATE(c.fecha) AS fecha,
             TIME(c.fecha) AS hora,
             s.nombre AS servicio,
             m.nombre AS mascota,
-            cli.nombre AS cliente,
-            u.nombre AS empleado
+            CONCAT(cli.nombre, ' ', cli.apellido) AS cliente,
+            CONCAT(u.nombre, ' ', u.apellido) AS empleado,
+            c.estado
         FROM citas c
-        JOIN servicios s ON c.servicio_id = s.id
-        JOIN mascotas m ON c.mascota_id = m.id
-        JOIN usuarios cli ON m.dueno_id = cli.id
-        JOIN usuarios u ON c.empleado_id = u.id
-        WHERE c.fecha BETWEEN :desde AND :hasta
-        ORDER BY c.fecha ASC
-    ");
+        LEFT JOIN servicios s ON c.servicio_id = s.id
+        LEFT JOIN mascotas m ON c.mascota_id = m.id
+        LEFT JOIN usuarios cli ON c.cliente_id = cli.id
+        LEFT JOIN usuarios u ON c.empleado_id = u.id
+        WHERE DATE(c.fecha) BETWEEN :desde AND :hasta
+    ";
 
-    $stmt->execute([
+    $params = [
         ':desde' => $desde,
         ':hasta' => $hasta
-    ]);
+    ];
+
+    if ($empleado_id) {
+        $sql .= " AND c.empleado_id = :empleado_id";
+        $params[':empleado_id'] = $empleado_id;
+    }
+    if ($servicio_id) {
+        $sql .= " AND c.servicio_id = :servicio_id";
+        $params[':servicio_id'] = $servicio_id;
+    }
+    if ($estado) {
+        $sql .= " AND c.estado = :estado";
+        $params[':estado'] = $estado;
+    }
+
+    $sql .= " ORDER BY c.fecha ASC";
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute($params);
     $citas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $spreadsheet = new Spreadsheet();
