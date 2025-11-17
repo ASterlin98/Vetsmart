@@ -428,16 +428,29 @@ public function editarHorarioSemana($id) {
 }
 
 public function actualizarHorarioSemana($id) {
-    $stmt = $this->pdo->prepare("UPDATE horarios_semana SET empleado_id=:empleado_id, dia=:dia, hora_inicio=:hora_inicio, hora_fin=:hora_fin WHERE id=:id");
-    $stmt->execute([
-        ':empleado_id' => $_POST['empleado_id'],
-        ':dia' => $_POST['dia'],
-        ':hora_inicio' => $_POST['hora_inicio'],
-        ':hora_fin' => $_POST['hora_fin'],
-        ':id' => $id
-    ]);
+    try {
+        if (empty($_POST['empleado_id']) || empty($_POST['dia']) || empty($_POST['hora_inicio']) || empty($_POST['hora_fin'])) {
+            throw new Exception("Todos los campos son obligatorios.");
+        }
 
-    $_SESSION['flash_success'] = "Horario actualizado.";
+        $stmt = $this->pdo->prepare("
+            UPDATE horarios_semana
+            SET empleado_id=:empleado_id, dia=:dia, hora_inicio=:hora_inicio, hora_fin=:hora_fin
+            WHERE id=:id
+        ");
+
+        $stmt->bindValue(':empleado_id', (int)$_POST['empleado_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':dia', $_POST['dia']);
+        $stmt->bindValue(':hora_inicio', $_POST['hora_inicio']);
+        $stmt->bindValue(':hora_fin', $_POST['hora_fin']);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $_SESSION['flash_success'] = "Horario actualizado correctamente.";
+    } catch (Exception $e) {
+        $_SESSION['flash_error'] = "Error al actualizar el horario: " . $e->getMessage();
+    }
+
     header("Location: /vetsmart/admin/horarios");
     exit;
 }
@@ -474,16 +487,16 @@ public function actualizarTurno($id)
     try {
         $stmt = $this->pdo->prepare("
             UPDATE turnos_empleado
-            SET inicio = :inicio, fin = :fin, tipo = :tipo, notas = :notas
+            SET empleado_id = :empleado_id, inicio = :inicio, fin = :fin, tipo = :tipo, notas = :notas
             WHERE id = :id
         ");
-        $stmt->execute([
-            ':inicio' => $_POST['inicio'],
-            ':fin'    => $_POST['fin'],
-            ':tipo'   => $_POST['tipo'],
-            ':notas'  => $_POST['notas'] ?? null,
-            ':id'     => $id
-        ]);
+        $stmt->bindValue(':empleado_id', (int)$_POST['empleado_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':inicio', $_POST['inicio']);
+        $stmt->bindValue(':fin', $_POST['fin']);
+        $stmt->bindValue(':tipo', $_POST['tipo']);
+        $stmt->bindValue(':notas', $_POST['notas'] ?? null);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
 
         $_SESSION['flash_success'] = "Turno actualizado.";
         header("Location: /vetsmart/admin/horarios");
@@ -535,16 +548,16 @@ public function actualizarSolicitud($id)
     try {
         $stmt = $this->pdo->prepare("
             UPDATE solicitudes
-            SET tipo = :tipo, fecha_inicio = :fecha_inicio, fecha_fin = :fecha_fin, motivo = :motivo
+            SET usuario_id = :usuario_id, tipo = :tipo, fecha_inicio = :fecha_inicio, fecha_fin = :fecha_fin, motivo = :motivo
             WHERE id = :id
         ");
-        $stmt->execute([
-            ':tipo'         => $_POST['tipo'],
-            ':fecha_inicio' => $_POST['fecha_inicio'],
-            ':fecha_fin'    => $_POST['fecha_fin'],
-            ':motivo'       => $_POST['motivo'] ?? null,
-            ':id'           => $id
-        ]);
+        $stmt->bindValue(':usuario_id', (int)$_POST['usuario_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':tipo', $_POST['tipo']);
+        $stmt->bindValue(':fecha_inicio', $_POST['fecha_inicio']);
+        $stmt->bindValue(':fecha_fin', $_POST['fecha_fin']);
+        $stmt->bindValue(':motivo', $_POST['motivo'] ?? null);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
 
         $_SESSION['flash_success'] = "Solicitud actualizada.";
         header("Location: /vetsmart/admin/horarios");
@@ -572,30 +585,6 @@ public function eliminarSolicitud($id)
     }
 }
 
-public function actualizarSemana($id)
-{
-    try {
-        $stmt = $this->pdo->prepare("
-            UPDATE horarios_semana
-            SET dia = :dia, hora_inicio = :hora_inicio, hora_fin = :hora_fin
-            WHERE id = :id
-        ");
-        $stmt->execute([
-            ':dia'         => $_POST['dia'],
-            ':hora_inicio' => $_POST['hora_inicio'],
-            ':hora_fin'    => $_POST['hora_fin'],
-            ':id'          => $id
-        ]);
-
-        $_SESSION['flash_success'] = "Horario semanal actualizado.";
-        header("Location: /vetsmart/admin/horarios");
-        exit;
-    } catch (Exception $e) {
-        $_SESSION['flash_error'] = "Error al actualizar horario: " . $e->getMessage();
-        header("Location: /vetsmart/admin/horarios");
-        exit;
-    }
-}
 
 public function eliminarSemana($id)
 {
@@ -883,31 +872,54 @@ public function estadisticasAgendaJson()
 
 public function exportarExcel()
 {
+    // Obtener filtros de la URL
     $desde = $_GET['desde'] ?? date('Y-m-01');
     $hasta = $_GET['hasta'] ?? date('Y-m-t');
+    $empleado_id = $_GET['empleado_id'] ?? null;
+    $servicio_id = $_GET['servicio_id'] ?? null;
+    $estado = $_GET['estado'] ?? null;
 
-    $stmt = $this->pdo->prepare("
+    // Construcción de la consulta
+    $sql = "
         SELECT 
             c.id,
             DATE(c.fecha) AS fecha,
             TIME(c.fecha) AS hora,
             s.nombre AS servicio,
             m.nombre AS mascota,
-            cli.nombre AS cliente,
-            u.nombre AS empleado
+            CONCAT(cli.nombre, ' ', cli.apellido) AS cliente,
+            CONCAT(u.nombre, ' ', u.apellido) AS empleado,
+            c.estado
         FROM citas c
-        JOIN servicios s ON c.servicio_id = s.id
-        JOIN mascotas m ON c.mascota_id = m.id
-        JOIN usuarios cli ON m.dueno_id = cli.id
-        JOIN usuarios u ON c.empleado_id = u.id
-        WHERE c.fecha BETWEEN :desde AND :hasta
-        ORDER BY c.fecha ASC
-    ");
+        LEFT JOIN servicios s ON c.servicio_id = s.id
+        LEFT JOIN mascotas m ON c.mascota_id = m.id
+        LEFT JOIN usuarios cli ON c.cliente_id = cli.id
+        LEFT JOIN usuarios u ON c.empleado_id = u.id
+        WHERE DATE(c.fecha) BETWEEN :desde AND :hasta
+    ";
 
-    $stmt->execute([
+    $params = [
         ':desde' => $desde,
         ':hasta' => $hasta
-    ]);
+    ];
+
+    if ($empleado_id) {
+        $sql .= " AND c.empleado_id = :empleado_id";
+        $params[':empleado_id'] = $empleado_id;
+    }
+    if ($servicio_id) {
+        $sql .= " AND c.servicio_id = :servicio_id";
+        $params[':servicio_id'] = $servicio_id;
+    }
+    if ($estado) {
+        $sql .= " AND c.estado = :estado";
+        $params[':estado'] = $estado;
+    }
+
+    $sql .= " ORDER BY c.fecha ASC";
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute($params);
     $citas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $spreadsheet = new Spreadsheet();
