@@ -40,6 +40,11 @@ $csrf = $_SESSION['csrf_token'];
 
     .fc .fc-event { border: 0; border-radius: 8px; padding:6px 8px; font-size:0.9rem; }
 
+  /* quick state controls inside events */
+  .fc-quick-state { z-index: 60; }
+  .fc-quick-state .btn { box-shadow: none; }
+  .fc-quick-state-menu { min-width: 120px; }
+
     @media (max-width: 867px) {
       #calendar { height: 500px !important; }
     }
@@ -210,6 +215,37 @@ $csrf = $_SESSION['csrf_token'];
     return fetch(url, opts);
   }
 
+  // Cambiar estado de cita vía AJAX
+  function changeEstadoCita(citaId, nuevoEstado, btnEl = null, eventEl = null) {
+    if (!citaId) return;
+    const params = new URLSearchParams();
+    params.append('id', citaId);
+    params.append('estado', nuevoEstado);
+
+    fetchWithCsrf(`${basePath}/veterinario/citas/actualizar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+      body: params.toString()
+    })
+    .then(r => r.json())
+    .then(resp => {
+      if (resp && resp.success) {
+        toastBootstrap('Estado actualizado', 'success');
+        // actualizar texto del botón si se pasó
+        if (btnEl) btnEl.textContent = nuevoEstado.charAt(0).toUpperCase() + nuevoEstado.slice(1);
+        // actualizar estilo del evento si se pasó
+        if (eventEl) {
+          if (nuevoEstado === 'confirmada') eventEl.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--success') || '#198754';
+          else if (nuevoEstado === 'cancelada') eventEl.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--danger') || '#dc3545';
+          else eventEl.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--accent') || '';
+        }
+      } else {
+        toastBootstrap((resp && resp.message) ? resp.message : 'No se pudo actualizar el estado', 'error');
+      }
+    })
+    .catch(err => { console.error('Error actualizando estado', err); toastBootstrap('Error actualizando estado', 'error'); });
+  }
+
   // referencias DOM
   const calendarEl = document.getElementById('calendar');
   const clienteSelect = document.getElementById('clienteSelect');
@@ -267,6 +303,61 @@ $csrf = $_SESSION['csrf_token'];
       const servicio = info.event.extendedProps.servicio_nombre || '';
       const mascota = info.event.extendedProps.nombre_mascota || '';
       info.el.setAttribute('title', `${info.event.title}\n${mascota} • ${servicio}`);
+      // Añadir control rápido para cambiar estado (botón pequeño)
+      try {
+        const controls = document.createElement('div');
+        controls.className = 'fc-quick-state d-flex gap-1';
+        controls.style.position = 'absolute';
+        controls.style.top = '4px';
+        controls.style.right = '6px';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-sm btn-light';
+        btn.style.padding = '2px 6px';
+        btn.style.fontSize = '0.7rem';
+        btn.textContent = estado.charAt(0).toUpperCase() + estado.slice(1);
+        btn.title = 'Cambiar estado';
+
+        // dropdown pequeño
+        const menu = document.createElement('div');
+        menu.className = 'fc-quick-state-menu d-none';
+        menu.style.position = 'absolute';
+        menu.style.top = '26px';
+        menu.style.right = '0';
+        menu.style.background = '#fff';
+        menu.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
+        menu.style.borderRadius = '6px';
+        menu.style.padding = '6px';
+        ['programada','confirmada','cancelada'].forEach(s => {
+          const it = document.createElement('div');
+          it.className = 'fc-quick-state-item';
+          it.textContent = s.charAt(0).toUpperCase() + s.slice(1);
+          it.style.cursor = 'pointer';
+          it.style.padding = '4px 8px';
+          it.style.borderRadius = '4px';
+          it.addEventListener('mouseenter', ()=> it.style.background='#f1f5f9');
+          it.addEventListener('mouseleave', ()=> it.style.background='');
+          it.addEventListener('click', (ev)=>{
+            ev.stopPropagation();
+            const nuevo = s;
+            const id = info.event.id;
+            // llamada AJAX para actualizar estado
+            changeEstadoCita(id, nuevo, btn, info.el);
+            menu.classList.add('d-none');
+          });
+          menu.appendChild(it);
+        });
+
+        btn.addEventListener('click', function(e){ e.stopPropagation(); menu.classList.toggle('d-none'); });
+        controls.appendChild(btn);
+        controls.appendChild(menu);
+        // asegurar posición relativa en el contenedor
+        info.el.style.position = info.el.style.position || 'relative';
+        info.el.appendChild(controls);
+      } catch (e) {
+        console.error('Error agregando control de estado rápido', e);
+      }
     }
   });
 

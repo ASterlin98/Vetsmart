@@ -193,9 +193,24 @@ $mascotas = $mascotas ?? [];
                           <div class="small text-muted">ID: <?= htmlspecialchars($c['mascota_id'] ?? '-') ?></div>
                         </td>
                         <td><?= htmlspecialchars($c['servicio_id'] ?? '-') ?></td>
-                        <td><?= htmlspecialchars($c['estado'] ?? '-') ?></td>
                         <td class="text-center">
-                          <div class="d-flex justify-content-center gap-1">
+                          <?php $estado = $c['estado'] ?? 'programada'; ?>
+                          <div class="d-flex justify-content-center">
+                            <div class="btn-group">
+                              <button type="button" class="btn btn-sm btn-outline-secondary btn-estado" data-cita-id="<?= htmlspecialchars($c['id']) ?>"><?= htmlspecialchars(ucfirst($estado)) ?></button>
+                              <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden">Toggle</span>
+                              </button>
+                              <ul class="dropdown-menu">
+                                <li><a class="dropdown-item cambiar-estado" href="#" data-estado="programada">Programada</a></li>
+                                <li><a class="dropdown-item cambiar-estado" href="#" data-estado="confirmada">Confirmada</a></li>
+                                <li><a class="dropdown-item cambiar-estado" href="#" data-estado="cancelada">Cancelada</a></li>
+                              </ul>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="text-center">
+                          <div class="d-flex justify-content-center gap-1 align-items-center">
                             <a href="/vetsmart/veterinario/consultas/crear/<?= htmlspecialchars($c['mascota_id'] ?? '') ?>?cita_id=<?= htmlspecialchars($c['id']) ?>"
                               class="btn btn-sm btn-outline-primary btn-action" title="Crear consulta desde esta cita">
                               <i class="bi bi-plus-lg"></i>
@@ -317,6 +332,49 @@ document.addEventListener('DOMContentLoaded', function () {
   modalEl.addEventListener('hidden.bs.modal', () => content.innerHTML = '');
   const tipList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
   tipList.forEach(t => new bootstrap.Tooltip(t));
+});
+
+// Función para realizar la petición AJAX de cambio de estado (reusa endpoint de citas actualizar)
+function changeEstadoCitaConsulta(citaId, nuevoEstado, btnEl) {
+  if (!citaId) return;
+  const params = new URLSearchParams();
+  params.append('id', citaId);
+  params.append('estado', nuevoEstado);
+
+  fetch('/vetsmart/veterinario/citas/actualizar', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+    body: params.toString()
+  }).then(r => r.json()).then(resp => {
+    if (resp && resp.success) {
+      // actualizar texto del botón
+      if (btnEl) btnEl.textContent = nuevoEstado.charAt(0).toUpperCase() + nuevoEstado.slice(1);
+      // opcional: cambiar estilo del row
+      const row = btnEl && btnEl.closest('tr');
+      if (row) {
+        row.style.background = '';
+        if (nuevoEstado === 'confirmada') row.style.background = 'rgba(25,135,84,0.06)';
+        else if (nuevoEstado === 'cancelada') row.style.background = 'rgba(220,53,69,0.06)';
+      }
+    } else {
+      alert((resp && resp.message) ? resp.message : 'No se pudo actualizar estado');
+    }
+  }).catch(err => { console.error('Error actualizando estado', err); alert('Error actualizando estado'); });
+}
+
+// Delegación de eventos para los botones de cambiar estado
+document.addEventListener('click', function(e) {
+  const a = e.target.closest('.cambiar-estado');
+  if (a) {
+    e.preventDefault();
+    const nuevo = a.dataset.estado;
+    const dropdown = a.closest('.dropdown-menu');
+    const group = dropdown ? dropdown.closest('.btn-group') : null;
+    const btn = group ? group.querySelector('.btn-estado') : null;
+    const citaId = btn ? btn.getAttribute('data-cita-id') : null;
+    if (citaId && nuevo && btn) changeEstadoCitaConsulta(citaId, nuevo, btn);
+  }
 });
 </script>
 </body>

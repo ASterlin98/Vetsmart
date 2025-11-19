@@ -59,7 +59,26 @@ class ConsultasController extends Controller {
     public function crear($mascota_id = null) {
         $mascota = null;
         if ($mascota_id) $mascota = $this->mascotaModel->getById($mascota_id);
-        $this->view('veterinario/consultas/crear', ['mascota' => $mascota], 'main_veterinario');
+        // Si viene cita_id en query string, intentar precargar datos desde la cita
+        $cita = null;
+        $citaId = $_GET['cita_id'] ?? $_GET['cita'] ?? null;
+        if ($citaId && method_exists($this->citaModel, 'getById')) {
+            try {
+                $cita = $this->citaModel->getById((int)$citaId);
+                // intentar obtener nombre de servicio si existe
+                if ($cita && !empty($cita['servicio_id'])) {
+                    $stmt = $this->db->prepare('SELECT nombre FROM servicios WHERE id = :id LIMIT 1');
+                    $stmt->execute([':id' => $cita['servicio_id']]);
+                    $r = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($r) $cita['servicio_nombre'] = $r['nombre'];
+                }
+            } catch (Exception $e) {
+                error_log('Error cargando cita para precarga de consulta: ' . $e->getMessage());
+                $cita = null;
+            }
+        }
+
+        $this->view('veterinario/consultas/crear', ['mascota' => $mascota, 'cita' => $cita], 'main_veterinario');
     }
 
     public function guardar() {
