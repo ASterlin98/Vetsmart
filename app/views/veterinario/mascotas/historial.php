@@ -251,7 +251,7 @@ if ($fotoDb !== '') {
                       <td style="max-width:320px; white-space:pre-wrap;"><?= nl2br(htmlspecialchars($c['notas'] ?? '')) ?></td>
                       <td>
                         <a href="/vetsmart/veterinario/consultas/crear/<?= $mascota['id'] ?>?cita=<?= $c['id'] ?>" class="btn btn-sm btn-outline-success mb-1">🩺 Crear Consulta</a>
-                        <a href="/vetsmart/veterinario/citas/<?= $c['id'] ?>/ver" class="btn btn-sm btn-outline-primary">Detalles</a>
+
                       </td>
                     </tr>
                   <?php endforeach; ?>

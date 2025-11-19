@@ -90,14 +90,24 @@ public function eliminar($id)
         
         $params = [$veterinario_id];
 
-        if ($desde) {
-            $sql .= " AND c.fecha >= ?";
-            $params[] = $desde;
-        }
-
-        if ($hasta) {
-            $sql .= " AND c.fecha <= ?";
-            $params[] = $hasta;
+        // Normalizar fechas y comparar por DATE(c.fecha) para incluir todo el día final
+        if ($desde && $hasta) {
+            $desde_dt = date('Y-m-d', strtotime($desde));
+            $hasta_dt = date('Y-m-d', strtotime($hasta));
+            $sql .= " AND DATE(c.fecha) BETWEEN ? AND ?";
+            $params[] = $desde_dt;
+            $params[] = $hasta_dt;
+        } else {
+            if ($desde) {
+                $desde_dt = date('Y-m-d', strtotime($desde));
+                $sql .= " AND DATE(c.fecha) >= ?";
+                $params[] = $desde_dt;
+            }
+            if ($hasta) {
+                $hasta_dt = date('Y-m-d', strtotime($hasta));
+                $sql .= " AND DATE(c.fecha) <= ?";
+                $params[] = $hasta_dt;
+            }
         }
 
         $sql .= " ORDER BY c.fecha DESC";

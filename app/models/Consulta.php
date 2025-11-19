@@ -56,17 +56,28 @@ public function getById($id) {
                 JOIN mascotas m ON c.mascota_id = m.id
                 LEFT JOIN usuarios u ON c.empleado_id = u.id
                 WHERE c.empleado_id = ?";
-        
+
         $params = [$id];
 
-        if ($desde) {
-            $sql .= " AND c.creado_en >= ?";
-            $params[] = $desde;
-        }
-
-        if ($hasta) {
-            $sql .= " AND c.creado_en <= ?";
-            $params[] = $hasta;
+        // Normalizar filtros de fecha: tratar los valores como fechas (YYYY-MM-DD)
+        if ($desde && $hasta) {
+            $desde_dt = date('Y-m-d', strtotime($desde));
+            $hasta_dt = date('Y-m-d', strtotime($hasta));
+            // Usar DATE() para incluir todas las horas del día final
+            $sql .= " AND DATE(c.creado_en) BETWEEN ? AND ?";
+            $params[] = $desde_dt;
+            $params[] = $hasta_dt;
+        } else {
+            if ($desde) {
+                $desde_dt = date('Y-m-d', strtotime($desde));
+                $sql .= " AND DATE(c.creado_en) >= ?";
+                $params[] = $desde_dt;
+            }
+            if ($hasta) {
+                $hasta_dt = date('Y-m-d', strtotime($hasta));
+                $sql .= " AND DATE(c.creado_en) <= ?";
+                $params[] = $hasta_dt;
+            }
         }
 
         $sql .= " ORDER BY c.creado_en DESC";
