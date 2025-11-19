@@ -489,6 +489,22 @@ class PeluqueroController extends Controller
             // Crear datetime para la cita
             $fecha_hora = $fecha . ' ' . $hora . ':00';
 
+            // Validar que la fecha/hora no estén en el pasado
+            try {
+                $dt = DateTime::createFromFormat('Y-m-d H:i:s', $fecha_hora);
+                if ($dt === false) { throw new Exception('Fecha inválida'); }
+                $now = new DateTime('now');
+                if ($dt < $now) {
+                    $_SESSION['flash_error'] = 'No se permiten agendar citas en fechas u horas pasadas.';
+                    header('Location: /vetsmart/peluquero/agenda/agendar');
+                    exit;
+                }
+            } catch (Throwable $e) {
+                $_SESSION['flash_error'] = 'Fecha u hora inválida.';
+                header('Location: /vetsmart/peluquero/agenda/agendar');
+                exit;
+            }
+
             // Obtener duración del servicio
             $stmt = $this->pdo->prepare("SELECT duracion_min FROM servicios WHERE id = ?");
             $stmt->execute([$servicio_id]);

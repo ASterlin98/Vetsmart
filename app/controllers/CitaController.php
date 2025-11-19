@@ -118,6 +118,22 @@ class CitaController
             exit;
         }
 
+        // Validar que la fecha+hora no estén en el pasado
+        try {
+            $dt = DateTime::createFromFormat('Y-m-d H:i', $fecha . ' ' . $hora);
+            if ($dt === false) { throw new Exception('Fecha/hora inválida'); }
+            $now = new DateTime('now');
+            if ($dt < $now) {
+                $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'No se permiten citas en fechas u horas pasadas.'];
+                header('Location: /vetsmart/recepcionista/citas-peluqueria/create');
+                exit;
+            }
+        } catch (Throwable $e) {
+            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Fecha u hora inválida.'];
+            header('Location: /vetsmart/recepcionista/citas-peluqueria/create');
+            exit;
+        }
+
         // Anti-duplicados: misma fecha+hora para peluquero o mascota
         $check = $this->pdo->prepare("SELECT COUNT(*) FROM cpeluq WHERE fecha=? AND hora=? AND (peluquero_id=? OR mascota_id=?)");
         $check->execute([$fecha, $hora, $peluquero_id, $mascota_id]);
@@ -180,6 +196,22 @@ class CitaController
         ]);
         if ((int)$check->fetchColumn() > 0) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Ya existe una cita para esa fecha y hora (empleado o mascota).'];
+            header('Location: /vetsmart/recepcionista/citas/create');
+            exit;
+        }
+
+        // Validar que la fecha completa no esté en el pasado
+        try {
+            $dt = new DateTime((string)$data['fecha']);
+            $now = new DateTime('now');
+            if ($dt < $now) {
+                $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'No se permiten citas en fechas u horas pasadas.'];
+                header('Location: /vetsmart/recepcionista/citas/create');
+                exit;
+            }
+        } catch (Throwable $e) {
+            // si la fecha es inválida, rechazamos
+            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Fecha inválida.'];
             header('Location: /vetsmart/recepcionista/citas/create');
             exit;
         }

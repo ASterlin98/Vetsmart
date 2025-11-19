@@ -38,10 +38,62 @@ class VeterinarioController extends Controller
         // si quieres búsqueda por query string (opcional)
         $q = trim($_GET['q'] ?? '');
 
-        if ($q !== '') {
-            $mascotas = $this->mascotaModel->searchWithOwner($q);
-        } else {
-            $mascotas = $this->mascotaModel->getTodasConDueño();
+        $userId = $_SESSION['user']['id'] ?? null;
+        if (!$userId) {
+            header('Location: /vetsmart/login'); exit;
+        }
+
+        // Mostrar solo mascotas que este empleado haya atendido o tenga citas asignadas.
+        // Ordenar por la última fecha de cita/consulta bajo este empleado (desc).
+        try {
+            $sql = "
+                SELECT m.*, 
+                       u.nombre AS nombre_dueno, u.apellido AS apellido_dueno,
+                       COALESCE(cd.telefono, u.telefono) AS telefono_dueno,
+                       MAX(ci.fecha) AS last_cita,
+                       MAX(co.creado_en) AS last_consulta
+                FROM mascotas m
+                LEFT JOIN usuarios u ON m.dueno_id = u.id
+                LEFT JOIN cliente_detalles cd ON cd.idusu = u.id
+                LEFT JOIN citas ci ON ci.mascota_id = m.id AND ci.empleado_id = :emp
+                LEFT JOIN consultas co ON co.mascota_id = m.id AND co.empleado_id = :emp
+                WHERE (
+                    EXISTS (SELECT 1 FROM citas c WHERE c.mascota_id = m.id AND c.empleado_id = :emp)
+                    OR EXISTS (SELECT 1 FROM consultas q WHERE q.mascota_id = m.id AND q.empleado_id = :emp)
+                )
+                ";
+
+            $params = [':emp' => $userId];
+            if ($q !== '') {
+                // filtro por nombre de mascota o dueño
+                $sql .= " AND (m.nombre LIKE :q OR u.nombre LIKE :q OR u.apellido LIKE :q) ";
+                $params[':q'] = "%{$q}%";
+            }
+
+            // Agrupar por mascota; MySQL suele permitir columnas no agrupadas cuando ONLY_FULL_GROUP_BY está desactivado.
+            // Si tu servidor tiene esa opción activada, podemos expandir el GROUP BY para incluir las columnas del dueño.
+            $sql .= " GROUP BY m.id ";
+            $sql .= " ORDER BY GREATEST(COALESCE(MAX(ci.fecha),'0000-00-00'), COALESCE(MAX(co.creado_en),'0000-00-00')) DESC ";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $mascotas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Si la consulta no devolvió filas pero el veterinario tiene citas registradas,
+            // intentar un fallback usando el método del modelo que obtiene mascotas asignadas.
+            if (empty($mascotas)) {
+                // comprobar rápidamente si hay citas para este veterinario
+                $chk = $this->db->prepare("SELECT COUNT(*) FROM citas WHERE empleado_id = :emp");
+                $chk->execute([':emp' => $userId]);
+                $cnt = (int)$chk->fetchColumn();
+                if ($cnt > 0 && method_exists($this->mascotaModel, 'getAssignedToVeterinario')) {
+                    $mascotas = $this->mascotaModel->getAssignedToVeterinario($userId, 200);
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('Error obteniendo pacientes asignados: ' . $e->getMessage());
+            // fallback: lista vacía para evitar mostrar todos
+            $mascotas = [];
         }
 
         // renderiza la vista; layout ya lo tienes main_veterinario
@@ -112,13 +164,30 @@ public function guardarCita()
         $notas       = $_POST['notas'] ?? null;
         $estado      = $_POST['estado'] ?? 'programada';
 
-        // Fecha/hora: aceptar fecha+hora por separado o campo combinado
+        // Fecha/hora: aceptar fecha+hora por separado, campos fecha+hora por separado,
+        // o un único campo datetime-local (ej. '2025-11-19T14:30') en 'fecha'.
         if (!empty($_POST['fecha_date']) && !empty($_POST['hora_time'])) {
             $fecha_date = $_POST['fecha_date'];
             $hora_time  = $_POST['hora_time'];
         } elseif (!empty($_POST['fecha']) && !empty($_POST['hora'])) {
             $fecha_date = $_POST['fecha'];
             $hora_time  = $_POST['hora'];
+        } elseif (!empty($_POST['fecha'])) {
+            // aceptar datetime-local o fecha con espacio
+            $raw = trim($_POST['fecha']);
+            // datetime-local puede venir con 'T' como separador
+            $rawNorm = str_replace('T', ' ', $raw);
+            // intentar crear DateTime directamente
+            $dtTemp = DateTime::createFromFormat('Y-m-d H:i:s', $rawNorm) ?: DateTime::createFromFormat('Y-m-d H:i', $rawNorm);
+            if (!$dtTemp) {
+                // intentar parseo flexible
+                $ts = strtotime($rawNorm);
+                if ($ts === false) throw new Exception("Fecha/hora inválida.");
+                $dtTemp = new DateTime();
+                $dtTemp->setTimestamp($ts);
+            }
+            $fecha_date = $dtTemp->format('Y-m-d');
+            $hora_time  = $dtTemp->format('H:i:s');
         } else {
             throw new Exception("Faltan fecha/hora.");
         }
@@ -155,6 +224,28 @@ public function guardarCita()
             $dtInicio->setTimestamp($ts);
         }
         $dtFin = (clone $dtInicio)->modify("+{$duracion} minutes");
+
+        // No permitir comprobar disponibilidad para fechas/horas pasadas (comparación completa)
+        $now = new DateTime('now');
+        if ($dtInicio < $now) {
+            echo json_encode(['disponible' => false, 'reason' => 'No se permiten fechas/horas pasadas.']);
+            exit;
+        }
+
+        // No permitir agendar citas en una fecha/hora pasada (comparación completa con ahora)
+        $now = new DateTime('now');
+        if ($dtInicio < $now) {
+            // Si es AJAX, devolver JSON; si no, establecer flash y redirigir al formulario
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'No se pueden agendar citas en fechas/horas pasadas.']);
+                exit;
+            } else {
+                $_SESSION['flash_error'] = 'No se pueden agendar citas en fechas/horas pasadas.';
+                header('Location: /vetsmart/veterinario/mascotas/' . (int)$mascota_id . '/agendar');
+                exit;
+            }
+        }
 
         // --- 1) validar horario semanal del empleado ---
         $stmt = $db->prepare("SELECT * FROM horarios_semana WHERE empleado_id = :id");

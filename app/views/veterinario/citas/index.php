@@ -273,10 +273,21 @@ $csrf = $_SESSION['csrf_token'];
   calendar.render();
 
   function openCreateModal(dateStr){
+    // Bloquear creación en fechas pasadas (no permitir siquiera abrir el modal)
+    const clickedDate = new Date(dateStr);
+    const today = new Date();
+    // Normalizar a YYYY-MM-DD comparando sólo la fecha (sin hora)
+    const d1 = clickedDate.toISOString().slice(0,10);
+    const d2 = today.toISOString().slice(0,10);
+    if (d1 < d2) {
+      toastBootstrap('No puedes crear una cita en una fecha pasada.', 'error');
+      return;
+    }
+
     modalTitle.textContent = 'Crear cita';
     citaIdInput.value = '';
     deleteBtn.classList.add('d-none');
-    fechaInput.value = (new Date(dateStr)).toISOString().slice(0,10);
+    fechaInput.value = d1;
     horaInput.value = '09:00';
     clienteSelect.value = '';
     mascotaSelect.innerHTML = '<option value="">-- Seleccione mascota --</option>';

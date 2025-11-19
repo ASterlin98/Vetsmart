@@ -2,24 +2,57 @@
 // app/controllers/ConsultasController.php
 require_once APP_ROOT . '/models/Consulta.php';
 require_once APP_ROOT . '/models/Mascota.php';
+require_once APP_ROOT . '/models/Cita.php';
 
 class ConsultasController extends Controller {
     private $consultaModel;
     private $mascotaModel;
+    private $citaModel;
 
     public function __construct($pdo) {
         parent::__construct($pdo);
         $this->consultaModel = new Consulta($pdo);
         $this->mascotaModel = new Mascota($pdo);
+        $this->citaModel = new Cita($pdo);
     }
 
     public function index()
     {
         $veterinarioId = $_SESSION['user']['id']; // Asegúrate que el veterinario esté autenticado
         $consultas = $this->consultaModel->getByVeterinario($veterinarioId);
+        // Obtener también las citas del veterinario para poder crear consultas desde una cita
+        try {
+            $citas = $this->citaModel->getPorVeterinario($veterinarioId);
+        } catch (Exception $e) {
+            error_log('Error obteniendo citas para consultas: ' . $e->getMessage());
+            $citas = [];
+        }
+        // Obtener mascotas que ya tienen citas asociadas a este veterinario (cualquier estado)
+        try {
+            $sql = "SELECT m.*, u.nombre AS nombre_dueno, u.apellido AS apellido_dueno, COALESCE(cd.telefono, u.telefono) AS telefono_dueno, MAX(c.fecha) AS last_cita
+                    FROM mascotas m
+                    LEFT JOIN usuarios u ON m.dueno_id = u.id
+                    LEFT JOIN cliente_detalles cd ON cd.idusu = u.id
+                    JOIN citas c ON c.mascota_id = m.id
+                    WHERE c.empleado_id = :vet
+                    GROUP BY m.id
+                    ORDER BY last_cita DESC
+            ";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':vet' => $veterinarioId]);
+            $mascotas_con_citas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log('Error obteniendo mascotas con citas para el veterinario: ' . $e->getMessage());
+            $mascotas_con_citas = [];
+        }
+
+        // Para mantener compatibilidad con la vista, exponer como 'mascotas'
+        $mascotas = $mascotas_con_citas ?? [];
 
         $this->view('veterinario/consultas/index', [
-            'consultas' => $consultas
+            'consultas' => $consultas,
+            'citas' => $citas,
+            'mascotas' => $mascotas
         ], 'main_veterinario');
     }
 

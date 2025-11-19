@@ -96,6 +96,11 @@ $mascotas = $mascotas ?? [];
         <i class="bi bi-list-check me-1"></i> Pacientes
       </button>
     </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-citas" data-bs-toggle="tab" data-bs-target="#content-citas" type="button" role="tab">
+        <i class="bi bi-calendar-check me-1"></i> Citas
+      </button>
+    </li>
   </ul>
 
   <!-- Contenido Tabs -->
@@ -144,6 +149,60 @@ $mascotas = $mascotas ?? [];
                                 <i class="bi bi-trash"></i>
                               </button>
                             </form>
+                          </div>
+                        </td>
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+    <!-- TAB 2: CITAS -->
+    <div class="tab-pane fade" id="content-citas" role="tabpanel">
+      <div class="card card-list">
+        <div class="card-body p-0">
+          <?php $citas = $citas ?? []; ?>
+          <?php if (empty($citas)): ?>
+            <div class="empty-state text-center text-muted">
+              <i class="bi bi-inbox"></i><br>
+              No tienes citas registradas.
+            </div>
+          <?php else: ?>
+            <div class="card p-3 border-0">
+              <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width:18%">Fecha</th>
+                      <th style="width:28%">Mascota</th>
+                      <th style="width:24%">Servicio</th>
+                      <th style="width:12%">Estado</th>
+                      <th class="text-center" style="width:18%">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($citas as $c): ?>
+                      <tr>
+                        <td class="small-muted"><?= htmlspecialchars(date('Y-m-d H:i', strtotime($c['fecha'] ?? '')) ) ?></td>
+                        <td>
+                          <div class="fw-semibold"><?= htmlspecialchars($c['nombre_mascota'] ?? '-') ?></div>
+                          <div class="small text-muted">ID: <?= htmlspecialchars($c['mascota_id'] ?? '-') ?></div>
+                        </td>
+                        <td><?= htmlspecialchars($c['servicio_id'] ?? '-') ?></td>
+                        <td><?= htmlspecialchars($c['estado'] ?? '-') ?></td>
+                        <td class="text-center">
+                          <div class="d-flex justify-content-center gap-1">
+                            <a href="/vetsmart/veterinario/consultas/crear/<?= htmlspecialchars($c['mascota_id'] ?? '') ?>?cita_id=<?= htmlspecialchars($c['id']) ?>"
+                              class="btn btn-sm btn-outline-primary btn-action" title="Crear consulta desde esta cita">
+                              <i class="bi bi-plus-lg"></i>
+                            </a>
+                            <a href="/vetsmart/veterinario/mascotas/<?= htmlspecialchars($c['mascota_id'] ?? '') ?>/historial" class="btn btn-sm btn-outline-info btn-action" title="Ver historial de la mascota">
+                              <i class="bi bi-eye"></i>
+                            </a>
                           </div>
                         </td>
                       </tr>

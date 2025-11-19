@@ -11,8 +11,7 @@ $header_title = '👨‍⚕️ VetSmart Veterinario';
 $nav_links = [
     ['url' => '/vetsmart/veterinario/dashboard', 'icon' => 'fas fa-home', 'text' => 'Dashboard'],
     ['url' => '/vetsmart/veterinario/agenda', 'icon' => 'fas fa-calendar-alt', 'text' => 'Mi Agenda'],
-    ['url' => '/vetsmart/veterinario/pacientes', 'icon' => 'fas fa-stethoscope', 'text' => 'Consultas'],
-    ['url' => '/vetsmart/veterinario/consultas', 'icon' => 'fas fa-file-medical', 'text' => 'Historial Clínico'],
+    ['url' => '/vetsmart/veterinario/consultas', 'icon' => 'fas fa-file-medical', 'text' => 'Estado'],
     ['url' => '/vetsmart/veterinario/reportes', 'icon' => 'fas fa-chart-bar', 'text' => 'Reportes'],
 ];
 

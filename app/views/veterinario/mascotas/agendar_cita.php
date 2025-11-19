@@ -79,8 +79,9 @@ if (!empty($mascota) && is_array($mascota)) {
         <!-- Fecha y hora -->
         <div class="mb-3">
           <label for="fecha" class="form-label">Fecha y hora</label>
-          <input id="fecha" name="fecha" type="datetime-local" class="form-control" required>
-          <div class="form-text">Seleccione la fecha y la hora de la cita.</div>
+          <?php $min_datetime = date('Y-m-d') . 'T00:00'; ?>
+          <input id="fecha" name="fecha" type="datetime-local" class="form-control" required min="<?= $min_datetime ?>">
+          <div class="form-text">Seleccione la fecha y la hora de la cita (solo hoy en adelante).</div>
         </div>
 
         <!-- Notas -->
@@ -106,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var form = document.getElementById('formAgendarCita');
   if (!form) return;
 
-  form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', function (e) {
     // client-side validation: servicio y fecha
     var servicio = document.getElementById('servicio_id').value;
     var fecha = document.getElementById('fecha').value;
@@ -115,6 +116,22 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
       alert('Seleccione un servicio y una fecha/hora válidos.');
       return false;
+    }
+
+    // validar que la fecha seleccionada no sea anterior a hoy (solo fechas previas al día actual)
+    try {
+      var selected = fecha ? new Date(fecha) : null;
+      if (selected) {
+        var today = new Date();
+        today.setHours(0,0,0,0);
+        if (selected < today) {
+          e.preventDefault();
+          alert('No puedes agendar citas en fechas anteriores a hoy.');
+          return false;
+        }
+      }
+    } catch (err) {
+      // si hay un fallo al parsear, dejar que el servidor valide
     }
 
     // disable submit button to avoid double posts

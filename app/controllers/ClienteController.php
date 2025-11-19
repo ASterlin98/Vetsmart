@@ -511,6 +511,19 @@ class ClienteController
             header('Location: /vetsmart/cliente/citas/agendar'); exit;
         }
 
+        // Validar que la fecha no esté en el pasado
+        try {
+            $dt = new DateTime($fecha);
+            $now = new DateTime('now');
+            if ($dt < $now) {
+                $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'No se permiten agendar citas en fechas u horas pasadas.'];
+                header('Location: /vetsmart/cliente/citas/agendar'); exit;
+            }
+        } catch (Throwable $e) {
+            $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Fecha/Hora inválida.'];
+            header('Location: /vetsmart/cliente/citas/agendar'); exit;
+        }
+
         $sql = "INSERT INTO citas (fecha, cliente_id, mascota_id, empleado_id, servicio_id, estado, notas, creado_por)
                 VALUES (:fecha, :cliente_id, :mascota_id, :empleado_id, :servicio_id, 'pendiente', :notas, :creado_por)";
         $st = $this->pdo->prepare($sql);
