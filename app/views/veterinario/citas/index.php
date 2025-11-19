@@ -141,11 +141,7 @@ $csrf = $_SESSION['csrf_token'];
 
             <div class="col-md-6">
               <label for="fechaInput" class="form-label">Fecha</label>
-<<<<<<< HEAD
-              <input id="fechaInput" name="fecha_date" type="date" class="form-control">
-=======
               <input id="fechaInput" name="fecha_date" type="date" class="form-control" min="<?= date('Y-m-d') ?>">
->>>>>>> 1e60e97fddd47cf967f8dfd80aadd640df3ebe5a
             </div>
             <div class="col-md-6">
               <label for="horaInput" class="form-label">Hora</label>

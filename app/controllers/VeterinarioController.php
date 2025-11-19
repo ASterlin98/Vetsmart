@@ -7,6 +7,7 @@ require_once APP_ROOT . '/models/Cita.php';
 require_once APP_ROOT . '/models/Servicio.php';
 require_once APP_ROOT . '/models/Vacuna.php';
 require_once APP_ROOT . '/models/NotaMascota.php';
+require_once APP_ROOT . '/models/Consulta.php';
 use Dompdf\Dompdf;
 class VeterinarioController extends Controller
 {
@@ -14,10 +15,16 @@ class VeterinarioController extends Controller
     private $clienteModel;
     private $citaModel;
     private $servicioModel;
+    private $notaMascotaModel;
+    protected $db;
+    protected $pdo;
 
     public function __construct($pdo)
     {
         parent::__construct($pdo);
+        // Guardar la conexión PDO en propiedades locales para uso consistente
+        $this->db = $pdo;
+        $this->pdo = $pdo;
         $this->mascotaModel = new Mascota($pdo);
         $this->clienteModel = new Cliente($pdo);
         $this->citaModel = new Cita($pdo);
