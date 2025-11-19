@@ -121,6 +121,16 @@ public function guardarCita()
             throw new Exception("Faltan datos obligatorios (mascota, servicio, fecha o hora).");
         }
 
+<<<<<<< HEAD
+=======
+        $fechaCita = new DateTime($fecha_date);
+        $hoy = new DateTime('today');
+
+        if ($fechaCita < $hoy) {
+            throw new Exception("No se puede agendar una cita en una fecha pasada.");
+        }
+
+>>>>>>> 1e60e97fddd47cf967f8dfd80aadd640df3ebe5a
         // obtener duración del servicio (si existe) - fallback 30 min
         $duracion = 30;
         $stmt = $db->prepare("SELECT duracion_min FROM servicios WHERE id = :id LIMIT 1");
