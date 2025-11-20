@@ -125,16 +125,45 @@ class RecepcionistaController extends Controller
     public function agenda(): void
     {
         $this->verificarSesion();
-        // Filtros: fecha (YYYY-mm-dd) y estado
-        $fecha = isset($_GET['fecha']) ? trim((string)$_GET['fecha']) : date('Y-m-d');
-        $dt = DateTime::createFromFormat('Y-m-d', $fecha);
-        if (!$dt || $dt->format('Y-m-d') !== $fecha) {
-            $fecha = date('Y-m-d');
+
+        // Paginación
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $perPage = 10;
+        $offset = ($page - 1) * $perPage;
+
+        // Filtros: fecha (YYYY-mm-dd) opcional y estado
+        $fecha = isset($_GET['fecha']) ? trim((string)$_GET['fecha']) : '';
+        if ($fecha !== '') {
+            $dt = DateTime::createFromFormat('Y-m-d', $fecha);
+            if (!$dt || $dt->format('Y-m-d') !== $fecha) { $fecha = ''; }
         }
 
         $estado = isset($_GET['estado']) ? trim((string)$_GET['estado']) : '';
         $estadoValido = in_array($estado, ['pendiente', 'completada'], true);
 
+        // Construir WHERE dinámico y parámetros
+        $where = ' WHERE 1=1 ';
+        $params = [];
+        if ($fecha !== '') {
+            $where .= ' AND DATE(c.fecha) = :fecha ';
+            $params[':fecha'] = $fecha;
+        }
+        if ($estadoValido) {
+            $where .= ' AND c.estado = :estado ';
+            $params[':estado'] = $estado;
+        }
+
+        // Contar total
+        try {
+            $countSql = "SELECT COUNT(*) FROM citas c" . $where;
+            $stmtCount = $this->pdo->prepare($countSql);
+            $stmtCount->execute($params);
+            $total = (int)$stmtCount->fetchColumn();
+        } catch (PDOException $e) {
+            $total = 0;
+        }
+
+        // Consulta principal con joins y paginación
         $sql = "
             SELECT 
                 c.id,
@@ -142,7 +171,7 @@ class RecepcionistaController extends Controller
                 TIME(c.fecha) AS hora,
                 c.duracion_min,
                 c.estado,
-                c.notas AS notas,   
+                c.notas AS notas,
                 c.fecha_actualizacion,
                 c.actualizado_por,
                 u_c.id AS cliente_id,
@@ -161,24 +190,22 @@ class RecepcionistaController extends Controller
             LEFT JOIN servicios s ON c.servicio_id = s.id
             LEFT JOIN mascotas m ON c.mascota_id = m.id
             LEFT JOIN usuarios u_up ON c.actualizado_por = u_up.id
-            WHERE DATE(c.fecha) = :fecha
-        ";
-
-        $params = [':fecha' => $fecha];
-        if ($estadoValido) {
-            $sql .= " AND c.estado = :estado ";
-            $params[':estado'] = $estado;
-        }
-        $sql .= " ORDER BY TIME(c.fecha) ASC";
+        " . $where . " ORDER BY c.fecha ASC LIMIT " . (int)$perPage . " OFFSET " . (int)$offset;
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
-        $citas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $citas = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        $totalPages = $perPage > 0 ? (int)ceil($total / $perPage) : 1;
 
         $content = $this->renderView('recepcionista/agenda_diaria', [
             'fecha' => $fecha,
             'estado' => $estadoValido ? $estado : '',
-            'citas' => $citas
+            'citas' => $citas,
+            'page' => $page,
+            'perPage' => $perPage,
+            'total' => $total,
+            'totalPages' => $totalPages
         ]);
 
         require APP_ROOT . '/views/layouts/main_recepcionista.php';
@@ -235,8 +262,20 @@ class RecepcionistaController extends Controller
         $this->verificarSesion();
 
         try {
-            //Consulta clientes (role_id = 6)
-            $stmt = $this->pdo->prepare("
+            // Paginación: 6 clientes por página
+            $page = max(1, (int)($_GET['page'] ?? 1));
+            $perPage = 6;
+            $offset = ($page - 1) * $perPage;
+
+            // Contar total de clientes con role_id = 6
+            $total = 0;
+            $stmtCount = $this->pdo->prepare("SELECT COUNT(*) FROM usuarios WHERE role_id = 6");
+            $stmtCount->execute();
+            $total = (int)$stmtCount->fetchColumn();
+
+            $clientes = [];
+            if ($total > 0) {
+                $sql = "
                 SELECT 
                     u.id,
                     u.nombre,
@@ -249,30 +288,44 @@ class RecepcionistaController extends Controller
                 FROM usuarios u
                 WHERE u.role_id = 6
                 ORDER BY u.nombre ASC
-            ");
-            $stmt->execute();
-            $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            // Fallback: incluir usuarios que figuran como dueños de mascotas (por si role_id no es 6)
-            if (empty($clientes)) {
+                LIMIT " . (int)$perPage . " OFFSET " . (int)$offset . "
+                ";
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute();
+                $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            } else {
+                // Fallback: incluir usuarios que figuran como dueños de mascotas (por si role_id no es 6)
                 try {
                     $ownerCol = $this->resolveMascotaOwnerColumn();
-                    $sql2 = "
-                        SELECT 
+                    $stmtCount2 = $this->pdo->prepare("SELECT COUNT(DISTINCT u.id) FROM usuarios u WHERE EXISTS (SELECT 1 FROM mascotas m WHERE m.`{$ownerCol}` = u.id)");
+                    $stmtCount2->execute();
+                    $total = (int)$stmtCount2->fetchColumn();
+
+                    if ($total > 0) {
+                        $sql2 = "
+                        SELECT DISTINCT
                             u.id, u.nombre, u.apellido, u.email, u.telefono, u.direccion, u.foto AS foto, u.created_at
                         FROM usuarios u
                         WHERE EXISTS (SELECT 1 FROM mascotas m WHERE m.`{$ownerCol}` = u.id)
                         ORDER BY u.nombre ASC
-                    ";
-                    $stmt2 = $this->pdo->prepare($sql2);
-                    $stmt2->execute();
-                    $tmp = $stmt2->fetchAll(PDO::FETCH_ASSOC);
-                    if (!empty($tmp)) { $clientes = $tmp; }
+                        LIMIT " . (int)$perPage . " OFFSET " . (int)$offset . "
+                        ";
+                        $stmt2 = $this->pdo->prepare($sql2);
+                        $stmt2->execute();
+                        $clientes = $stmt2->fetchAll(PDO::FETCH_ASSOC) ?: [];
+                    }
                 } catch (Throwable $e2) { /* ignore */ }
             }
+
+            $totalPages = $perPage > 0 ? (int)ceil($total / $perPage) : 1;
 
         } catch (PDOException $e) {
             // En caso de error en la consulta
             $clientes = [];
+            $total = 0;
+            $page = 1;
+            $perPage = 6;
+            $totalPages = 1;
             $_SESSION['mensaje'] = [
                 'tipo' => 'danger',
                 'texto' => 'Error al cargar los clientes: ' . $e->getMessage()
@@ -288,7 +341,11 @@ class RecepcionistaController extends Controller
         // Renderizar vista
         $content = $this->renderView('recepcionista/clientes_index', [
             'clientes' => $clientes,
-            'mensaje' => $mensaje
+            'mensaje' => $mensaje,
+            'page' => $page ?? 1,
+            'perPage' => $perPage ?? 6,
+            'total' => $total ?? count($clientes),
+            'totalPages' => $totalPages ?? 1
         ]);
 
         require APP_ROOT . '/views/layouts/main_recepcionista.php';
@@ -388,25 +445,6 @@ class RecepcionistaController extends Controller
             ]);
 
             $clienteId = (int)$this->pdo->lastInsertId();
-            // Si se subió foto y existe la columna en la tabla, actualizarla
-            if ($clienteId > 0 && $fotoPath && $this->hasColumn('usuarios','foto')) {
-                try {
-                    $this->pdo->prepare("UPDATE usuarios SET foto = :f WHERE id = :id")
-                        ->execute([':f' => $fotoPath, ':id' => $clienteId]);
-                } catch (Throwable $e) { /* ignorar para no romper flujo */ }
-            }
-
-            // Forzar normalización de foto a nombre de archivo en /public/uploads/clientes
-            try {
-                if ($clienteId > 0 && isset($fotoPath) && !empty($fotoPath) && $this->hasColumn('usuarios','foto')) {
-                    $fn = basename((string)$fotoPath);
-                    $oldFs = APP_ROOT . '/public/assets/uploads/clientes/' . $fn;
-                    $newDir = APP_ROOT . '/public/uploads/clientes';
-                    if (!is_dir($newDir)) { @mkdir($newDir, 0777, true); }
-                    if (@is_file($oldFs)) { @copy($oldFs, $newDir . '/' . $fn); }
-                    $this->pdo->prepare('UPDATE usuarios SET foto = :f WHERE id = :id')->execute([':f' => $fn, ':id' => $clienteId]);
-                }
-            } catch (Throwable $e) { /* ignore */ }
 
             // Asegurar que se guarda solo el nombre de la foto si se subio en este alta
             if ($clienteId > 0 && !empty($fotoClienteNombre) && $this->hasColumn('usuarios','foto')) {
@@ -659,71 +697,68 @@ class RecepcionistaController extends Controller
             if ($this->pdo->inTransaction()) { $this->pdo->rollBack(); }
             $_SESSION['mensaje'] = [
                 'tipo' => 'danger',
-                'texto' => 'No se pudo eliminar el cliente: ' . $e->getMessage()
+                'texto' => 'Error al eliminar cliente: ' . $e->getMessage()
             ];
         }
+
         header('Location: /vetsmart/recepcionista/clientes');
         exit;
     }
-//Hestion de Mascotas
+
+    // Listar mascotas con paginación (6 por página)
     public function mascotas(): void
     {
         $this->verificarSesion();
-        // Recuperar y limpiar mensaje de sesión al inicio para evitar que el goto lo salte
-        $mensaje = $_SESSION['mensaje'] ?? null;
-        if (isset($_SESSION['mensaje'])) {
-            unset($_SESSION['mensaje']);
-        }
-        $ownerCol = $this->resolveMascotaOwnerColumn();
 
-        // Consulta robusta usando la columna detectada del dueño
-        $sqlMasc = "
-            SELECT
-                m.id,
-                m.nombre,
-                m.especie,
-                m.raza,
-                m.edad,
-                m.sexo,
-                m.foto,
-                m.`{$ownerCol}` AS dueno_id,
-                u.nombre AS dueno_nombre,
-                u.apellido AS dueno_apellido
-            FROM mascotas m
-            LEFT JOIN usuarios u ON m.`{$ownerCol}` = u.id
-            ORDER BY m.nombre ASC
-        ";
         try {
-            $stMasc = $this->pdo->prepare($sqlMasc);
-            $stMasc->execute();
-            $mascotas = $stMasc->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Throwable $e) {
+            $page = max(1, (int)($_GET['page'] ?? 1));
+            $perPage = 6;
+            $offset = ($page - 1) * $perPage;
+
+            // Contar total de mascotas
+            $total = 0;
+            $stmtCount = $this->pdo->prepare("SELECT COUNT(*) FROM mascotas");
+            $stmtCount->execute();
+            $total = (int)$stmtCount->fetchColumn();
+
             $mascotas = [];
+            if ($total > 0) {
+                $ownerCol = $this->resolveMascotaOwnerColumn();
+                $sql = "
+                    SELECT m.*, u.nombre AS dueno_nombre, u.apellido AS dueno_apellido
+                    FROM mascotas m
+                    LEFT JOIN usuarios u ON m.`{$ownerCol}` = u.id
+                    ORDER BY m.nombre ASC
+                    LIMIT " . (int)$perPage . " OFFSET " . (int)$offset . "
+                ";
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute();
+                $mascotas = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            }
+
+            $totalPages = $perPage > 0 ? (int)ceil($total / $perPage) : 1;
+        } catch (PDOException $e) {
+            $mascotas = [];
+            $total = 0;
+            $page = 1;
+            $perPage = 6;
+            $totalPages = 1;
+            $_SESSION['mensaje'] = [
+                'tipo' => 'danger',
+                'texto' => 'Error al cargar las mascotas: ' . $e->getMessage()
+            ];
         }
-        goto RENDER_MASCOTAS;
 
-        $stmt = $this->pdo->prepare("
-            SELECT
-                m.id,
-                m.nombre,
-                m.especie,
-                m.raza,
-                m.edad,
-                m.sexo,
-                m.dueno_id,
-                u.nombre AS dueno_nombre,
-                u.apellido AS dueno_apellido
-            FROM mascotas m
-            LEFT JOIN usuarios u ON m.dueno_id = u.id
-            ORDER BY m.nombre ASC
-        ");
-        $stmt->execute();
-        $mascotas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $mensaje = $_SESSION['mensaje'] ?? null;
+        if (isset($_SESSION['mensaje'])) { unset($_SESSION['mensaje']); }
 
-        RENDER_MASCOTAS:
         $content = $this->renderView('recepcionista/mascotas_index', [
             'mascotas' => $mascotas,
-            'mensaje' => $mensaje
+            'mensaje' => $mensaje,
+            'page' => $page ?? 1,
+            'perPage' => $perPage ?? 6,
+            'total' => $total ?? count($mascotas),
+            'totalPages' => $totalPages ?? 1
         ]);
 
         require APP_ROOT . '/views/layouts/main_recepcionista.php';

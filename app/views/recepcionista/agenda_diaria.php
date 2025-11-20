@@ -6,8 +6,12 @@
         <i class="fas fa-calendar-day me-2 text-success"></i>Agenda Diaria
       </h1>
       <p class="text-muted mb-0">
-        Citas programadas para: 
-        <strong class="text-dark"><?= date('d/m/Y', strtotime($fecha)) ?></strong>
+        Citas programadas para:
+        <?php if (!empty($fecha)): ?>
+          <strong class="text-dark"><?= date('d/m/Y', strtotime($fecha)) ?></strong>
+        <?php else: ?>
+          <strong class="text-dark">Todas las fechas</strong>
+        <?php endif; ?>
       </p>
     </div>
     
@@ -133,8 +137,15 @@
 
   <!-- Summary Footer -->
   <div class="d-flex justify-content-between align-items-center mt-3">
+    <?php
+      $page = $page ?? 1;
+      $perPage = $perPage ?? count($citas);
+      $total = $total ?? count($citas);
+      $start = $total > 0 ? (($page - 1) * $perPage) + 1 : 0;
+      $end = $total > 0 ? min($total, $page * $perPage) : 0;
+    ?>
     <div class="text-muted small">
-      Mostrando <strong><?= count($citas) ?></strong> cita<?= count($citas) !== 1 ? 's' : '' ?> en total
+      Mostrando <strong><?= $start ?> - <?= $end ?></strong> de <strong><?= $total ?></strong> cita<?= $total !== 1 ? 's' : '' ?>
     </div>
     <?php if (!empty($estado)): ?>
       <span class="badge bg-success-subtle text-success">
@@ -142,6 +153,53 @@
       </span>
     <?php endif; ?>
   </div>
+
+  <!-- Paginación -->
+  <?php
+    $totalPages = $totalPages ?? 1;
+    $qsBase = [];
+    if (!empty($fecha)) { $qsBase['fecha'] = $fecha; }
+    if (!empty($estado)) { $qsBase['estado'] = $estado; }
+  ?>
+  <?php if ($totalPages > 1): ?>
+    <nav aria-label="Paginación agenda" class="mt-3">
+      <ul class="pagination justify-content-end">
+        <?php $prevDisabled = $page <= 1 ? ' disabled' : ''; ?>
+        <li class="page-item<?= $prevDisabled ?>">
+          <a class="page-link" href="?<?= http_build_query(array_merge($qsBase, ['page' => max(1, $page - 1)])) ?>" aria-label="Anterior">&laquo;</a>
+        </li>
+
+        <?php
+          $startPage = max(1, $page - 3);
+          $endPage = min($totalPages, $page + 3);
+          if ($startPage > 1) {
+        ?>
+          <li class="page-item"><a class="page-link" href="?<?= http_build_query(array_merge($qsBase, ['page' => 1])) ?>">1</a></li>
+          <?php if ($startPage > 2): ?>
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+          <?php endif; ?>
+        <?php } ?>
+
+        <?php for ($i = $startPage; $i <= $endPage; $i++): ?>
+          <li class="page-item<?= $i === $page ? ' active' : '' ?>">
+            <a class="page-link" href="?<?= http_build_query(array_merge($qsBase, ['page' => $i])) ?>"><?= $i ?></a>
+          </li>
+        <?php endfor; ?>
+
+        <?php if ($endPage < $totalPages): ?>
+          <?php if ($endPage < $totalPages - 1): ?>
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+          <?php endif; ?>
+          <li class="page-item"><a class="page-link" href="?<?= http_build_query(array_merge($qsBase, ['page' => $totalPages])) ?>"><?= $totalPages ?></a></li>
+        <?php endif; ?>
+
+        <?php $nextDisabled = $page >= $totalPages ? ' disabled' : ''; ?>
+        <li class="page-item<?= $nextDisabled ?>">
+          <a class="page-link" href="?<?= http_build_query(array_merge($qsBase, ['page' => min($totalPages, $page + 1)])) ?>" aria-label="Siguiente">&raquo;</a>
+        </li>
+      </ul>
+    </nav>
+  <?php endif; ?>
 </div>
 
 <!-- Modal Detalle Cita -->

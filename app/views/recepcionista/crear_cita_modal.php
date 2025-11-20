@@ -200,12 +200,16 @@
         <!-- Form Actions -->
         <div class="col-12">
           <div class="border-top pt-4">
-            <div class="d-flex gap-2 justify-content-end">
-              <a href="/vetsmart/recepcionista/agenda" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-1"></i>Cancelar
+            <div class="d-flex gap-2 justify-content-end align-items-center form-actions">
+              <a href="/vetsmart/recepcionista/agenda" class="btn btn-outline-secondary btn-cancel" role="button" aria-label="Cancelar y volver a la agenda">
+                <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>
+                <span class="d-none d-sm-inline">Cancelar</span>
               </a>
-              <button type="submit" class="btn btn-success px-4">
-                <i class="fas fa-save me-1"></i>Guardar Cita
+
+              <button type="submit" class="btn btn-primary btn-save px-4" aria-label="Guardar cita" data-original-text="<i class=\"fas fa-save me-1\" aria-hidden=\"true\"></i>Guardar Cita">
+                <span class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span>
+                <i class="fas fa-save me-1" aria-hidden="true"></i>
+                <span class="btn-text">Guardar Cita</span>
               </button>
             </div>
           </div>
@@ -452,6 +456,29 @@
   .btn-time {
     min-width: 100%;
   }
+}
+
+/* Buttons: responsive stacking and disabled state */
+.form-actions {
+  gap: .5rem;
+}
+@media (max-width: 576px) {
+  .form-actions {
+    width: 100%;
+    display: flex !important;
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .form-actions .btn {
+    width: 100%;
+  }
+}
+.btn-save[disabled],
+.btn-save.disabled {
+  opacity: 0.75;
+}
+.btn-cancel.disabled {
+  opacity: 0.6;
 }
 </style>
 
@@ -717,6 +744,25 @@ document.addEventListener('DOMContentLoaded', () => {
         firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
         firstInvalid.focus();
       }
+    } else {
+      // Mostrar spinner y deshabilitar botones para evitar doble envío
+      const submitBtn = form.querySelector('.btn-save');
+      const cancelBtn = form.querySelector('.btn-cancel');
+      if (submitBtn) {
+        const spinner = submitBtn.querySelector('.spinner-border');
+        const btnText = submitBtn.querySelector('.btn-text');
+        if (spinner) spinner.classList.remove('d-none');
+        if (btnText) btnText.textContent = 'Guardando...';
+        submitBtn.disabled = true;
+        submitBtn.setAttribute('aria-disabled', 'true');
+      }
+      if (cancelBtn) {
+        cancelBtn.classList.add('disabled');
+        cancelBtn.setAttribute('aria-disabled', 'true');
+        // bloquear pointer events en móviles
+        cancelBtn.style.pointerEvents = 'none';
+      }
+      // dejar que el formulario se envíe normalmente
     }
   });
 

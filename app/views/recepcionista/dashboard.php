@@ -13,30 +13,34 @@
   <div class="row g-3 mb-4">
     <!-- Citas de hoy -->
     <div class="col-xl-3 col-md-6">
-      <div class="card stat-card border-0">
-        <div class="card-body text-center p-4">
-          <div class="stat-icon mb-3">
-            <i class="fas fa-calendar-day fa-2x text-success"></i>
+      <a href="/vetsmart/recepcionista/agenda?fecha=<?= date('Y-m-d') ?>" class="text-decoration-none">
+        <div class="card stat-card border-0">
+          <div class="card-body text-center p-4">
+            <div class="stat-icon mb-3">
+              <i class="fas fa-calendar-day fa-2x text-success"></i>
+            </div>
+            <h3 class="stat-number text-dark mb-2"><?= htmlspecialchars($citasHoy) ?></h3>
+            <p class="stat-label text-muted mb-0">Citas de Hoy</p>
+            <small class="text-muted">Registradas en la fecha actual</small>
           </div>
-          <h3 class="stat-number text-dark mb-2"><?= htmlspecialchars($citasHoy) ?></h3>
-          <p class="stat-label text-muted mb-0">Citas de Hoy</p>
-          <small class="text-muted">Registradas en la fecha actual</small>
         </div>
-      </div>
+      </a>
     </div>
 
     <!-- Citas pendientes -->
     <div class="col-xl-3 col-md-6">
-      <div class="card stat-card border-0">
-        <div class="card-body text-center p-4">
-          <div class="stat-icon mb-3">
-            <i class="fas fa-clock fa-2x text-warning"></i>
+      <a href="/vetsmart/recepcionista/agenda?fecha=<?= date('Y-m-d') ?>&estado=pendiente" class="text-decoration-none">
+        <div class="card stat-card border-0">
+          <div class="card-body text-center p-4">
+            <div class="stat-icon mb-3">
+              <i class="fas fa-clock fa-2x text-warning"></i>
+            </div>
+            <h3 class="stat-number text-dark mb-2"><?= htmlspecialchars($pendientes) ?></h3>
+            <p class="stat-label text-muted mb-0">Pendientes</p>
+            <small class="text-muted">En espera de atención</small>
           </div>
-          <h3 class="stat-number text-dark mb-2"><?= htmlspecialchars($pendientes) ?></h3>
-          <p class="stat-label text-muted mb-0">Pendientes</p>
-          <small class="text-muted">En espera de atención</small>
         </div>
-      </div>
+      </a>
     </div>
 
     <!-- Total de clientes -->
@@ -225,9 +229,10 @@
                     </div>
                   </div>
                   <div class="appointment-status">
-                    <span class="status-badge status-<?= strtolower($p['estado'] ?? 'pendiente') ?>">
+                    <?php $estadoRaw = strtolower($p['estado'] ?? 'pendiente'); ?>
+                    <a href="/vetsmart/recepcionista/agenda?fecha=<?= date('Y-m-d') ?>&estado=<?= urlencode($estadoRaw) ?>" class="status-badge status-<?= htmlspecialchars($estadoRaw) ?> text-decoration-none">
                       <?= htmlspecialchars(ucfirst($p['estado'] ?? 'Pendiente')) ?>
-                    </span>
+                    </a>
                   </div>
                 </div>
               <?php endforeach; ?>
@@ -460,8 +465,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Estados Chart
   if (estadosData && Object.keys(estadosData).length > 0) {
+    const estadosKeys = <?= json_encode(array_keys($estadosHoy ?? [])) ?>;
     const ctx1 = document.getElementById('chartEstados');
-    new Chart(ctx1, {
+    const chartEstados = new Chart(ctx1, {
       type: 'doughnut',
       data: {
         labels: Object.keys(estadosData).map(label => label.charAt(0).toUpperCase() + label.slice(1)),
@@ -492,6 +498,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
     });
+
+    // Click handler: redirige a la agenda filtrada por fecha y estado
+    ctx1.onclick = function(evt) {
+      const points = chartEstados.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+      if (points && points.length) {
+        const idx = points[0].index;
+        const estadoKey = estadosKeys[idx] || chartEstados.data.labels[idx];
+        const fechaHoy = '<?= date('Y-m-d') ?>';
+        window.location.href = '/vetsmart/recepcionista/agenda?fecha=' + encodeURIComponent(fechaHoy) + '&estado=' + encodeURIComponent(estadoKey);
+      }
+    };
   }
   
   // Servicios Chart

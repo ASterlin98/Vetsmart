@@ -73,27 +73,32 @@
                     </div>
                   </td>
                   <td>
-                    <span class="badge species-badge species-<?= strtolower($m['especie']) ?>">
-                      <?= htmlspecialchars($m['especie']) ?>
+                    <?php $spec_class = preg_replace('/[^a-z0-9]+/','-',strtolower((string)($m['especie'] ?? 'otro'))); ?>
+                    <span class="badge species-badge species-<?= htmlspecialchars($spec_class) ?>">
+                      <?= htmlspecialchars($m['especie'] ?? 'Otro') ?>
                     </span>
                   </td>
                   <td>
                     <?php if (!empty($m['raza'])): ?>
                       <span class="text-dark"><?= htmlspecialchars($m['raza']) ?></span>
                     <?php else: ?>
-                      <span class="text-muted">a???</span>
+                      <span class="text-muted">No especificada</span>
                     <?php endif; ?>
                   </td>
                   <td>
                     <span class="badge bg-light text-dark border">
-                      <?= htmlspecialchars($m['edad']) ?> años
+                      <?= ($m['edad'] !== null && $m['edad'] !== '') ? htmlspecialchars($m['edad']) . ' años' : '<span class="text-muted">-</span>' ?>
                     </span>
                   </td>
                   <td>
-                    <span class="badge gender-badge gender-<?= strtolower($m['sexo']) ?>">
-                      <i class="fas fa-<?= strtolower($m['sexo']) === 'macho' ? 'mars' : 'venus' ?> me-1"></i>
-                      <?= htmlspecialchars(ucfirst($m['sexo'])) ?>
-                    </span>
+                    <?php $sexoRaw = strtolower(trim((string)($m['sexo'] ?? ''))); ?>
+                    <?php if ($sexoRaw === 'macho' || $sexoRaw === 'm'): ?>
+                      <span class="badge gender-badge gender-macho"><i class="fas fa-mars me-1"></i>Macho</span>
+                    <?php elseif ($sexoRaw === 'hembra' || $sexoRaw === 'h' || $sexoRaw === 'f'): ?>
+                      <span class="badge gender-badge gender-hembra"><i class="fas fa-venus me-1"></i>Hembra</span>
+                    <?php else: ?>
+                      <span class="badge bg-light text-muted">No especificado</span>
+                    <?php endif; ?>
                   </td>
                   <td>
                     <?php if (!empty($m['dueno_nombre'])): ?>
@@ -160,10 +165,34 @@
 
   <!-- Summary Footer -->
   <div class="d-flex justify-content-between align-items-center mt-3">
+    <?php
+      $page = $page ?? 1;
+      $perPage = $perPage ?? count($mascotas);
+      $total = $total ?? count($mascotas);
+      $totalPages = $totalPages ?? 1;
+      $start = ($page - 1) * $perPage + 1;
+      $end = min($start + count($mascotas) - 1, $total);
+    ?>
     <div class="text-muted small">
-      Mostrando <strong><?= count($mascotas) ?></strong> mascota<?= count($mascotas) !== 1 ? 's' : '' ?> en total
+      Mostrando <strong><?= $start ?></strong> - <strong><?= $end ?></strong> de <strong><?= $total ?></strong>
     </div>
-    <!-- Paginación eliminada por no ser necesaria -->
+    <?php if ($totalPages > 1): ?>
+      <nav aria-label="Paginación mascotas">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+            <a class="page-link" href="?page=<?= max(1, $page - 1) ?>">Anterior</a>
+          </li>
+          <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+            <li class="page-item <?= $p === $page ? 'active' : '' ?>">
+              <a class="page-link" href="?page=<?= $p ?>"><?= $p ?></a>
+            </li>
+          <?php endfor; ?>
+          <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+            <a class="page-link" href="?page=<?= min($totalPages, $page + 1) ?>">Siguiente</a>
+          </li>
+        </ul>
+      </nav>
+    <?php endif; ?>
   </div>
 </div>
 

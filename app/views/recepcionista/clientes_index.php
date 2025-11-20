@@ -145,19 +145,34 @@
     </div>
   </div>
 
-  <!-- Summary Footer -->
+  <!-- Summary Footer / Pagination -->
   <div class="d-flex justify-content-between align-items-center mt-3">
+    <?php
+      $page = $page ?? 1;
+      $perPage = $perPage ?? count($clientes);
+      $total = $total ?? count($clientes);
+      $totalPages = $totalPages ?? 1;
+      $start = ($page - 1) * $perPage + 1;
+      $end = min($start + count($clientes) - 1, $total);
+    ?>
     <div class="text-muted small">
-      Mostrando <strong><?= count($clientes) ?></strong> cliente<?= count($clientes) !== 1 ? 's' : '' ?> en total
+      Mostrando <strong><?= $start ?></strong> - <strong><?= $end ?></strong> de <strong><?= $total ?></strong>
     </div>
-    <?php if (count($clientes) > 10): ?>
-      <nav aria-label="Page navigation">
+
+    <?php if ($totalPages > 1): ?>
+      <nav aria-label="Paginación clientes">
         <ul class="pagination pagination-sm mb-0">
-          <li class="page-item disabled"><a class="page-link" href="#">Anterior</a></li>
-          <li class="page-item active"><a class="page-link" href="#">1</a></li>
-          <li class="page-item"><a class="page-link" href="#">2</a></li>
-          <li class="page-item"><a class="page-link" href="#">3</a></li>
-          <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
+          <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+            <a class="page-link" href="?page=<?= max(1, $page - 1) ?>">Anterior</a>
+          </li>
+          <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+            <li class="page-item <?= $p === $page ? 'active' : '' ?>">
+              <a class="page-link" href="?page=<?= $p ?>"><?= $p ?></a>
+            </li>
+          <?php endfor; ?>
+          <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+            <a class="page-link" href="?page=<?= min($totalPages, $page + 1) ?>">Siguiente</a>
+          </li>
         </ul>
       </nav>
     <?php endif; ?>
