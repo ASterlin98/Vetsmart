@@ -17,6 +17,9 @@ class EmailHelper
     public static function enviarConfirmacionCita(string $clienteEmail, string $clienteNombre, array $citaData): bool
     {
         try {
+            // Log de inicio
+            error_log("📧 [EMAIL] Iniciando envío de correo a: " . $clienteEmail);
+            
             $mail = new PHPMailer(true);
             
             // Cargar configuración desde .env
@@ -40,8 +43,11 @@ class EmailHelper
             $mailFrom = $config['MAIL_FROM'] ?? $_ENV['MAIL_FROM'] ?? 'noreply@vetsmart.com';
             $mailFromName = $config['MAIL_FROM_NAME'] ?? $_ENV['MAIL_FROM_NAME'] ?? 'VetSmart';
             
+            error_log("📧 [EMAIL] Config SMTP - Host: $smtpHost, Port: $smtpPort, Secure: $smtpSecure");
+            
             // Si no hay credenciales SMTP, usar mail() del sistema
             if (empty($smtpUser) || empty($smtpPass)) {
+                error_log("📧 [EMAIL] No hay credenciales SMTP, usando mail() del sistema");
                 return self::enviarConMailNativo($clienteEmail, $clienteNombre, $citaData);
             }
 
@@ -53,6 +59,15 @@ class EmailHelper
             $mail->Password = $smtpPass;
             $mail->SMTPSecure = $smtpSecure;
             $mail->Port = $smtpPort;
+            
+            // Permitir conexiones inseguras si es necesario (para desarrollo)
+            $mail->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                ]
+            ];
 
             // Remitente
             $mail->setFrom($mailFrom, $mailFromName);
@@ -70,10 +85,22 @@ class EmailHelper
             $mail->AltBody = self::generarTextoPlanoConfirmacion($clienteNombre, $citaData);
 
             // Enviar
-            return $mail->send();
+            error_log("📧 [EMAIL] Intentando enviar correo...");
+            $result = $mail->send();
+            
+            if ($result) {
+                error_log("✅ [EMAIL] Correo enviado exitosamente a: " . $clienteEmail);
+            }
+            
+            return $result;
 
         } catch (Exception $e) {
-            error_log("Error al enviar correo de confirmación de cita: " . $e->getMessage());
+            error_log("❌ [EMAIL] Error al enviar correo: " . $e->getMessage());
+            error_log("❌ [EMAIL] Trace: " . $e->getTraceAsString());
+            return false;
+        } catch (Throwable $t) {
+            error_log("❌ [EMAIL] Error inesperado: " . $t->getMessage());
+            error_log("❌ [EMAIL] Trace: " . $t->getTraceAsString());
             return false;
         }
     }

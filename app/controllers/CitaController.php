@@ -176,23 +176,34 @@ class CitaController
             ]);
             $citaInfo = $citaQuery->fetch(PDO::FETCH_ASSOC);
 
-            if ($citaInfo && !empty($citaInfo['cliente_email'])) {
-                require_once APP_ROOT . '/helpers/EmailHelper.php';
-                $mailSent = EmailHelper::enviarConfirmacionCita(
-                    $citaInfo['cliente_email'],
-                    $citaInfo['cliente_nombre'],
-                    [
-                        'fecha' => $citaInfo['fecha'],
-                        'hora' => $citaInfo['hora'],
-                        'mascota' => $citaInfo['mascota'],
-                        'servicio' => $citaInfo['servicio'],
-                        'empleado' => $citaInfo['empleado'],
-                        'tipo_empleado' => $citaInfo['tipo_empleado']
-                    ]
-                );
+            error_log("📝 [CITA PELUQUERÍA] Buscando cita para cliente_id: $cliente_id");
+            
+            if ($citaInfo) {
+                error_log("📝 [CITA PELUQUERÍA] Cita encontrada - Email cliente: " . ($citaInfo['cliente_email'] ?? 'SIN EMAIL'));
+                
+                if (!empty($citaInfo['cliente_email'])) {
+                    require_once APP_ROOT . '/helpers/EmailHelper.php';
+                    $mailSent = EmailHelper::enviarConfirmacionCita(
+                        $citaInfo['cliente_email'],
+                        $citaInfo['cliente_nombre'],
+                        [
+                            'fecha' => $citaInfo['fecha'],
+                            'hora' => $citaInfo['hora'],
+                            'mascota' => $citaInfo['mascota'],
+                            'servicio' => $citaInfo['servicio'],
+                            'empleado' => $citaInfo['empleado'],
+                            'tipo_empleado' => $citaInfo['tipo_empleado']
+                        ]
+                    );
+                } else {
+                    error_log("⚠️  [CITA PELUQUERÍA] El cliente no tiene email registrado");
+                }
+            } else {
+                error_log("❌ [CITA PELUQUERÍA] No se encontró la cita creada");
             }
         } catch (Throwable $e) {
-            error_log("Error al enviar correo de confirmación de cita de peluquería: " . $e->getMessage());
+            error_log("❌ [CITA PELUQUERÍA] Error al enviar correo: " . $e->getMessage());
+            error_log("❌ [CITA PELUQUERÍA] Trace: " . $e->getTraceAsString());
         }
 
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Cita de peluquería creada.'];
@@ -303,23 +314,35 @@ class CitaController
             ]);
             $citaInfo = $citaQuery->fetch(PDO::FETCH_ASSOC);
 
-            if ($citaInfo && !empty($citaInfo['cliente_email'])) {
-                require_once APP_ROOT . '/helpers/EmailHelper.php';
-                $mailSent = EmailHelper::enviarConfirmacionCita(
-                    $citaInfo['cliente_email'],
-                    $citaInfo['cliente_nombre'],
-                    [
-                        'fecha' => $citaInfo['fecha'],
-                        'hora' => $citaInfo['hora'],
-                        'mascota' => $citaInfo['mascota'],
-                        'servicio' => $citaInfo['servicio'],
-                        'empleado' => $citaInfo['empleado'],
-                        'tipo_empleado' => $citaInfo['tipo_empleado']
-                    ]
-                );
+            error_log("📝 [CITA] Buscando cita para cliente_id: " . $data['cliente_id'] . ", fecha: " . $data['fecha']);
+            
+            if ($citaInfo) {
+                error_log("📝 [CITA] Cita encontrada - Email cliente: " . ($citaInfo['cliente_email'] ?? 'SIN EMAIL'));
+                error_log("📝 [CITA] Datos: " . json_encode($citaInfo));
+                
+                if (!empty($citaInfo['cliente_email'])) {
+                    require_once APP_ROOT . '/helpers/EmailHelper.php';
+                    $mailSent = EmailHelper::enviarConfirmacionCita(
+                        $citaInfo['cliente_email'],
+                        $citaInfo['cliente_nombre'],
+                        [
+                            'fecha' => $citaInfo['fecha'],
+                            'hora' => $citaInfo['hora'],
+                            'mascota' => $citaInfo['mascota'],
+                            'servicio' => $citaInfo['servicio'],
+                            'empleado' => $citaInfo['empleado'],
+                            'tipo_empleado' => $citaInfo['tipo_empleado']
+                        ]
+                    );
+                } else {
+                    error_log("⚠️  [CITA] El cliente no tiene email registrado");
+                }
+            } else {
+                error_log("❌ [CITA] No se encontró la cita creada");
             }
         } catch (Throwable $e) {
-            error_log("Error al enviar correo de confirmación de cita: " . $e->getMessage());
+            error_log("❌ [CITA] Error al enviar correo de confirmación de cita: " . $e->getMessage());
+            error_log("❌ [CITA] Trace: " . $e->getTraceAsString());
         }
 
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Cita creada exitosamente.'];
