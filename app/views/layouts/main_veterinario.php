@@ -5,7 +5,7 @@
 $title = 'Panel del Veterinario';
 
 // Define el título del encabezado
-$header_title = '👨‍⚕️ VetSmart Veterinario';
+$header_title = '👨‍⚕️ Veterinario VetSmart';
 
 // Define los enlaces de navegación para el veterinario
 $nav_links = [

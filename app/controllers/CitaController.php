@@ -147,6 +147,54 @@ class CitaController
                                      VALUES (?,?,?,?,?,?, 'pendiente', ?)");
         $ins->execute([$cliente_id, $mascota_id, $peluquero_id, $servicio_id, $fecha, $hora, $observaciones]);
 
+        // Obtener datos para enviar correo de confirmación
+        try {
+            $citaQuery = $this->pdo->prepare("
+                SELECT 
+                    CONCAT(:fecha, ' ', :hora) AS fecha,
+                    :hora AS hora,
+                    CONCAT(cli.nombre, ' ', cli.apellido) AS cliente_nombre,
+                    cli.email AS cliente_email,
+                    m.nombre AS mascota,
+                    sp.nombre AS servicio,
+                    CONCAT(p.nombre, ' ', p.apellido) AS empleado,
+                    'Peluquero' AS tipo_empleado
+                FROM usuarios cli
+                LEFT JOIN mascotas m ON m.id = :mascota_id
+                LEFT JOIN servicios_peluqueria sp ON sp.id = :servicio_id
+                LEFT JOIN usuarios p ON p.id = :peluquero_id
+                WHERE cli.id = :cliente_id
+                LIMIT 1
+            ");
+            $citaQuery->execute([
+                ':cliente_id' => $cliente_id,
+                ':mascota_id' => $mascota_id,
+                ':servicio_id' => $servicio_id,
+                ':peluquero_id' => $peluquero_id,
+                ':fecha' => $fecha,
+                ':hora' => $hora
+            ]);
+            $citaInfo = $citaQuery->fetch(PDO::FETCH_ASSOC);
+
+            if ($citaInfo && !empty($citaInfo['cliente_email'])) {
+                require_once APP_ROOT . '/helpers/EmailHelper.php';
+                $mailSent = EmailHelper::enviarConfirmacionCita(
+                    $citaInfo['cliente_email'],
+                    $citaInfo['cliente_nombre'],
+                    [
+                        'fecha' => $citaInfo['fecha'],
+                        'hora' => $citaInfo['hora'],
+                        'mascota' => $citaInfo['mascota'],
+                        'servicio' => $citaInfo['servicio'],
+                        'empleado' => $citaInfo['empleado'],
+                        'tipo_empleado' => $citaInfo['tipo_empleado']
+                    ]
+                );
+            }
+        } catch (Throwable $e) {
+            error_log("Error al enviar correo de confirmación de cita de peluquería: " . $e->getMessage());
+        }
+
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Cita de peluquería creada.'];
         header('Location: /vetsmart/recepcionista/agenda');
         exit;
@@ -229,6 +277,52 @@ class CitaController
             ':notas' => $data['notas'],
         ]);
 
+        // Obtener datos para enviar correo de confirmación
+        try {
+            $citaQuery = $this->pdo->prepare("
+                SELECT 
+                    c.fecha,
+                    TIME(c.fecha) AS hora,
+                    CONCAT(cli.nombre, ' ', cli.apellido) AS cliente_nombre,
+                    cli.email AS cliente_email,
+                    m.nombre AS mascota,
+                    s.nombre AS servicio,
+                    CONCAT(emp.nombre, ' ', emp.apellido) AS empleado,
+                    CASE WHEN emp.role_id = 2 THEN 'Veterinario' WHEN emp.role_id = 4 THEN 'Peluquero' ELSE 'Otro' END AS tipo_empleado
+                FROM citas c
+                LEFT JOIN usuarios cli ON c.cliente_id = cli.id
+                LEFT JOIN usuarios emp ON c.empleado_id = emp.id
+                LEFT JOIN servicios s ON c.servicio_id = s.id
+                LEFT JOIN mascotas m ON c.mascota_id = m.id
+                WHERE c.cliente_id = :cliente_id AND c.fecha = :fecha
+                ORDER BY c.id DESC LIMIT 1
+            ");
+            $citaQuery->execute([
+                ':cliente_id' => $data['cliente_id'],
+                ':fecha' => $data['fecha']
+            ]);
+            $citaInfo = $citaQuery->fetch(PDO::FETCH_ASSOC);
+
+            if ($citaInfo && !empty($citaInfo['cliente_email'])) {
+                require_once APP_ROOT . '/helpers/EmailHelper.php';
+                $mailSent = EmailHelper::enviarConfirmacionCita(
+                    $citaInfo['cliente_email'],
+                    $citaInfo['cliente_nombre'],
+                    [
+                        'fecha' => $citaInfo['fecha'],
+                        'hora' => $citaInfo['hora'],
+                        'mascota' => $citaInfo['mascota'],
+                        'servicio' => $citaInfo['servicio'],
+                        'empleado' => $citaInfo['empleado'],
+                        'tipo_empleado' => $citaInfo['tipo_empleado']
+                    ]
+                );
+            }
+        } catch (Throwable $e) {
+            error_log("Error al enviar correo de confirmación de cita: " . $e->getMessage());
+        }
+
+        $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Cita creada exitosamente.'];
         header('Location: /vetsmart/recepcionista/agenda');
         exit;
     }

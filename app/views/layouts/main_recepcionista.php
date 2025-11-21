@@ -13,7 +13,7 @@ if (empty($_SESSION['user']) || ($roleName !== 'recepcionista' && $roleAlt !== '
 $title = 'Panel del Recepcionista';
 
 // Define el título del encabezado
-$header_title = ' reception VetSmart';
+$header_title = ' Recepcionista VetSmart';
 
 // Define los enlaces de navegación para el recepcionista
 $nav_links = [

@@ -46,6 +46,9 @@
           <thead class="table-light">
             <tr>
               <th class="ps-4">
+                <i class="fas fa-calendar me-1 text-muted"></i>Fecha
+              </th>
+              <th>
                 <i class="fas fa-clock me-1 text-muted"></i>Hora
               </th>
               <th>
@@ -68,6 +71,9 @@
             <?php if (!empty($citas)): ?>
               <?php foreach ($citas as $c): ?>
                 <tr class="cita-row">
+                  <td class="ps-4 fw-bold text-dark">
+                    <?= date('d/m/Y', strtotime($c['fecha'])) ?>
+                  </td>
                   <td class="ps-4 fw-bold text-dark">
                     <?= htmlspecialchars($c['hora']) ?>
                   </td>
@@ -117,7 +123,7 @@
               <?php endforeach; ?>
             <?php else: ?>
               <tr>
-                <td colspan="7" class="text-center py-5">
+                <td colspan="8" class="text-center py-5">
                   <div class="empty-state">
                     <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No hay citas programadas</h5>
