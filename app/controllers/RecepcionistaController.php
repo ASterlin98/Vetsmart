@@ -49,24 +49,25 @@ class RecepcionistaController extends Controller
                 $estadosHoy[$row['estado']] = (int)$row['total'];
             }
 
-            // proximas citas de hoy (top 5)
+            // proximas citas de todos (veterinarios y peluqueros) - TOP 10
             $stmt = $this->pdo->prepare("\n                
-            SELECT TIME(c.fecha) AS hora, c.id,
+            SELECT TIME(c.fecha) AS hora, DATE(c.fecha) AS fecha, c.id,
                        CONCAT(cli.nombre,' ',cli.apellido) AS cliente,
                        m.nombre AS mascota,
                        s.nombre AS servicio,
                        CONCAT(emp.nombre,' ',emp.apellido) AS empleado,
+                       CASE WHEN emp.role_id = 2 THEN 'Veterinario' WHEN emp.role_id = 4 THEN 'Peluquero' ELSE 'Otro' END AS tipo_empleado,
                        c.estado
                 FROM citas c
                 LEFT JOIN usuarios cli ON c.cliente_id = cli.id
                 LEFT JOIN usuarios emp ON c.empleado_id = emp.id
                 LEFT JOIN servicios s ON c.servicio_id = s.id
                 LEFT JOIN mascotas m ON c.mascota_id = m.id
-                WHERE DATE(c.fecha) = :hoy
-                ORDER BY TIME(c.fecha) ASC
-                LIMIT 5
+                WHERE c.fecha >= NOW()
+                ORDER BY c.fecha ASC
+                LIMIT 10
             ");
-            $stmt->execute([':hoy' => $hoy]);
+            $stmt->execute();
             $proximas = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
             // Top servicios utimos 30 dias (para grafico)

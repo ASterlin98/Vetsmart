@@ -134,11 +134,57 @@ class CitaController
             exit;
         }
 
-        // Anti-duplicados: misma fecha+hora para peluquero o mascota
-        $check = $this->pdo->prepare("SELECT COUNT(*) FROM cpeluq WHERE fecha=? AND hora=? AND (peluquero_id=? OR mascota_id=?)");
-        $check->execute([$fecha, $hora, $peluquero_id, $mascota_id]);
-        if ((int)$check->fetchColumn() > 0) {
-            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Conflicto: ya existe una cita en ese horario.'];
+        // Anti-duplicados / validación de solapamiento teniendo en cuenta la duración del servicio
+        try {
+            // Obtener duración del servicio en minutos (fallback 30min si no existe)
+            $durStmt = $this->pdo->prepare("SELECT duracion_min FROM servicios_peluqueria WHERE id = ? LIMIT 1");
+            $durStmt->execute([$servicio_id]);
+            $durMin = (int)$durStmt->fetchColumn();
+            if ($durMin <= 0) $durMin = 30;
+
+            $newStart = DateTime::createFromFormat('Y-m-d H:i', $fecha . ' ' . $hora);
+            if ($newStart === false) {
+                throw new Exception('Fecha/hora inválida');
+            }
+            $newEnd = (clone $newStart)->add(new DateInterval('PT' . $durMin . 'M'));
+
+            // Traer citas existentes del mismo día para el peluquero (SOLO peluquero, sin importar mascota o cliente)
+            $stmt = $this->pdo->prepare("SELECT id, fecha, hora, servicio_id, peluquero_id, mascota_id FROM cpeluq WHERE fecha = ? AND peluquero_id = ? AND estado != 'cancelada'");
+            $stmt->execute([$fecha, $peluquero_id]);
+            $existing = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($existing as $ex) {
+                // Calcular intervalo de la cita existente
+                $exStart = DateTime::createFromFormat('Y-m-d H:i', $ex['fecha'] . ' ' . $ex['hora']);
+                if ($exStart === false) {
+                    error_log("[OVERLAP CHECK] Fecha/hora existente inválida: " . $ex['fecha'] . ' ' . $ex['hora']);
+                    continue;
+                }
+
+                // Obtener duracion del servicio existente
+                $dStmt = $this->pdo->prepare("SELECT duracion_min FROM servicios_peluqueria WHERE id = ? LIMIT 1");
+                $dStmt->execute([(int)$ex['servicio_id']]);
+                $exDur = (int)$dStmt->fetchColumn();
+                if ($exDur <= 0) $exDur = 30;
+                $exEnd = (clone $exStart)->add(new DateInterval('PT' . $exDur . 'M'));
+
+                // Log de depuración: mostrar qué se está comparando
+                error_log("[OVERLAP CHECK] Nueva: " . $newStart->format('Y-m-d H:i:s') . " - " . $newEnd->format('Y-m-d H:i:s'));
+                error_log("[OVERLAP CHECK] Existente: " . $exStart->format('Y-m-d H:i:s') . " - " . $exEnd->format('Y-m-d H:i:s'));
+                error_log("[OVERLAP CHECK] Condición 1 (newStart < exEnd): " . ($newStart < $exEnd ? 'true' : 'false'));
+                error_log("[OVERLAP CHECK] Condición 2 (exStart < newEnd): " . ($exStart < $newEnd ? 'true' : 'false'));
+
+                // Solapamiento: nuevaStart < exEnd AND exStart < newEnd
+                if ($newStart < $exEnd && $exStart < $newEnd) {
+                    error_log("[OVERLAP CHECK] ¡SOLAPAMIENTO DETECTADO!");
+                    $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Conflicto: el peluquero ya tiene una cita que se solapa en ese horario (desde ' . $exStart->format('H:i') . ').'];
+                    header('Location: /vetsmart/recepcionista/citas-peluqueria/create');
+                    exit;
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('Error comprobando solapamientos de cita peluqueria: ' . $e->getMessage());
+            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Error al validar disponibilidad. Intenta nuevamente.'];
             header('Location: /vetsmart/recepcionista/citas-peluqueria/create');
             exit;
         }
@@ -146,6 +192,65 @@ class CitaController
         $ins = $this->pdo->prepare("INSERT INTO cpeluq (cliente_id, mascota_id, peluquero_id, servicio_id, fecha, hora, estado, observaciones)
                                      VALUES (?,?,?,?,?,?, 'pendiente', ?)");
         $ins->execute([$cliente_id, $mascota_id, $peluquero_id, $servicio_id, $fecha, $hora, $observaciones]);
+
+        // Obtener datos para enviar correo de confirmación
+        try {
+            $citaQuery = $this->pdo->prepare("
+                SELECT 
+                    CONCAT(:fecha, ' ', :hora) AS fecha,
+                    :hora AS hora,
+                    CONCAT(cli.nombre, ' ', cli.apellido) AS cliente_nombre,
+                    cli.email AS cliente_email,
+                    m.nombre AS mascota,
+                    sp.nombre AS servicio,
+                    CONCAT(p.nombre, ' ', p.apellido) AS empleado,
+                    'Peluquero' AS tipo_empleado
+                FROM usuarios cli
+                LEFT JOIN mascotas m ON m.id = :mascota_id
+                LEFT JOIN servicios_peluqueria sp ON sp.id = :servicio_id
+                LEFT JOIN usuarios p ON p.id = :peluquero_id
+                WHERE cli.id = :cliente_id
+                LIMIT 1
+            ");
+            $citaQuery->execute([
+                ':cliente_id' => $cliente_id,
+                ':mascota_id' => $mascota_id,
+                ':servicio_id' => $servicio_id,
+                ':peluquero_id' => $peluquero_id,
+                ':fecha' => $fecha,
+                ':hora' => $hora
+            ]);
+            $citaInfo = $citaQuery->fetch(PDO::FETCH_ASSOC);
+
+            error_log("📝 [CITA PELUQUERÍA] Buscando cita para cliente_id: $cliente_id");
+            
+            if ($citaInfo) {
+                error_log("📝 [CITA PELUQUERÍA] Cita encontrada - Email cliente: " . ($citaInfo['cliente_email'] ?? 'SIN EMAIL'));
+                
+                if (!empty($citaInfo['cliente_email'])) {
+                    require_once APP_ROOT . '/helpers/EmailHelper.php';
+                    $mailSent = EmailHelper::enviarConfirmacionCita(
+                        $citaInfo['cliente_email'],
+                        $citaInfo['cliente_nombre'],
+                        [
+                            'fecha' => $citaInfo['fecha'],
+                            'hora' => $citaInfo['hora'],
+                            'mascota' => $citaInfo['mascota'],
+                            'servicio' => $citaInfo['servicio'],
+                            'empleado' => $citaInfo['empleado'],
+                            'tipo_empleado' => $citaInfo['tipo_empleado']
+                        ]
+                    );
+                } else {
+                    error_log("⚠️  [CITA PELUQUERÍA] El cliente no tiene email registrado");
+                }
+            } else {
+                error_log("❌ [CITA PELUQUERÍA] No se encontró la cita creada");
+            }
+        } catch (Throwable $e) {
+            error_log("❌ [CITA PELUQUERÍA] Error al enviar correo: " . $e->getMessage());
+            error_log("❌ [CITA PELUQUERÍA] Trace: " . $e->getTraceAsString());
+        }
 
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Cita de peluquería creada.'];
         header('Location: /vetsmart/recepcionista/agenda');
@@ -181,21 +286,63 @@ class CitaController
             exit;
         }
 
-        // Anti-duplicados: misma fecha y hora para el mismo empleado o la misma mascota
-        // Nota: con ATTR_EMULATE_PREPARES=false no se puede reutilizar el mismo placeholder dos veces
-        $check = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM citas 
-             WHERE DATE(fecha)=DATE(:f1) AND TIME(fecha)=TIME(:f2)
-               AND (empleado_id = :empleado_id OR mascota_id = :mascota_id)"
-        );
-        $check->execute([
-            ':f1' => $data['fecha'],
-            ':f2' => $data['fecha'],
-            ':empleado_id' => $data['empleado_id'],
-            ':mascota_id' => $data['mascota_id'],
-        ]);
-        if ((int)$check->fetchColumn() > 0) {
-            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Ya existe una cita para esa fecha y hora (empleado o mascota).'];
+        // Anti-duplicados / validación de solapamiento teniendo en cuenta la duración del servicio
+        try {
+            // Obtener duración del servicio en minutos (fallback 30min si no existe)
+            $durStmt = $this->pdo->prepare("SELECT duracion_min FROM servicios WHERE id = ? LIMIT 1");
+            $durStmt->execute([(int)$data['servicio_id']]);
+            $durMin = (int)$durStmt->fetchColumn();
+            if ($durMin <= 0) $durMin = 30;
+
+            $newStart = new DateTime((string)$data['fecha']);
+            if ($newStart === false) {
+                throw new Exception('Fecha/hora inválida');
+            }
+            $newEnd = (clone $newStart)->add(new DateInterval('PT' . $durMin . 'M'));
+
+            // Traer citas existentes del mismo día para el empleado (SOLO empleado, sin importar mascota o cliente)
+            $stmt = $this->pdo->prepare("SELECT id, fecha, servicio_id, empleado_id, mascota_id FROM citas WHERE DATE(fecha) = DATE(:fecha) AND empleado_id = :empleado_id AND estado != 'cancelada'");
+            $stmt->execute([
+                ':fecha' => $data['fecha'],
+                ':empleado_id' => $data['empleado_id']
+            ]);
+            $existing = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($existing as $ex) {
+                try {
+                    $exStart = new DateTime($ex['fecha']);
+                } catch (Throwable $ee) {
+                    error_log("[OVERLAP CHECK STORE] Fecha existente inválida: " . $ex['fecha']);
+                    continue;
+                }
+
+                // Duración del servicio existente
+                $dStmt = $this->pdo->prepare("SELECT duracion_min, nombre FROM servicios WHERE id = ? LIMIT 1");
+                $dStmt->execute([(int)$ex['servicio_id']]);
+                $svcRow = $dStmt->fetch(PDO::FETCH_ASSOC);
+                $exDur = isset($svcRow['duracion_min']) ? (int)$svcRow['duracion_min'] : 0;
+                $svcName = $svcRow['nombre'] ?? 'Servicio';
+                if ($exDur <= 0) $exDur = 30;
+                $exEnd = (clone $exStart)->add(new DateInterval('PT' . $exDur . 'M'));
+
+                // Log de depuración
+                error_log("[OVERLAP CHECK STORE] Nueva: " . $newStart->format('Y-m-d H:i:s') . " - " . $newEnd->format('Y-m-d H:i:s'));
+                error_log("[OVERLAP CHECK STORE] Existente: " . $exStart->format('Y-m-d H:i:s') . " - " . $exEnd->format('Y-m-d H:i:s'));
+                error_log("[OVERLAP CHECK STORE] Condición 1 (newStart < exEnd): " . ($newStart < $exEnd ? 'true' : 'false'));
+                error_log("[OVERLAP CHECK STORE] Condición 2 (exStart < newEnd): " . ($exStart < $newEnd ? 'true' : 'false'));
+
+                // Solapamiento: newStart < exEnd AND exStart < newEnd
+                if ($newStart < $exEnd && $exStart < $newEnd) {
+                    error_log("[OVERLAP CHECK STORE] ¡SOLAPAMIENTO DETECTADO!");
+                    $conflictTime = $exStart->format('H:i');
+                    $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => "Conflicto: existe una cita que se solapa a las $conflictTime (servicio: $svcName). Por favor reprograme." ];
+                    header('Location: /vetsmart/recepcionista/citas/create');
+                    exit;
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('Error comprobando solapamientos de cita: ' . $e->getMessage());
+            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Error al validar disponibilidad. Intenta nuevamente.'];
             header('Location: /vetsmart/recepcionista/citas/create');
             exit;
         }
@@ -229,6 +376,64 @@ class CitaController
             ':notas' => $data['notas'],
         ]);
 
+        // Obtener datos para enviar correo de confirmación
+        try {
+            $citaQuery = $this->pdo->prepare("
+                SELECT 
+                    c.fecha,
+                    TIME(c.fecha) AS hora,
+                    CONCAT(cli.nombre, ' ', cli.apellido) AS cliente_nombre,
+                    cli.email AS cliente_email,
+                    m.nombre AS mascota,
+                    s.nombre AS servicio,
+                    CONCAT(emp.nombre, ' ', emp.apellido) AS empleado,
+                    CASE WHEN emp.role_id = 2 THEN 'Veterinario' WHEN emp.role_id = 4 THEN 'Peluquero' ELSE 'Otro' END AS tipo_empleado
+                FROM citas c
+                LEFT JOIN usuarios cli ON c.cliente_id = cli.id
+                LEFT JOIN usuarios emp ON c.empleado_id = emp.id
+                LEFT JOIN servicios s ON c.servicio_id = s.id
+                LEFT JOIN mascotas m ON c.mascota_id = m.id
+                WHERE c.cliente_id = :cliente_id AND c.fecha = :fecha
+                ORDER BY c.id DESC LIMIT 1
+            ");
+            $citaQuery->execute([
+                ':cliente_id' => $data['cliente_id'],
+                ':fecha' => $data['fecha']
+            ]);
+            $citaInfo = $citaQuery->fetch(PDO::FETCH_ASSOC);
+
+            error_log("📝 [CITA] Buscando cita para cliente_id: " . $data['cliente_id'] . ", fecha: " . $data['fecha']);
+            
+            if ($citaInfo) {
+                error_log("📝 [CITA] Cita encontrada - Email cliente: " . ($citaInfo['cliente_email'] ?? 'SIN EMAIL'));
+                error_log("📝 [CITA] Datos: " . json_encode($citaInfo));
+                
+                if (!empty($citaInfo['cliente_email'])) {
+                    require_once APP_ROOT . '/helpers/EmailHelper.php';
+                    $mailSent = EmailHelper::enviarConfirmacionCita(
+                        $citaInfo['cliente_email'],
+                        $citaInfo['cliente_nombre'],
+                        [
+                            'fecha' => $citaInfo['fecha'],
+                            'hora' => $citaInfo['hora'],
+                            'mascota' => $citaInfo['mascota'],
+                            'servicio' => $citaInfo['servicio'],
+                            'empleado' => $citaInfo['empleado'],
+                            'tipo_empleado' => $citaInfo['tipo_empleado']
+                        ]
+                    );
+                } else {
+                    error_log("⚠️  [CITA] El cliente no tiene email registrado");
+                }
+            } else {
+                error_log("❌ [CITA] No se encontró la cita creada");
+            }
+        } catch (Throwable $e) {
+            error_log("❌ [CITA] Error al enviar correo de confirmación de cita: " . $e->getMessage());
+            error_log("❌ [CITA] Trace: " . $e->getTraceAsString());
+        }
+
+        $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Cita creada exitosamente.'];
         header('Location: /vetsmart/recepcionista/agenda');
         exit;
     }

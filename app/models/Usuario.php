@@ -79,25 +79,20 @@ public function updatePassword($id, $hash) {
 
     public function createClient($nombre, $apellido, $docusu, $email, $telefono, $password)
     {
-        $sql = "INSERT INTO usuarios (nombre, apellido, docusu, email, password, role_id) 
-                VALUES (:nombre, :apellido, :docusu, :email, :password, 6)";
+        $sql = "INSERT INTO usuarios (nombre, apellido, docusu, email, telefono, password, role_id) 
+                VALUES (:nombre, :apellido, :docusu, :email, :telefono, :password, 6)";
         $stmt = $this->db->prepare($sql);
         $ok = $stmt->execute([
             ':nombre' => $nombre,
             ':apellido' => $apellido,
             ':docusu' => $docusu,
             ':email' => $email,
+            ':telefono' => $telefono,
             ':password' => $password
         ]);
 
         if ($ok) {
             $userId = $this->db->lastInsertId();
-
-            // Guardar en cliente_detalles
-            $sql2 = "INSERT INTO usuario (id, telefono) VALUES (:id, :telefono)";
-            $stmt2 = $this->db->prepare($sql2);
-            $stmt2->execute([':id' => $userId, ':telefono' => $telefono]);
-
             return $userId;
         }
 

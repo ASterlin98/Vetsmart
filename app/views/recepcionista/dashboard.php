@@ -74,7 +74,7 @@
 
   <!-- Financial Overview -->
   <div class="row g-3 mb-4">
-    <div class="col-xl-4 col-md-6">
+    <div class="col-xl-6 col-md-6">
       <div class="card stat-card border-0">
         <div class="card-body p-4">
           <div class="d-flex align-items-center">
@@ -90,23 +90,7 @@
       </div>
     </div>
 
-    <div class="col-xl-4 col-md-6">
-      <div class="card stat-card border-0">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-center">
-            <div class="stat-icon-sm me-3">
-              <i class="fas fa-arrow-trend-down fa-lg text-danger"></i>
-            </div>
-            <div>
-              <h6 class="text-muted mb-1">Egresos (hoy)</h6>
-              <h4 class="text-danger mb-0">$ <?= number_format((float)($egresosHoy ?? 0), 2) ?></h4>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-xl-4 col-md-6">
+    <div class="col-xl-6 col-md-6">
       <div class="card stat-card border-0">
         <div class="card-body p-4">
           <div class="d-flex align-items-center">
@@ -114,7 +98,7 @@
               <i class="fas fa-scale-balanced fa-lg text-dark"></i>
             </div>
             <div>
-              <h6 class="text-muted mb-1">Balance (hoy)</h6>
+              <h6 class="text-muted mb-1">Balance Total (hoy)</h6>
               <?php $balance = (float)($ingresosHoy ?? 0) - (float)($egresosHoy ?? 0); ?>
               <h4 class="<?= $balance >= 0 ? 'text-success' : 'text-danger' ?> mb-0">$ <?= number_format($balance, 2) ?></h4>
             </div>
@@ -126,22 +110,7 @@
 
   <!-- Charts Section -->
   <div class="row g-4 mb-4">
-    <div class="col-lg-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="card-title mb-0">
-              <i class="fas fa-chart-pie text-success me-2"></i>Citas de hoy por estado
-            </h6>
-          </div>
-          <div class="chart-container">
-            <canvas id="chartEstados" height="250"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-6">
+    <div class="col-lg-12">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-3">
@@ -202,7 +171,7 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="card-title mb-0">
-              <i class="fas fa-calendar-day text-success me-2"></i>Próximas Citas de Hoy
+              <i class="fas fa-calendar-day text-success me-2"></i>Próximas Citas (Veterinarios & Peluqueros)
             </h6>
             <a href="/vetsmart/recepcionista/agenda" class="btn btn-sm btn-outline-success">
               <i class="fas fa-external-link-alt me-1"></i>Ver Agenda Completa
@@ -214,7 +183,10 @@
               <?php foreach (($proximas ?? []) as $p): ?>
                 <div class="appointment-item">
                   <div class="appointment-time">
-                    <span class="time-badge"><?= htmlspecialchars($p['hora'] ?? '-') ?></span>
+                    <span class="time-badge" title="<?= htmlspecialchars($p['fecha'] ?? '') ?>">
+                      <?= htmlspecialchars($p['hora'] ?? '-') ?>
+                    </span>
+                    <small class="d-block text-muted mt-1"><?= date('d/m/Y', strtotime($p['fecha'] ?? 'now')) ?></small>
                   </div>
                   <div class="appointment-details">
                     <div class="appointment-main">
@@ -226,11 +198,13 @@
                       <span class="service"><?= htmlspecialchars($p['servicio'] ?? '-') ?></span>
                       <span class="separator">•</span>
                       <span class="employee"><?= htmlspecialchars($p['empleado'] ?? '-') ?></span>
+                      <span class="separator">•</span>
+                      <span class="badge bg-primary"><?= htmlspecialchars($p['tipo_empleado'] ?? 'Otro') ?></span>
                     </div>
                   </div>
                   <div class="appointment-status">
                     <?php $estadoRaw = strtolower($p['estado'] ?? 'pendiente'); ?>
-                    <a href="/vetsmart/recepcionista/agenda?fecha=<?= date('Y-m-d') ?>&estado=<?= urlencode($estadoRaw) ?>" class="status-badge status-<?= htmlspecialchars($estadoRaw) ?> text-decoration-none">
+                    <a href="/vetsmart/recepcionista/agenda?fecha=<?= urlencode($p['fecha'] ?? date('Y-m-d')) ?>&estado=<?= urlencode($estadoRaw) ?>" class="status-badge status-<?= htmlspecialchars($estadoRaw) ?> text-decoration-none">
                       <?= htmlspecialchars(ucfirst($p['estado'] ?? 'Pendiente')) ?>
                     </a>
                   </div>
@@ -240,7 +214,7 @@
           <?php else: ?>
             <div class="text-center py-5">
               <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-              <p class="text-muted mb-0">No hay citas programadas para hoy</p>
+              <p class="text-muted mb-0">No hay próximas citas programadas</p>
             </div>
           <?php endif; ?>
         </div>
@@ -460,56 +434,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize charts
-  const estadosData = <?= json_encode($estadosHoy ?? []) ?>;
   const servicios = <?= json_encode($topServicios ?? []) ?>;
-  
-  // Estados Chart
-  if (estadosData && Object.keys(estadosData).length > 0) {
-    const estadosKeys = <?= json_encode(array_keys($estadosHoy ?? [])) ?>;
-    const ctx1 = document.getElementById('chartEstados');
-    const chartEstados = new Chart(ctx1, {
-      type: 'doughnut',
-      data: {
-        labels: Object.keys(estadosData).map(label => label.charAt(0).toUpperCase() + label.slice(1)),
-        datasets: [{
-          data: Object.values(estadosData),
-          backgroundColor: [
-            '#6c757d', // Pendiente
-            '#ffc107', // En curso
-            '#198754', // Completada
-            '#0d6efd', // Confirmada
-            '#dc3545'  // Cancelada
-          ],
-          borderWidth: 2,
-          borderColor: '#ffffff'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              padding: 20,
-              usePointStyle: true
-            }
-          }
-        }
-      }
-    });
-
-    // Click handler: redirige a la agenda filtrada por fecha y estado
-    ctx1.onclick = function(evt) {
-      const points = chartEstados.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
-      if (points && points.length) {
-        const idx = points[0].index;
-        const estadoKey = estadosKeys[idx] || chartEstados.data.labels[idx];
-        const fechaHoy = '<?= date('Y-m-d') ?>';
-        window.location.href = '/vetsmart/recepcionista/agenda?fecha=' + encodeURIComponent(fechaHoy) + '&estado=' + encodeURIComponent(estadoKey);
-      }
-    };
-  }
   
   // Servicios Chart
   if (servicios && servicios.length > 0) {

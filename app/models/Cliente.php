@@ -236,6 +236,33 @@ class Cliente {
         return (int)$val;
     }
 
+    /**
+     * Obtiene clientes paginados.
+     * @param int $offset
+     * @param int $limit
+     * @return array
+     */
+    public function getPaginated(int $offset, int $limit): array
+    {
+        try {
+            $sql = "SELECT u.id AS id, u.nombre, u.apellido, u.docusu, u.email, cd.telefono, cd.direccion, cd.ciudad
+                    FROM usuarios u
+                    LEFT JOIN cliente_detalles cd ON u.id = cd.idusu
+                    WHERE u.role_id = 6
+                    ORDER BY u.nombre ASC, u.apellido ASC
+                    LIMIT :limit OFFSET :offset";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $rows ?: [];
+        } catch (PDOException $e) {
+            error_log("Cliente::getPaginated error: " . $e->getMessage());
+            return [];
+        }
+    }
+
     public function searchByNombre($nombre) {
         $sql = "SELECT u.*, cd.telefono, cd.direccion, cd.ciudad
                 FROM usuarios u

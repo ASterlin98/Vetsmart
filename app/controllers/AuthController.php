@@ -288,23 +288,27 @@ class AuthController extends Controller
         }
 
         // Crear usuario con rol cliente (role_id = 6)
-        $usuarioId = $usuarioModel->create([
-            'docusu' => $docusu,
-            'nomusu' => $nombre,
-            'apeusu' => $apellido,
-            'email' => $email,
-            'password' => password_hash($password, PASSWORD_BCRYPT),
-            'role_id' => 6
-        ]);
+        $usuarioId = $usuarioModel->createClient(
+            $nombre,
+            $apellido,
+            $docusu,
+            $email,
+            $telefono,
+            password_hash($password, PASSWORD_BCRYPT)
+        );
 
-        // Insertar en cliente_detalles
-        $db = Database::getInstance();
-        $stmt = $db->prepare("INSERT INTO cliente_detalles (idusu, telefono) VALUES (?, ?)");
-        $stmt->execute([$usuarioId, $telefono]);
+        if (!$usuarioId) {
+            $this->view("auth/register", [
+                "error" => "Error al crear la cuenta. Por favor intenta de nuevo.",
+                'siteKey' => $recConfig['site_key'] ?? ''
+            ]);
+            return;
+        }
 
         // Autologin
         $_SESSION['user'] = [
             'id' => $usuarioId,
+            'role_id' => 6,
             'role_name' => 'cliente',
             'email' => $email,
             'nombre' => $nombre,

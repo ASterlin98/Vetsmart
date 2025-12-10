@@ -116,10 +116,6 @@
                   </td>
                   <td class="text-center pe-4">
                     <div class="btn-group btn-group-sm" role="group">
-                      <a href="/vetsmart/recepcionista/mascotas/ver/<?= $m['id'] ?>" 
-                         class="btn btn-outline-primary btn-action" title="Ver perfil">
-                        <i class="fas fa-id-badge"></i>
-                      </a>
                       <a href="/vetsmart/recepcionista/mascotas/<?= $m['id'] ?>/historial" 
                          class="btn btn-outline-info btn-action"
                          data-bs-toggle="tooltip" 
@@ -298,7 +294,6 @@
 /* Table Styles */
 .table {
   margin-bottom: 0;
-  min-width: 800px;
 }
 
 .table th {
