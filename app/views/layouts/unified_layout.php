@@ -699,6 +699,7 @@
                 box-shadow: none;
                 border: none;
             }
+<<<<<<< HEAD
         }
         /* Global responsive helpers */
         /* Make images fluid by default */
@@ -731,6 +732,8 @@
                 white-space: normal !important;
                 word-break: break-word;
             }
+=======
+>>>>>>> b096d7480210701b15dc7e85f7af6dab9384467c
         }
     </style>
 </head>
