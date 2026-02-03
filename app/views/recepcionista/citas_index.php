@@ -89,7 +89,7 @@
       </div>
     </div>
     <div class="card-body p-0">
-      <div class="table-container">
+      <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-success">
             <tr>
@@ -203,13 +203,8 @@
   font-weight: 600;
 }
 
-.table-container {
-  overflow-x: auto;
-}
-
 .table {
   margin-bottom: 0;
-  min-width: 800px;
 }
 
 .table th {

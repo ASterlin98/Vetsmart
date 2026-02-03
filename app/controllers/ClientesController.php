@@ -14,8 +14,21 @@ class ClientesController extends Controller {
     }
 
     public function index() {
-        $clientes = $this->clienteModel->getAll();
-        $this->view('admin/clientes/index', ['clientes' => $clientes], 'main_admin');
+        // Paginación: mostrar 8 clientes por página
+        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+        $perPage = 8;
+        $total = $this->clienteModel->countAll();
+        $totalPages = (int)ceil($total / $perPage);
+        $offset = ($page - 1) * $perPage;
+        $clientes = $this->clienteModel->getPaginated($offset, $perPage);
+
+        $this->view('admin/clientes/index', [
+            'clientes' => $clientes,
+            'page' => $page,
+            'perPage' => $perPage,
+            'total' => $total,
+            'totalPages' => $totalPages
+        ], 'main_admin');
     }
 
     

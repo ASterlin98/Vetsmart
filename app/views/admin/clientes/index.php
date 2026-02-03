@@ -67,18 +67,25 @@ function avatar_color_for($text) {
         <table class="table table-striped table-hover align-middle">
             <thead class="table-light">
                 <tr>
+              <th style="width:70px;">#</th>
                     <th>Cliente</th>
                     <th>Documento</th>
                     <th>Email</th>
                     <th>Teléfono</th>
                     <th>Ciudad</th>
                     <th>Dirección</th>
-                    <th class="text-end" style="width:200px">Acciones</th>
+              <th class="text-end" style="width:200px">Acciones</th>
                 </tr>
             </thead>
             <tbody id="clientesTableBody">
                 <?php if (!empty($clientes)): ?>
-                    <?php foreach ($clientes as $c):
+              <?php
+                $page = $page ?? 1;
+                $perPage = $perPage ?? count($clientes);
+                $total = $total ?? count($clientes);
+                $totalPages = $totalPages ?? 1;
+                $startIndex = ($page - 1) * $perPage + 1;
+                foreach ($clientes as $i => $c):
                         $cid = $c['idusu'] ?? $c['id'] ?? '';
                         $nombre = trim(($c['nombre'] ?? '') . ' ' . ($c['apellido'] ?? ''));
                         $initial = strtoupper(substr(trim($c['nombre'] ?? ''), 0, 1) ?: substr($nombre ?: 'U', 0, 1));
@@ -86,6 +93,7 @@ function avatar_color_for($text) {
                         $searchAttr = strtolower($nombre . ' ' . ($c['docusu'] ?? '') . ' ' . ($c['email'] ?? '') . ' ' . ($c['ciudad'] ?? ''));
                     ?>
                         <tr data-search="<?= htmlspecialchars($searchAttr, ENT_QUOTES) ?>">
+                          <td class="fw-medium text-muted"><?= $startIndex + $i ?></td>
                             <td>
                               <div class="d-flex align-items-center gap-3">
                                 <div class="avatar-circle" style="background: <?= $bg ?>; border-radius:8px;"><?= htmlspecialchars($initial) ?></div>
@@ -135,7 +143,7 @@ function avatar_color_for($text) {
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6" class="text-center py-4">No hay clientes registrados.</td>
+                        <td colspan="7" class="text-center py-4">No hay clientes registrados.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
@@ -144,7 +152,30 @@ function avatar_color_for($text) {
     </div>
   </div>
 
-  <div class="text-muted small">Mostrando <span id="rowsCount"><?= count($clientes) ?></span> clientes</div>
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <div class="text-muted small">Mostrando <strong><?= ($total>0 ? $startIndex : 0) ?></strong> - <strong><?= ($total>0 ? min($startIndex + count($clientes) - 1, $total) : 0) ?></strong> de <strong><?= $total ?></strong></div>
+
+    <?php if (!empty($totalPages) && $totalPages > 1):
+      $currentPath = strtok($_SERVER['REQUEST_URI'], '?');
+      $baseUrl = $currentPath ?: '/vetsmart/admin/clientes';
+    ?>
+      <nav aria-label="Paginación clientes">
+        <ul class="pagination mb-0">
+          <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+            <a class="page-link" href="<?= htmlspecialchars($baseUrl . '?page=' . max(1, $page - 1)) ?>" aria-label="Anterior">&laquo; Anterior</a>
+          </li>
+          <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+            <li class="page-item <?= $p === $page ? 'active' : '' ?>" aria-current="<?= $p === $page ? 'page' : '' ?>">
+              <a class="page-link" href="<?= htmlspecialchars($baseUrl . '?page=' . $p) ?>"><?= $p ?></a>
+            </li>
+          <?php endfor; ?>
+          <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+            <a class="page-link" href="<?= htmlspecialchars($baseUrl . '?page=' . min($totalPages, $page + 1)) ?>" aria-label="Siguiente">Siguiente &raquo;</a>
+          </li>
+        </ul>
+      </nav>
+    <?php endif; ?>
+  </div>
 </div>
 
 <!-- Modal: Nuevo Cliente (small + centered) -->

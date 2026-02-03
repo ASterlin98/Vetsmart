@@ -8,7 +8,7 @@
             $rutaFoto = 'assets/img/default_pet.png';
         }
       ?>
-      <img src="/vetsmart/<?= htmlspecialchars($rutaFoto) ?>" class="rounded-circle mb-3 perfil-foto" width="130" height="130" alt="Foto de <?= htmlspecialchars($mascota['nombre']) ?>">
+      <img src="/vetsmart/<?= htmlspecialchars($rutaFoto) ?>" class="rounded-circle mb-3 perfil-foto img-fluid" alt="Foto de <?= htmlspecialchars($mascota['nombre']) ?>">
       <h4 class="mb-0"><?= htmlspecialchars($mascota['nombre'] ?? '-') ?></h4>
       <p class="text-muted"><?= htmlspecialchars($mascota['especie'] ?? '-') ?> · <?= htmlspecialchars($mascota['raza'] ?? '-') ?></p>
       <p>Edad: <?= htmlspecialchars($mascota['edad'] ?? '-') ?> años — Sexo: <?= htmlspecialchars($mascota['sexo'] ?? '-') ?></p>
@@ -23,6 +23,12 @@
 </div>
 
 <style>
-.perfil-foto { object-fit: cover; }
+.perfil-foto { object-fit: cover; width:130px; height:130px; }
 .perfil-card { border-radius: 16px; }
+
+@media (max-width: 576px) {
+  .perfil-foto { width:96px; height:96px; }
+  .perfil-card { max-width: 320px; }
+}
+
 </style>

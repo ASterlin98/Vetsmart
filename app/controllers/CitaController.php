@@ -134,11 +134,57 @@ class CitaController
             exit;
         }
 
-        // Anti-duplicados: misma fecha+hora para peluquero o mascota
-        $check = $this->pdo->prepare("SELECT COUNT(*) FROM cpeluq WHERE fecha=? AND hora=? AND (peluquero_id=? OR mascota_id=?)");
-        $check->execute([$fecha, $hora, $peluquero_id, $mascota_id]);
-        if ((int)$check->fetchColumn() > 0) {
-            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Conflicto: ya existe una cita en ese horario.'];
+        // Anti-duplicados / validación de solapamiento teniendo en cuenta la duración del servicio
+        try {
+            // Obtener duración del servicio en minutos (fallback 30min si no existe)
+            $durStmt = $this->pdo->prepare("SELECT duracion_min FROM servicios_peluqueria WHERE id = ? LIMIT 1");
+            $durStmt->execute([$servicio_id]);
+            $durMin = (int)$durStmt->fetchColumn();
+            if ($durMin <= 0) $durMin = 30;
+
+            $newStart = DateTime::createFromFormat('Y-m-d H:i', $fecha . ' ' . $hora);
+            if ($newStart === false) {
+                throw new Exception('Fecha/hora inválida');
+            }
+            $newEnd = (clone $newStart)->add(new DateInterval('PT' . $durMin . 'M'));
+
+            // Traer citas existentes del mismo día para el peluquero (SOLO peluquero, sin importar mascota o cliente)
+            $stmt = $this->pdo->prepare("SELECT id, fecha, hora, servicio_id, peluquero_id, mascota_id FROM cpeluq WHERE fecha = ? AND peluquero_id = ? AND estado != 'cancelada'");
+            $stmt->execute([$fecha, $peluquero_id]);
+            $existing = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($existing as $ex) {
+                // Calcular intervalo de la cita existente
+                $exStart = DateTime::createFromFormat('Y-m-d H:i', $ex['fecha'] . ' ' . $ex['hora']);
+                if ($exStart === false) {
+                    error_log("[OVERLAP CHECK] Fecha/hora existente inválida: " . $ex['fecha'] . ' ' . $ex['hora']);
+                    continue;
+                }
+
+                // Obtener duracion del servicio existente
+                $dStmt = $this->pdo->prepare("SELECT duracion_min FROM servicios_peluqueria WHERE id = ? LIMIT 1");
+                $dStmt->execute([(int)$ex['servicio_id']]);
+                $exDur = (int)$dStmt->fetchColumn();
+                if ($exDur <= 0) $exDur = 30;
+                $exEnd = (clone $exStart)->add(new DateInterval('PT' . $exDur . 'M'));
+
+                // Log de depuración: mostrar qué se está comparando
+                error_log("[OVERLAP CHECK] Nueva: " . $newStart->format('Y-m-d H:i:s') . " - " . $newEnd->format('Y-m-d H:i:s'));
+                error_log("[OVERLAP CHECK] Existente: " . $exStart->format('Y-m-d H:i:s') . " - " . $exEnd->format('Y-m-d H:i:s'));
+                error_log("[OVERLAP CHECK] Condición 1 (newStart < exEnd): " . ($newStart < $exEnd ? 'true' : 'false'));
+                error_log("[OVERLAP CHECK] Condición 2 (exStart < newEnd): " . ($exStart < $newEnd ? 'true' : 'false'));
+
+                // Solapamiento: nuevaStart < exEnd AND exStart < newEnd
+                if ($newStart < $exEnd && $exStart < $newEnd) {
+                    error_log("[OVERLAP CHECK] ¡SOLAPAMIENTO DETECTADO!");
+                    $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Conflicto: el peluquero ya tiene una cita que se solapa en ese horario (desde ' . $exStart->format('H:i') . ').'];
+                    header('Location: /vetsmart/recepcionista/citas-peluqueria/create');
+                    exit;
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('Error comprobando solapamientos de cita peluqueria: ' . $e->getMessage());
+            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Error al validar disponibilidad. Intenta nuevamente.'];
             header('Location: /vetsmart/recepcionista/citas-peluqueria/create');
             exit;
         }
@@ -240,21 +286,63 @@ class CitaController
             exit;
         }
 
-        // Anti-duplicados: misma fecha y hora para el mismo empleado o la misma mascota
-        // Nota: con ATTR_EMULATE_PREPARES=false no se puede reutilizar el mismo placeholder dos veces
-        $check = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM citas 
-             WHERE DATE(fecha)=DATE(:f1) AND TIME(fecha)=TIME(:f2)
-               AND (empleado_id = :empleado_id OR mascota_id = :mascota_id)"
-        );
-        $check->execute([
-            ':f1' => $data['fecha'],
-            ':f2' => $data['fecha'],
-            ':empleado_id' => $data['empleado_id'],
-            ':mascota_id' => $data['mascota_id'],
-        ]);
-        if ((int)$check->fetchColumn() > 0) {
-            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Ya existe una cita para esa fecha y hora (empleado o mascota).'];
+        // Anti-duplicados / validación de solapamiento teniendo en cuenta la duración del servicio
+        try {
+            // Obtener duración del servicio en minutos (fallback 30min si no existe)
+            $durStmt = $this->pdo->prepare("SELECT duracion_min FROM servicios WHERE id = ? LIMIT 1");
+            $durStmt->execute([(int)$data['servicio_id']]);
+            $durMin = (int)$durStmt->fetchColumn();
+            if ($durMin <= 0) $durMin = 30;
+
+            $newStart = new DateTime((string)$data['fecha']);
+            if ($newStart === false) {
+                throw new Exception('Fecha/hora inválida');
+            }
+            $newEnd = (clone $newStart)->add(new DateInterval('PT' . $durMin . 'M'));
+
+            // Traer citas existentes del mismo día para el empleado (SOLO empleado, sin importar mascota o cliente)
+            $stmt = $this->pdo->prepare("SELECT id, fecha, servicio_id, empleado_id, mascota_id FROM citas WHERE DATE(fecha) = DATE(:fecha) AND empleado_id = :empleado_id AND estado != 'cancelada'");
+            $stmt->execute([
+                ':fecha' => $data['fecha'],
+                ':empleado_id' => $data['empleado_id']
+            ]);
+            $existing = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($existing as $ex) {
+                try {
+                    $exStart = new DateTime($ex['fecha']);
+                } catch (Throwable $ee) {
+                    error_log("[OVERLAP CHECK STORE] Fecha existente inválida: " . $ex['fecha']);
+                    continue;
+                }
+
+                // Duración del servicio existente
+                $dStmt = $this->pdo->prepare("SELECT duracion_min, nombre FROM servicios WHERE id = ? LIMIT 1");
+                $dStmt->execute([(int)$ex['servicio_id']]);
+                $svcRow = $dStmt->fetch(PDO::FETCH_ASSOC);
+                $exDur = isset($svcRow['duracion_min']) ? (int)$svcRow['duracion_min'] : 0;
+                $svcName = $svcRow['nombre'] ?? 'Servicio';
+                if ($exDur <= 0) $exDur = 30;
+                $exEnd = (clone $exStart)->add(new DateInterval('PT' . $exDur . 'M'));
+
+                // Log de depuración
+                error_log("[OVERLAP CHECK STORE] Nueva: " . $newStart->format('Y-m-d H:i:s') . " - " . $newEnd->format('Y-m-d H:i:s'));
+                error_log("[OVERLAP CHECK STORE] Existente: " . $exStart->format('Y-m-d H:i:s') . " - " . $exEnd->format('Y-m-d H:i:s'));
+                error_log("[OVERLAP CHECK STORE] Condición 1 (newStart < exEnd): " . ($newStart < $exEnd ? 'true' : 'false'));
+                error_log("[OVERLAP CHECK STORE] Condición 2 (exStart < newEnd): " . ($exStart < $newEnd ? 'true' : 'false'));
+
+                // Solapamiento: newStart < exEnd AND exStart < newEnd
+                if ($newStart < $exEnd && $exStart < $newEnd) {
+                    error_log("[OVERLAP CHECK STORE] ¡SOLAPAMIENTO DETECTADO!");
+                    $conflictTime = $exStart->format('H:i');
+                    $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => "Conflicto: existe una cita que se solapa a las $conflictTime (servicio: $svcName). Por favor reprograme." ];
+                    header('Location: /vetsmart/recepcionista/citas/create');
+                    exit;
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('Error comprobando solapamientos de cita: ' . $e->getMessage());
+            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Error al validar disponibilidad. Intenta nuevamente.'];
             header('Location: /vetsmart/recepcionista/citas/create');
             exit;
         }
