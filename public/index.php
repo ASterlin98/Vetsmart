@@ -44,18 +44,16 @@ require_once APP_ROOT . '/controllers/AdminController.php';
 require_once APP_ROOT . '/controllers/SoporteController.php';
 
 // Detectar base path (subcarpeta donde vive la app)
-$basePath = '/vetsmart';
+$basePath = (strpos($_SERVER['HTTP_HOST'], 'render.com') !== false) ? '' : '/vetsmart';
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 
 // Eliminar el prefijo basePath de la URI (si aplica)
 $path = $requestUri;
-if (strpos((string)$path, $basePath) === 0) {
-    $path = substr((string)$path, strlen($basePath));
+if ($basePath !== '' && strpos($path, $basePath) === 0) {
+    $path = substr($path, strlen($basePath));
 }
-if ($path === '' || $path === false) {
-    $path = '/';
-}
+$path = $path ?: '/';
 
 // Instancia del AuthController (tu AuthController actual probablemente no necesita $pdo)
 $authController = new AuthController(); // si tu AuthController requiere $pdo,  a new AuthController($pdo)

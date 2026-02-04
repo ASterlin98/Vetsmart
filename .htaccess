@@ -1,6 +1,8 @@
 RewriteEngine On
+RewriteBase /
 
-# Si el archivo o directorio solicitado no existe físicamente, envía la petición a index.php
+# No redirigir si el archivo existe
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
+# Enviar todo a index.php
 RewriteRule ^ index.php [L]
