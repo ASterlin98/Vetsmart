@@ -5,14 +5,20 @@ class Database {
     private $pdo;
 
     private function __construct() {
-
+        // Valores de Render o locales
         $dbHost = getenv("DB_HOST") ?: "127.0.0.1";
         $dbPort = getenv("DB_PORT") ?: "3306";
         $dbName = getenv("DB_NAME") ?: "vetsmart";
         $dbUser = getenv("DB_USER") ?: "root";
         $dbPass = getenv("DB_PASS") ?: "";
 
-        $dsn = "mysql:host=$dbHost;port=$dbPort;dbname=$dbName;charset=utf8mb4";
+        // Detectar si estamos en Render (usando Postgres) o Local (usando MySQL)
+        // PostgreSQL en Render usa el puerto 5432 por defecto
+        if ($dbPort == "5432" || strpos($dbHost, 'render.com') !== false || strpos($dbHost, 'dpg-') !== false) {
+            $dsn = "pgsql:host=$dbHost;port=$dbPort;dbname=$dbName";
+        } else {
+            $dsn = "mysql:host=$dbHost;port=$dbPort;dbname=$dbName;charset=utf8mb4";
+        }
 
         $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

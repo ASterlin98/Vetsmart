@@ -5,11 +5,12 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    libpq-dev \
     zip \
     unzip \
     git \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_mysql \
+    && docker-php-ext-install gd pdo pdo_pgsql \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # --- NUEVAS LÍNEAS PARA REPARAR EL ERROR 500 ---
@@ -45,6 +46,6 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.
 # Asegurar que el usuario de Apache sea dueño de los archivos
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
-    
+
 EXPOSE 80
 CMD ["apache2-foreground"]
