@@ -1,22 +1,30 @@
 <?php
-// app/core/Database.php
 class Database {
+
     private static $instance = null;
     private $pdo;
 
-    public function __construct() {
+    private function __construct() {
 
-        $dbHost = '127.0.0.1';
-        $dbName = 'vetsmart';
-        $dbUser = 'root';
-        $dbPass = '';
-        $dsn = "mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4";
+        $dbHost = getenv("DB_HOST") ?: "127.0.0.1";
+        $dbPort = getenv("DB_PORT") ?: "3306";
+        $dbName = getenv("DB_NAME") ?: "vetsmart";
+        $dbUser = getenv("DB_USER") ?: "root";
+        $dbPass = getenv("DB_PASS") ?: "";
+
+        $dsn = "mysql:host=$dbHost;port=$dbPort;dbname=$dbName;charset=utf8mb4";
+
         $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
         ];
-        $this->pdo = new PDO($dsn, $dbUser, $dbPass, $options);
+
+        try {
+            $this->pdo = new PDO($dsn, $dbUser, $dbPass, $options);
+        } catch (PDOException $e) {
+            die("DB connection error: " . $e->getMessage());
+        }
     }
 
     public static function getInstance(): PDO {
