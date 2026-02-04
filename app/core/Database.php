@@ -12,11 +12,12 @@ class Database {
         $dbUser = getenv("DB_USER") ?: "root";
         $dbPass = getenv("DB_PASS") ?: "";
 
-        // Detectar si estamos en Render (usando Postgres) o Local (usando MySQL)
-        // PostgreSQL en Render usa el puerto 5432 por defecto
+        // Configuración para PostgreSQL (Render)
         if ($dbPort == "5432" || strpos($dbHost, 'render.com') !== false || strpos($dbHost, 'dpg-') !== false) {
-            $dsn = "pgsql:host=$dbHost;port=$dbPort;dbname=$dbName";
+            // Se agrega sslmode=require para cumplir con los requisitos de Render
+            $dsn = "pgsql:host=$dbHost;port=$dbPort;dbname=$dbName;sslmode=require";
         } else {
+            // Configuración para MySQL (Local)
             $dsn = "mysql:host=$dbHost;port=$dbPort;dbname=$dbName;charset=utf8mb4";
         }
 
@@ -29,7 +30,9 @@ class Database {
         try {
             $this->pdo = new PDO($dsn, $dbUser, $dbPass, $options);
         } catch (PDOException $e) {
-            die("DB connection error: " . $e->getMessage());
+            // Es importante registrar el error en los logs de Render para depuración
+            error_log("DB connection error: " . $e->getMessage());
+            die("Error de conexión a la base de datos.");
         }
     }
 

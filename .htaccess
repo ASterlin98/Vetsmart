@@ -1,12 +1,6 @@
-# Activar RewriteEngine
 RewriteEngine On
 
-# Establecer el directorio raíz al public/
-RewriteBase /vetsmart/
-
-# Si el archivo o directorio existe, no redirigir
+# Si el archivo o directorio solicitado no existe físicamente, envía la petición a index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-
-# Enviar todas las peticiones a public/index.php
-RewriteRule ^(.*)$ public/index.php [L]
+RewriteRule ^ index.php [L]
