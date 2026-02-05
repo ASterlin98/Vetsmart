@@ -11,15 +11,8 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Base de datos: `vetsmart`
---
+create database vetsmart;
+USE `vetsmart`;
 
 -- --------------------------------------------------------
 
@@ -1793,6 +1786,19 @@ ALTER TABLE `usuarios`
   ADD CONSTRAINT `usuarios_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
 COMMIT;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+-- Crear columna de categoría en servicios (si no existe) y etiquetar peluquería
+ALTER TABLE servicios
+  ADD COLUMN IF NOT EXISTS categoria VARCHAR(50) NULL AFTER nombre;
+
+-- Marcar como peluquería los servicios típicos (ajusta según tus nombres)
+UPDATE servicios
+   SET categoria = 'peluqueria'
+ WHERE LOWER(nombre) LIKE '%peluquer%'
+    OR LOWER(nombre) LIKE '%bañ%'
+    OR LOWER(nombre) LIKE '%ban%'
+    OR LOWER(nombre) LIKE '%cort%'
+    OR LOWER(nombre) LIKE '%spa%';
+
+-- Índice opcional para acelerar filtros por categoría
+CREATE INDEX IF NOT EXISTS idx_servicios_categoria ON servicios(categoria);
