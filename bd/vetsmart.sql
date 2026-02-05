@@ -1786,7 +1786,6 @@ ALTER TABLE `usuarios`
   ADD CONSTRAINT `usuarios_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
 COMMIT;
 
-
 -- Crear columna de categoría en servicios (si no existe) y etiquetar peluquería
 ALTER TABLE servicios
   ADD COLUMN IF NOT EXISTS categoria VARCHAR(50) NULL AFTER nombre;
