@@ -20,7 +20,8 @@
   <!-- Tabla -->
   <div class="card p-3">
     <div class="card-body">
-      <table class="table table-striped table-hover align-middle">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
         <thead class="table-light">
           <tr>
             <th>ID</th>
@@ -48,6 +49,7 @@
           <?php endif; ?>
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 

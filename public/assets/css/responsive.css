@@ -765,6 +765,179 @@ body {
 
 .border { border: 1px solid var(--border-light) !important; }
 
+/* ==================== TABLAS BOOTSTRAP RESPONSIVE ==================== */
+
+/* Contenedor para scroll horizontal en móvil */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mejorar tablas Bootstrap en todas las resoluciones */
+.table {
+  width: 100%;
+  margin-bottom: 1rem;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background-color: #f8f9fa;
+}
+
+.table th {
+  padding: 0.75rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-bottom: 2px solid var(--border-light);
+  text-align: left;
+}
+
+.table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(0, 0, 0, 0.01);
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+/* Badges en tablas */
+.badge {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Botones en tablas */
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+/* ==================== MEDIA QUERIES - MOBILE (320px - 480px) ==================== */
+@media (max-width: 480px) {
+  /* Tablas en móvil - scroll horizontal */
+  .table-responsive {
+    margin: 0 -1rem;
+  }
+
+  .table {
+    font-size: 0.75rem;
+    margin-bottom: 0;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem 0.5rem;
+    word-break: break-word;
+  }
+
+  .table th {
+    background-color: #e9ecef;
+    font-size: 0.7rem;
+  }
+
+  /* Botones más pequeños en móvil */
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* Badges más pequeños */
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  /* Card body con menos padding en móvil */
+  .card-body {
+    padding: 0.75rem;
+  }
+
+  .card-header {
+    padding: 0.75rem 1rem;
+  }
+
+  /* Contenedor principal */
+  .container-fluid {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  /* Links en tablas más fáciles de tocar */
+  .table a {
+    display: inline-block;
+    padding: 0.25rem;
+  }
+
+  /* Breadcrumb responsive */
+  .breadcrumb {
+    padding: 0.5rem 0;
+    font-size: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .breadcrumb-item + .breadcrumb-item::before {
+    padding: 0 0.25rem;
+  }
+
+  /* Heading responsive */
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+}
+
+/* ==================== MEDIA QUERIES - TABLET (481px - 768px) ==================== */
+@media (max-width: 768px) and (min-width: 481px) {
+  .table {
+    font-size: 0.8rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.625rem;
+  }
+
+  .btn-sm {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+}
+
 /* ==================== OVERLAY PARA SIDEBAR EN MÓVIL ==================== */
 .sidebar-overlay {
   display: none;

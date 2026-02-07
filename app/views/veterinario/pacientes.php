@@ -1,5 +1,6 @@
 <h2>Pacientes</h2>
 
+<div class="table-responsive">
 <table class="table table-striped table-hover">
     <thead>
         <tr>
@@ -29,3 +30,4 @@
         <?php endforeach; ?>
     </tbody>
 </table>
+</div>

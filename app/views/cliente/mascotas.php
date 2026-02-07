@@ -75,7 +75,7 @@
   <!-- Pets List -->
   <div class="card pets-list-card border-0 shadow-sm">
     <div class="card-body" id="formNuevaMascota">
-      <div class="table-container">
+      <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-header">
             <tr>

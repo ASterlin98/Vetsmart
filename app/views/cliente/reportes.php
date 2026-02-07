@@ -95,7 +95,7 @@
           <h6 class="text-muted">No hay mascotas registradas</h6>
         </div>
       <?php else: ?>
-        <div class="table-container">
+        <div class="table-responsive">
           <table class="table table-hover mb-0">
             <thead class="table-header">
               <tr>
@@ -159,7 +159,7 @@
           <h6 class="text-muted">No hay citas registradas</h6>
         </div>
       <?php else: ?>
-        <div class="table-container">
+        <div class="table-responsive">
           <table class="table table-hover mb-0">
             <thead class="table-header">
               <tr>
@@ -216,7 +216,7 @@
           <h6 class="text-muted">No hay registros médicos</h6>
         </div>
       <?php else: ?>
-        <div class="table-container">
+        <div class="table-responsive">
           <table class="table table-hover mb-0">
             <thead class="table-header">
               <tr>
