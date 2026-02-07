@@ -699,16 +699,14 @@
                 box-shadow: none;
                 border: none;
             }
-<<<<<<< HEAD
         }
+
         /* Global responsive helpers */
-        /* Make images fluid by default */
         img, .img-fluid {
             max-width: 100%;
             height: auto;
         }
 
-        /* Modals full width on small screens */
         @media (max-width: 768px) {
             .modal-dialog {
                 max-width: 100% !important;
@@ -723,17 +721,13 @@
             .btn-group .btn {
                 margin-bottom: 0.35rem;
             }
-            /* Ensure forms and cards are full width */
             .card, form, .table-responsive {
                 width: 100% !important;
             }
-            /* Make long table cells wrap text */
             .table td, .table th {
                 white-space: normal !important;
                 word-break: break-word;
             }
-=======
->>>>>>> b096d7480210701b15dc7e85f7af6dab9384467c
         }
     </style>
 </head>
