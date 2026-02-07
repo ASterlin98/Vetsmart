@@ -15,16 +15,6 @@
       min-height: 100vh;
       position: relative;
     }
-    .auth-page::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(255,255,255,0.85);
-      z-index: 0;
-    }
-    @media (min-width: 768px) {
-      .auth-page::before { background: rgba(255,255,255,0.75); }
-    }
     .auth-card {
       position: relative;
       z-index: 1;

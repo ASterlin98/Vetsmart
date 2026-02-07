@@ -2,76 +2,203 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>VetSmart — Iniciar sesión</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/vetsmart/public/assets/css/dark-mode.css">
+  <link rel="stylesheet" href="/vetsmart/public/assets/css/responsive.css">
   <style>
+    :root {
+      --bg-light: #f4f6f9;
+      --bg-light-alt: #e8ecf1;
+      --card-light: #fff;
+      --text-light: #000;
+      --accent: #0d6efd;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      background: linear-gradient(135deg, #f4f6f9 0%, #e8ecf1 100%);
+      background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-light-alt) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      transition: background 0.3s ease;
+      min-height: 100vh;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     }
 
-    body.dark {
-      background: linear-gradient(135deg, #1a1a1a 0%, #242a33 100%);
+    .auth-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      width: 100%;
+      padding: 20px;
     }
 
     .login-box {
-      width: 500px;
+      width: 100%;
+      max-width: 500px;
       padding: 2rem;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0px 0px 12px rgba(0,0,0,0.1);
-      transition: background 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    body.dark .login-box {
-      background: #2a2a2a;
-      box-shadow: 0px 0px 12px rgba(0,0,0,0.3);
-    }
-
-    body.dark .login-box h2,
-    body.dark .login-box label,
-    body.dark .login-box p {
-      color: #e5e7eb;
-    }
-
-    .theme-toggle {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.1);
-      border: none;
-      color: #000;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      cursor: pointer;
-      font-size: 20px;
+      background: var(--card-light);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
+      animation: slideUp 0.4s ease-out;
     }
 
-    body.dark .theme-toggle {
-      background: rgba(255, 255, 255, 0.1);
+    .login-box h2 {
+      margin-bottom: 1.5rem;
+      color: var(--text-light);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .login-box .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .login-box label {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: var(--text-light);
+    }
+
+    .login-box input,
+    .login-box select {
+      padding: 0.75rem;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .login-box input:focus,
+    .login-box select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+
+    .login-box button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      background: var(--accent);
       color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 16px;
     }
 
-    .theme-toggle:hover {
-      transform: scale(1.1);
+    .login-box button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+    }
+
+    .login-box button:active {
+      transform: translateY(0);
+    }
+
+    .login-box p {
+      text-align: center;
+      color: var(--text-light);
+      margin-top: 1.5rem;
+      font-size: 14px;
+    }
+
+    .login-box a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .login-box a:hover {
+      text-decoration: underline;
+    }
+
+
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Error messages */
+    .error-message {
+      color: #dc2626;
+      font-size: 13px;
+      margin-top: 0.25rem;
+      display: block;
+    }
+
+    .success-message {
+      color: #10b981;
+      font-size: 13px;
+      margin-top: 0.25rem;
+      display: block;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .login-box {
+        padding: 1.5rem;
+      }
+
+      .login-box h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .login-box input,
+      .login-box select {
+        font-size: 16px; /* Previene zoom en iOS */
+      }
+
+      .login-box button {
+        padding: 0.875rem;
+        font-size: 16px;
+      }
+
+
+    }
+
+    @media (max-width: 320px) {
+      .login-box {
+        padding: 1.25rem;
+      }
+
+      .login-box h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+      }
+
+      .login-box p {
+        font-size: 13px;
+      }
     }
   </style>
 </head>
 <body>
-  <button class="theme-toggle" id="themeToggle" title="Cambiar tema">🌙</button>
   
-  <div class="login-box">
-    <?= $content ?? '' ?>
+  <div class="auth-container">
+    <div class="login-box">
+      <?= $content ?? '' ?>
+    </div>
   </div>
 
-  <script src="/vetsmart/public/assets/js/dark-mode.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/vetsmart/public/assets/js/responsive.js"></script>
 </body>
 </html>

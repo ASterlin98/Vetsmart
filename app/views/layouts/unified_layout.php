@@ -7,7 +7,6 @@
     <title><?= $title ?? 'VetSmart' ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="/vetsmart/public/assets/css/dark-mode.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -168,7 +167,7 @@
             }
         }
 
-        #themeToggle, #sidebarToggle {
+        #sidebarToggle {
             background: rgba(255, 255, 255, 0.15);
             color: #fff;
             border: none;
@@ -178,222 +177,13 @@
             transition: all 0.3s;
         }
 
-        #themeToggle:hover, #sidebarToggle:hover {
+        #sidebarToggle:hover {
             background: rgba(255, 255, 255, 0.25);
         }
 
         #sidebarToggle {
             font-size: 1.3rem;
             margin-right: 0.75rem;
-        }
-
-        body.dark {
-            background-color: #1a1a1a;
-            color: #e5e7eb;
-        }
-
-        body.dark .header {
-            background: linear-gradient(90deg, #1e3a8a, #1e40af);
-            color: #f9fafb;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
-        }
-
-        body.dark .sidebar {
-            background: #242a33;
-            color: #e2e8f0;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        body.dark .sidebar h2 {
-            color: #e5e7eb;
-            border-bottom-color: rgba(255, 255, 255, 0.15);
-        }
-
-        body.dark .sidebar a {
-            color: #b3bcc9;
-        }
-
-        body.dark .sidebar a:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: #fff;
-        }
-
-        body.dark .sidebar a:hover i {
-            color: #fff;
-            transform: scale(1.1);
-        }
-
-        body.dark .sidebar .active {
-            background: #2d5a3d;
-            color: #fff;
-            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4);
-        }
-
-        body.dark .sidebar .active i {
-            color: #fff;
-            transform: scale(1.15);
-        }
-
-        body.dark .sidebar a i {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        body.dark .content {
-            background: #1a1a1a;
-        }
-
-        body.dark main {
-            background: #2a2a2a !important;
-            color: #e5e7eb;
-            border-color: #404040 !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        body.dark footer {
-            border-top-color: #404040;
-            color: #9ca3af;
-        }
-
-        /* Estilos oscuros para elementos adicionales */
-        body.dark input, 
-        body.dark select, 
-        body.dark textarea {
-            background-color: #3a3a3a;
-            border-color: #505050;
-            color: #e5e7eb;
-        }
-
-        body.dark input:focus, 
-        body.dark select:focus, 
-        body.dark textarea:focus {
-            background-color: #454545;
-            border-color: #0d6efd;
-            color: #e5e7eb;
-        }
-
-        body.dark input::placeholder,
-        body.dark textarea::placeholder {
-            color: #909090;
-        }
-
-        body.dark .btn-light {
-            background-color: #404040 !important;
-            border-color: #505050 !important;
-            color: #e5e7eb !important;
-        }
-
-        body.dark .btn-light:hover {
-            background-color: #505050 !important;
-            color: #fff !important;
-        }
-
-        body.dark .table {
-            background-color: #2a2a2a;
-            border-color: #404040;
-        }
-
-        body.dark .table th {
-            background-color: #3a3a3a;
-            color: #e5e7eb;
-            border-color: #404040;
-        }
-
-        body.dark .table td {
-            border-color: #404040;
-            color: #e5e7eb;
-        }
-
-        body.dark .table tbody tr:hover {
-            background-color: #353535;
-        }
-
-        body.dark .btn {
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        body.dark .card {
-            background-color: #2a2a2a;
-            border-color: #404040;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        body.dark .card h5,
-        body.dark .card h6 {
-            color: #e5e7eb;
-        }
-
-        body.dark .badge {
-            background-color: #c82333 !important;
-            color: #fff !important;
-        }
-
-        body.dark .form-control {
-            background-color: #3a3a3a;
-            border-color: #505050;
-            color: #e5e7eb;
-        }
-
-        body.dark .form-control:focus {
-            background-color: #454545;
-            border-color: #0d6efd;
-            color: #e5e7eb;
-        }
-
-        body.dark label {
-            color: #d1d5db;
-        }
-
-        body.dark .modal-content {
-            background-color: #2a2a2a;
-            border-color: #404040;
-        }
-
-        body.dark .modal-header {
-            background-color: #3a3a3a;
-            border-color: #404040;
-        }
-
-        body.dark .modal-header .btn-close {
-            filter: invert(1);
-        }
-
-        body.dark .modal-title {
-            color: #e5e7eb;
-        }
-
-        body.dark .alert {
-            background-color: #3a3a3a;
-            border-color: #505050;
-            color: #e5e7eb;
-        }
-
-        body.dark .nav-tabs {
-            border-bottom-color: #404040;
-        }
-
-        body.dark .nav-tabs .nav-link {
-            color: #b3bcc9;
-            border-color: transparent;
-        }
-
-        body.dark .nav-tabs .nav-link.active {
-            background-color: #3a3a3a;
-            color: #e5e7eb;
-            border-color: #404040 #404040 transparent #404040;
-        }
-
-        body.dark .dropdown-menu {
-            background-color: #3a3a3a;
-            border-color: #505050;
-        }
-
-        body.dark .dropdown-menu .dropdown-item {
-            color: #d1d5db;
-        }
-
-        body.dark .dropdown-menu .dropdown-item:hover {
-            background-color: #454545;
-            color: #e5e7eb;
         }
 
         /* ===== MEDIA QUERIES - RESPONSIVE DESIGN ===== */
@@ -611,12 +401,6 @@
                 margin-right: 0.25rem;
             }
 
-            #themeToggle {
-                width: 40px;
-                height: 40px;
-                font-size: 1.1rem;
-            }
-
             .table {
                 font-size: 0.75rem;
             }
@@ -682,7 +466,7 @@
 
         /* Print styles */
         @media print {
-            .header, .sidebar, #sidebarToggle, #themeToggle, footer {
+            .header, .sidebar, #sidebarToggle, footer {
                 display: none;
             }
 
@@ -740,7 +524,6 @@
     </div>
 
     <div class="flex items-center gap-2">
-        <button id="themeToggle" title="Cambiar tema">🌙</button>
         <a href="/vetsmart/logout" class="btn btn-light btn-sm shadow-sm hover:bg-gray-200 transition">
             Cerrar Sesión
         </a>
@@ -894,6 +677,5 @@
     });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/vetsmart/public/assets/js/dark-mode.js"></script>
 </body>
 </html>
