@@ -12,7 +12,14 @@
   <!-- Main Form -->
   <div class="card border-0 shadow-sm">
     <div class="card-body p-4">
-      <form action="/vetsmart/citas/store" method="POST" class="row g-4">
+      <?php if (isset($_SESSION['mensaje'])): ?>
+        <div class="alert alert-<?= $_SESSION['mensaje']['tipo'] ?> alert-dismissible fade show" role="alert">
+            <?= $_SESSION['mensaje']['texto'] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['mensaje']); ?>
+      <?php endif; ?>
+      <form action="/vetsmart/recepcionista/citas/store" method="POST" class="row g-4">
         <?= CSRF::inputField(); ?>
         
         <!-- Client & Pet Section -->

@@ -94,7 +94,10 @@ $mensaje = $_SESSION['mensaje'] ?? null; if (isset($_SESSION['mensaje'])) unset(
               <tr>
                 <td><span class="badge bg-secondary">#<?= (int)$mid ?></span></td>
                 <td>
-                  <?php foreach ($files as $f): $url = "/vetsmart/public/assets/uploads/reportes/{$mid}/" . rawurlencode($f); ?>
+                  <?php foreach ($files as $f): 
+                      // Ruta relativa al document root del servidor web
+                      $url = "/vetsmart/public/assets/uploads/reportes/" . $mascota['id'] . "/" . rawurlencode($f); 
+                  ?>
                     <a href="<?= $url ?>" target="_blank" class="me-2"><i class="fas fa-paperclip me-1"></i><?= htmlspecialchars($f) ?></a>
                   <?php endforeach; ?>
                 </td>

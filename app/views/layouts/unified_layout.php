@@ -328,11 +328,16 @@
                 padding: 1rem;
                 margin-left: 0;
                 z-index: 1;
+                margin-top: 0; /* Asegurar que no haya margen superior extra */
             }
 
             main {
                 padding: 1rem !important;
                 font-size: 0.95rem;
+                width: 100%; /* Ocupar todo el ancho */
+                border-radius: 0; /* Quitar bordes redondeados en móvil para ganar espacio */
+                box-shadow: none; /* Quitar sombra para limpiar interfaz */
+                border: 0;
             }
 
             .flex.items-center.gap-2 {
