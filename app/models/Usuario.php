@@ -101,7 +101,7 @@ public function updatePassword($id, $hash) {
 
     public function existsByEmailOrDoc(string $email, string $doc): bool
     {
-        $sql = "SELECT idusu FROM usuarios WHERE email = ? OR ndusu = ? LIMIT 1";
+        $sql = "SELECT id FROM usuarios WHERE email = ? OR docusu = ? LIMIT 1";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$email, $doc]);
         return (bool) $stmt->fetch();

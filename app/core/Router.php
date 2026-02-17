@@ -34,17 +34,32 @@ class Router
         return $uri; // ej "admin/empleados/5/editar"
     }
 
-    public function dispatch(): void
+    /**
+     * Despacha la ruta actual.
+     * @param bool $emitNotFound si es false devuelve false en vez de imprimir 404.
+     * @return bool true si se despachó alguna ruta; false en caso contrario.
+     */
+    public function dispatch(bool $emitNotFound = true): bool
     {
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         $path = $this->currentPath();
+
+        // Middleware CSRF básico para POST: si el token viene presente debe ser válido.
+        if ($method === 'POST' && class_exists('CSRF')) {
+            $token = $_POST['_csrf'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? null);
+            if ($token !== null && !CSRF::validate($token)) {
+                http_response_code(419);
+                echo "CSRF token inválido";
+                return true;
+            }
+        }
 
         $routesForMethod = $this->routes[$method] ?? [];
 
         // 1) Try exact match first
         if (isset($routesForMethod[$path])) {
             $this->callHandler($routesForMethod[$path], []);
-            return;
+            return true;
         }
 
         // 2) Try pattern match (support routes with {param})
@@ -57,18 +72,21 @@ class Router
                     if (!is_int($k)) $params[$k] = $v;
                 }
                 $this->callHandler($handler, $params);
-                return;
+                return true;
             }
         }
 
         // 3) fallback for auth/reset?token=...
         if ($method === 'GET' && isset($routesForMethod['auth/reset']) && strpos($path, 'auth/reset') === 0) {
             $this->callHandler($routesForMethod['auth/reset'], []);
-            return;
+            return true;
         }
 
-        http_response_code(404);
-        echo "Página no encontrada. <a href='{$this->basePath}/auth/login'>Ir a login</a>";
+        if ($emitNotFound) {
+            http_response_code(404);
+            echo "Página no encontrada. <a href='{$this->basePath}/auth/login'>Ir a login</a>";
+        }
+        return false;
     }
 
     protected function convertRouteToRegex(string $route): string

@@ -29,11 +29,14 @@
           <select name="cliente_id" id="cliente_id" class="form-select" required>
             <option value="">Seleccione un cliente...</option>
             <?php foreach ($clientes as $c): ?>
-              <option value="<?= $c['id'] ?>">
+              <option value="<?= $c['id'] ?>" data-foto="<?= htmlspecialchars($c['foto'] ?? '') ?>">
                 <?= htmlspecialchars($c['nombre'] . ' ' . $c['apellido']) ?>
               </option>
             <?php endforeach; ?>
           </select>
+          <div id="cliente-foto-preview" class="mt-2 text-center" style="display:none;">
+             <img src="" alt="Foto Cliente" class="rounded-circle border shadow-sm" style="width:80px;height:80px;object-fit:cover;">
+          </div>
         </div>
 
         <div class="col-md-6">
@@ -678,6 +681,20 @@ document.addEventListener('DOMContentLoaded', () => {
   clienteSelect.addEventListener('change', async () => {
     const clienteId = clienteSelect.value;
     
+    // Mostrar foto si existe
+    const selectedOption = clienteSelect.options[clienteSelect.selectedIndex];
+    const foto = selectedOption.getAttribute('data-foto');
+    const previewDiv = document.getElementById('cliente-foto-preview');
+    const previewImg = previewDiv.querySelector('img');
+
+    if (foto) {
+        previewImg.src = '/vetsmart/public/assets/uploads/clientes/' + foto;
+        previewDiv.style.display = 'block';
+    } else {
+        previewDiv.style.display = 'none';
+        // Podríamos mostrar avatar por defecto si quisiéramos
+    }
+
     mascotaSelect.innerHTML = '<option value="">Cargando mascotas...</option>';
     mascotaSelect.disabled = true;
 
@@ -745,24 +762,22 @@ document.addEventListener('DOMContentLoaded', () => {
         firstInvalid.focus();
       }
     } else {
-      // Mostrar spinner y deshabilitar botones para evitar doble envío
+      // Mostrar spinner y deshabilitar botones
       const submitBtn = form.querySelector('.btn-save');
-      const cancelBtn = form.querySelector('.btn-cancel');
       if (submitBtn) {
         const spinner = submitBtn.querySelector('.spinner-border');
         const btnText = submitBtn.querySelector('.btn-text');
+        
+        // Mostrar estado de carga
         if (spinner) spinner.classList.remove('d-none');
         if (btnText) btnText.textContent = 'Guardando...';
-        submitBtn.disabled = true;
-        submitBtn.setAttribute('aria-disabled', 'true');
+        
+        // Deshabilitar visualmente pero PERMITIR que el evento submit continúe
+        submitBtn.classList.add('disabled');
+        submitBtn.style.pointerEvents = 'none'; // Prevenir clics múltiples
+        
+        // NO deshabilitar el botón con .disabled = true aquí porque en algunos navegadores cancela el submit
       }
-      if (cancelBtn) {
-        cancelBtn.classList.add('disabled');
-        cancelBtn.setAttribute('aria-disabled', 'true');
-        // bloquear pointer events en móviles
-        cancelBtn.style.pointerEvents = 'none';
-      }
-      // dejar que el formulario se envíe normalmente
     }
   });
 

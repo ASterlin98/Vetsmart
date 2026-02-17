@@ -112,17 +112,29 @@
                   </td>
                   <td>
                     <div class="d-flex align-items-center">
-                      <div class="avatar-sm bg-primary text-white me-2">
-                        <?= strtoupper(substr($c['cliente_nombre'], 0, 1) . substr($c['cliente_apellido'], 0, 1)) ?>
-                      </div>
+                      <?php if (!empty($c['cliente_foto']) && file_exists(dirname(dirname(dirname(__DIR__))) . '/public/assets/uploads/clientes/' . $c['cliente_foto'])): ?>
+                        <div class="avatar-sm me-2 overflow-hidden border">
+                           <img src="/vetsmart/public/assets/uploads/clientes/<?= htmlspecialchars($c['cliente_foto']) ?>" alt="Foto" style="width:100%;height:100%;object-fit:cover;">
+                        </div>
+                      <?php else: ?>
+                        <div class="avatar-sm bg-primary text-white me-2">
+                          <?= strtoupper(substr($c['cliente_nombre'], 0, 1) . substr($c['cliente_apellido'], 0, 1)) ?>
+                        </div>
+                      <?php endif; ?>
                       <div class="fw-medium small"><?= htmlspecialchars($c['cliente_nombre'] . ' ' . $c['cliente_apellido']) ?></div>
                     </div>
                   </td>
                   <td>
-                    <span class="badge bg-light text-dark">
-                      <i class="fas fa-paw me-1"></i>
-                      <?= htmlspecialchars($c['mascota_nombre'] ?? 'a”') ?>
-                    </span>
+                    <div class="d-flex align-items-center">
+                        <?php if (!empty($c['mascota_foto']) && file_exists(dirname(dirname(dirname(__DIR__))) . '/public/assets/uploads/mascotas/' . $c['mascota_foto'])): ?>
+                            <div class="avatar-sm me-2 overflow-hidden border rounded-circle">
+                               <img src="/vetsmart/public/assets/uploads/mascotas/<?= htmlspecialchars($c['mascota_foto']) ?>" alt="Mascota" style="width:100%;height:100%;object-fit:cover;">
+                            </div>
+                        <?php else: ?>
+                             <span class="badge bg-light text-dark me-1"><i class="fas fa-paw"></i></span>
+                        <?php endif; ?>
+                        <span class="small fw-medium"><?= htmlspecialchars($c['mascota_nombre'] ?? '-') ?></span>
+                    </div>
                   </td>
                   <td><?= htmlspecialchars($c['servicio'] ?? '-') ?></td>
                   <td>

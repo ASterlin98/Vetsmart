@@ -58,19 +58,22 @@
                 <tr class="client-row">
                   <td class="ps-4">
                     <div class="d-flex align-items-center">
-                      <?php
+                      <?php 
                         $foto = $cli['foto'] ?? '';
                         $rutaRel = 'assets/uploads/clientes/' . $foto;
                         $tieneFoto = !empty($foto) && file_exists(__DIR__ . '/../../../public/' . $rutaRel);  
                         $initials = strtoupper(substr((string)($cli['nombre'] ?? ''),0,1) . substr((string)($cli['apellido'] ?? ''),0,1));
-                      ?>
-                      <?php
-                        // Mostrar SIEMPRE avatar de iniciales como foto de perfil
                         $ini = $initials ?: 'U';
                       ?>
-                      <div class="avatar-circle bg-primary text-white me-3" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;">
-                        <?= htmlspecialchars($ini) ?>
-                      </div>
+                      <?php if ($tieneFoto): ?>
+                        <div class="avatar-circle me-3" style="width:40px;height:40px;border-radius:50%;overflow:hidden;">
+                          <img src="/vetsmart/public/assets/uploads/clientes/<?= htmlspecialchars($foto) ?>" alt="Foto" style="width:100%;height:100%;object-fit:cover;">
+                        </div>
+                      <?php else: ?>
+                        <div class="avatar-circle bg-primary text-white me-3" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;">
+                          <?= htmlspecialchars($ini) ?>
+                        </div>
+                      <?php endif; ?>
                       <div>
                         <div class="fw-medium"><?= htmlspecialchars($cli['nombre'] ?? '-') ?> <?= htmlspecialchars($cli['apellido'] ?? '-') ?></div>
                         <small class="text-muted"><?= htmlspecialchars($cli['email'] ?? '-') ?></small>

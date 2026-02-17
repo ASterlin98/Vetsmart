@@ -20,9 +20,15 @@
       <div class="card shadow-sm">
         <div class="card-body text-center">
           <div class="mb-2">
-            <div style="width:160px;height:160px;border-radius:12px;background:#e9ecef;display:flex;align-items:center;justify-content:center;font-size:48px;color:#6c757d;" class="mx-auto">
-              <?= strtoupper(substr($cliente['nombre'],0,1) . substr($cliente['apellido'],0,1)) ?>
-            </div>
+            <?php if (!empty($cliente['foto']) && file_exists(dirname(dirname(dirname(__DIR__))) . '/public/assets/uploads/clientes/' . $cliente['foto'])): ?>
+               <div style="width:160px;height:160px;border-radius:12px;overflow:hidden;margin:0 auto;">
+                  <img src="/vetsmart/public/assets/uploads/clientes/<?= htmlspecialchars($cliente['foto']) ?>" alt="Foto Cliente" style="width:100%;height:100%;object-fit:cover;">
+               </div>
+            <?php else: ?>
+              <div style="width:160px;height:160px;border-radius:12px;background:#e9ecef;display:flex;align-items:center;justify-content:center;font-size:48px;color:#6c757d;" class="mx-auto">
+                <?= strtoupper(substr($cliente['nombre'],0,1) . substr($cliente['apellido'],0,1)) ?>
+              </div>
+            <?php endif; ?>
           </div>
           <div class="fw-bold fs-5 mb-1"><?= htmlspecialchars($cliente['nombre'] . ' ' . $cliente['apellido']) ?></div>
           <div class="text-muted small mb-1">ID: <?= htmlspecialchars($cliente['id']) ?> · Doc: <?= htmlspecialchars($cliente['docusu'] ?? '-') ?></div>
@@ -58,8 +64,10 @@
                    placeholder="Ingrese el apellido" required>
           </div>
         </div>
-        <div class="alert alert-info py-2 px-3 mb-3">
-          <i class="fas fa-info-circle me-1"></i> La foto de perfil se muestra con las iniciales del cliente.
+        <div class="mb-3">
+            <label class="form-label fw-medium">Actualizar Foto</label>
+            <input type="file" name="foto" class="form-control" accept="image/*">
+            <div class="form-text">Subir nueva foto para reemplazar la actual.</div>
         </div>
 
         <!-- Contact Information -->
@@ -287,15 +295,15 @@
 
 <script>
 // Ocultar input de foto en edición (avatar por iniciales)
-document.addEventListener('DOMContentLoaded', function(){
-  const form = document.getElementById('formClienteEdit');
-  if (!form) return;
-  const file = form.querySelector('input[name="foto"]');
-  if (file) {
-    const wrapper = file.closest('.row') || file.parentElement;
-    if (wrapper) wrapper.remove(); else file.remove();
-  }
-});
+// document.addEventListener('DOMContentLoaded', function(){
+//   const form = document.getElementById('formClienteEdit');
+//   if (!form) return;
+//   const file = form.querySelector('input[name="foto"]');
+//   if (file) {
+//     const wrapper = file.closest('.row') || file.parentElement;
+//     // if (wrapper) wrapper.remove(); else file.remove();
+//   }
+// });
 </script>
 
 <script>
