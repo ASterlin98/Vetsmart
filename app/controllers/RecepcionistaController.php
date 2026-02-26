@@ -401,7 +401,7 @@ class RecepcionistaController extends Controller
         // Subida de foto del cliente (opcional) -> guardar solo nombre en BD
         $fotoClienteNombre = null;
         if (!empty($_FILES['foto']['name'] ?? '')) {
-            $uploadDir = APP_ROOT . '/public/assets/uploads/clientes';
+            $uploadDir = dirname(APP_ROOT) . '/public/assets/uploads/clientes';
             if (!is_dir($uploadDir)) { @mkdir($uploadDir, 0777, true); }
             $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
             if (in_array($ext, ['jpg','jpeg','png'])) {
@@ -611,7 +611,7 @@ class RecepcionistaController extends Controller
                     $q->execute([':id' => $id]);
                     $prev = $q->fetchColumn();
 
-                    $uploadDir = APP_ROOT . '/public/assets/uploads/clientes';
+                    $uploadDir = dirname(APP_ROOT) . '/public/assets/uploads/clientes';
                     if (!is_dir($uploadDir)) { @mkdir($uploadDir, 0777, true); }
                     $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
                     if (in_array($ext, ['jpg','jpeg','png'])) {
@@ -620,7 +620,7 @@ class RecepcionistaController extends Controller
                         if (@move_uploaded_file($_FILES['foto']['tmp_name'], $dest)) {
                             $this->pdo->prepare('UPDATE usuarios SET foto = :f WHERE id = :id')->execute([':f' => $fn, ':id' => $id]);
                             if (!empty($prev)) {
-                                $prevPath = APP_ROOT . '/public/assets/uploads/clientes/' . basename((string)$prev);
+                                $prevPath = dirname(APP_ROOT) . '/public/assets/uploads/clientes/' . basename((string)$prev);
                                 if (@is_file($prevPath)) { @unlink($prevPath); }
                             }
                         }
@@ -824,7 +824,7 @@ class RecepcionistaController extends Controller
                             $prev->execute([':id' => $idR]);
                             $prevFile = $prev->fetchColumn();
 
-                            $uploadDir = APP_ROOT . '/public/assets/uploads/mascotas';
+                            $uploadDir = dirname(APP_ROOT) . '/public/assets/uploads/mascotas';
                             if (!is_dir($uploadDir)) { @mkdir($uploadDir, 0777, true); }
                             $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
                             if (in_array($ext, ['jpg','jpeg','png'])) {
@@ -835,7 +835,7 @@ class RecepcionistaController extends Controller
                                     $u->execute([':foto' => $fn, ':id' => $idR]);
                                     if (!empty($prevFile)) {
                                     $prevPath = (strpos((string)$prevFile, '/') === false)
-                                            ? (APP_ROOT . '/public/assets/uploads/mascotas/' . $prevFile)
+                                            ? (dirname(APP_ROOT) . '/public/assets/uploads/mascotas/' . $prevFile)
                                             : str_replace('/vetsmart', dirname(APP_ROOT), (string)$prevFile);
                                         if (@is_file($prevPath)) { @unlink($prevPath); }
                                     }
@@ -877,7 +877,7 @@ class RecepcionistaController extends Controller
                     // Foto opcional (guardar solo nombre)
                     if (!empty($_FILES['foto']['name'] ?? '')) {
                         try {
-                            $uploadDir = APP_ROOT . '/public/assets/uploads/mascotas';
+                            $uploadDir = dirname(APP_ROOT) . '/public/assets/uploads/mascotas';
                             if (!is_dir($uploadDir)) { @mkdir($uploadDir, 0777, true); }
                             $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
                             if (in_array($ext, ['jpg','jpeg','png'])) {
@@ -914,7 +914,7 @@ class RecepcionistaController extends Controller
             // Subida de foto (opcional) -> guardar solo nombre de archivo
             $fotoNombre = null;
             if (!empty($_FILES['foto']['name'] ?? '')) {
-                $uploadDir = APP_ROOT . '/public/assets/uploads/mascotas';
+                $uploadDir = dirname(APP_ROOT) . '/public/assets/uploads/mascotas';
                 if (!is_dir($uploadDir)) { @mkdir($uploadDir, 0777, true); }
                 $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
                 if (in_array($ext, ['jpg','jpeg','png'])) {
@@ -1032,7 +1032,7 @@ class RecepcionistaController extends Controller
                     $prevStmt->execute([':id' => $id]);
                     $prev = $prevStmt->fetchColumn();
 
-                    $uploadDir = APP_ROOT . '/public/assets/uploads/mascotas';
+                    $uploadDir = dirname(APP_ROOT) . '/public/assets/uploads/mascotas';
                     if (!is_dir($uploadDir)) { @mkdir($uploadDir, 0777, true); }
                     $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
                     if (in_array($ext, ['jpg','jpeg','png'])) {
@@ -1046,7 +1046,7 @@ class RecepcionistaController extends Controller
                             if (!empty($prev)) {
                                 $prevPath = $prev;
                                 if (strpos((string)$prev, '/') === false) {
-                                    $prevPath = APP_ROOT . '/public/assets/uploads/mascotas/' . $prev;
+                                    $prevPath = dirname(APP_ROOT) . '/public/assets/uploads/mascotas/' . $prev;
                                 } else {
                                     // si venia como ruta absoluta en BD, convertirla al path del FS si apunta a /public/uploads
                                     $prevPath = str_replace('/vetsmart', dirname(APP_ROOT), (string)$prev);
@@ -1117,14 +1117,76 @@ class RecepcionistaController extends Controller
         $consultas = $consultaModel->getByMascota($id);
         $notas = $notaModel->obtenerPorMascota($id);
 
+        // Listar archivos adjuntos (reportes)
+        $archivos = [];
+        $uploadDir = dirname(APP_ROOT) . '/public/assets/uploads/reportes/' . $id;
+        
+        // Limpiar caché de estado de archivos para asegurar que no salgan eliminados
+        clearstatcache();
+
+        if (is_dir($uploadDir)) {
+            $files = scandir($uploadDir);
+            foreach ($files as $file) {
+                if ($file !== '.' && $file !== '..' && is_file($uploadDir . '/' . $file)) {
+                    $archivos[] = $file;
+                }
+            }
+        }
+
         $content = $this->renderView('recepcionista/mascota_historial', [
             'mascota' => $mascota,
             'citas' => $citas,
             'consultas' => $consultas,
             'notas' => $notas,
+            'archivos' => $archivos,
         ]);
 
         require APP_ROOT . '/views/layouts/main_recepcionista.php';
+    }
+
+    public function eliminarArchivoReporte(): void
+    {
+        $this->verificarSesion();
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /vetsmart/recepcionista/mascotas');
+            exit;
+        }
+
+        // CSRF opcional pero recomendado
+        $token = $_POST['_csrf'] ?? '';
+        if (class_exists('CSRF') && !CSRF::validate($token)) {
+            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada.'];
+            // Redirigir al historial si es posible, sino a mascotas
+            if (!empty($_POST['mascota_id'])) {
+                header('Location: /vetsmart/recepcionista/mascotas/' . (int)$_POST['mascota_id'] . '/historial');
+            } else {
+                header('Location: /vetsmart/recepcionista/mascotas');
+            }
+            exit;
+        }
+
+        $mascotaId = (int)($_POST['mascota_id'] ?? 0);
+        $filename = basename($_POST['filename'] ?? '');
+
+        if ($mascotaId > 0 && !empty($filename)) {
+            $filePath = dirname(APP_ROOT) . '/public/assets/uploads/reportes/' . $mascotaId . '/' . $filename;
+            if (file_exists($filePath) && is_file($filePath)) {
+                if (unlink($filePath)) {
+                    clearstatcache();
+                    $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Archivo eliminado correctamente.'];
+                } else {
+                    $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'No se pudo eliminar el archivo.'];
+                }
+            } else {
+                $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Archivo no encontrado.'];
+            }
+        } else {
+            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Datos inválidos.'];
+        }
+
+        header('Location: /vetsmart/recepcionista/mascotas/' . $mascotaId . '/historial');
+        exit;
     }
 
 
@@ -1748,7 +1810,7 @@ class RecepcionistaController extends Controller
 
         $safeBase = preg_replace('/[^a-zA-Z0-9_\.-]/', '_', (string)($file['name'] ?? 'archivo'));
         $filename = 'rep_mascota_' . $mascotaId . '_' . time() . '_' . $safeBase;
-        $dir = APP_ROOT . '/public/assets/uploads/reportes/' . $mascotaId;
+        $dir = dirname(APP_ROOT) . '/public/assets/uploads/reportes/' . $mascotaId;
         if (!@is_dir($dir)) { @mkdir($dir, 0777, true); }
         $dest = $dir . '/' . $filename;
         if (!@move_uploaded_file($file['tmp_name'], $dest)) {

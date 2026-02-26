@@ -265,7 +265,7 @@ class CitaController
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/citas/create');
+            header('Location: /vetsmart/recepcionista/citas');
             exit;
         }
 
@@ -282,7 +282,7 @@ class CitaController
         // Validación de rol para servicios de peluquería
         if ($this->esServicioPeluqueria((int)$data['servicio_id']) && !$this->esPeluquero((int)$data['empleado_id'])) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Para servicios de peluquería, debes asignar un empleado con rol Peluquero.'];
-            header('Location: /vetsmart/recepcionista/citas/create');
+            header('Location: /vetsmart/recepcionista/citas');
             exit;
         }
 
@@ -336,14 +336,14 @@ class CitaController
                     error_log("[OVERLAP CHECK STORE] ¡SOLAPAMIENTO DETECTADO!");
                     $conflictTime = $exStart->format('H:i');
                     $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => "Conflicto: existe una cita que se solapa a las $conflictTime (servicio: $svcName). Por favor reprograme." ];
-                    header('Location: /vetsmart/recepcionista/citas/create');
+                    header('Location: /vetsmart/recepcionista/citas');
                     exit;
                 }
             }
         } catch (Throwable $e) {
             error_log('Error comprobando solapamientos de cita: ' . $e->getMessage());
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Error al validar disponibilidad. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/citas/create');
+            header('Location: /vetsmart/recepcionista/citas');
             exit;
         }
 
@@ -353,13 +353,13 @@ class CitaController
             $now = new DateTime('now');
             if ($dt < $now) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'No se permiten citas en fechas u horas pasadas.'];
-                header('Location: /vetsmart/recepcionista/citas/create');
+                header('Location: /vetsmart/recepcionista/citas');
                 exit;
             }
         } catch (Throwable $e) {
             // si la fecha es inválida, rechazamos
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Fecha inválida.'];
-            header('Location: /vetsmart/recepcionista/citas/create');
+            header('Location: /vetsmart/recepcionista/citas');
             exit;
         }
 
@@ -434,7 +434,7 @@ class CitaController
         }
 
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Cita creada exitosamente.'];
-        header('Location: /vetsmart/recepcionista/agenda');
+        header('Location: /vetsmart/recepcionista/citas');
         exit;
     }
 

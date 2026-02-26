@@ -54,6 +54,60 @@
             overflow: hidden;
         }
 
+        /* Global Responsive Table Fix - Card View for Mobile */
+        @media (max-width: 768px) {
+            .table-responsive {
+                border: 0;
+            }
+            .table-responsive table {
+                border: 0;
+            }
+            .table-responsive thead {
+                display: none; /* Hide headers */
+            }
+            .table-responsive tr {
+                display: block;
+                margin-bottom: 1rem;
+                background-color: #fff;
+                border: 1px solid #e5e7eb;
+                border-radius: 0.5rem;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+            .table-responsive td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem !important;
+                border-bottom: 1px solid #f3f4f6;
+                text-align: right;
+                font-size: 0.9rem;
+            }
+            .table-responsive td:last-child {
+                border-bottom: 0;
+            }
+            .table-responsive td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #374151;
+                text-align: left;
+                margin-right: 1rem;
+                flex-shrink: 0;
+            }
+            /* Adjust specific elements inside cards */
+            .table-responsive td .btn {
+                width: auto;
+                margin: 0;
+            }
+            .table-responsive td .d-flex {
+                justify-content: flex-end;
+            }
+            /* Fix for avatar alignment in card view */
+            .table-responsive td .d-flex.align-items-center {
+                flex-direction: row-reverse;
+                gap: 0.5rem;
+            }
+        }
+
         .sidebar.collapsed {
             width: 80px;
         }
@@ -274,11 +328,16 @@
                 padding: 1rem;
                 margin-left: 0;
                 z-index: 1;
+                margin-top: 0; /* Asegurar que no haya margen superior extra */
             }
 
             main {
                 padding: 1rem !important;
                 font-size: 0.95rem;
+                width: 100%; /* Ocupar todo el ancho */
+                border-radius: 0; /* Quitar bordes redondeados en móvil para ganar espacio */
+                box-shadow: none; /* Quitar sombra para limpiar interfaz */
+                border: 0;
             }
 
             .flex.items-center.gap-2 {

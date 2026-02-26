@@ -126,6 +126,12 @@
           </div>
         </div>
 
+        <div class="col-md-6">
+          <label class="form-label fw-medium">Foto de la Mascota</label>
+          <input type="file" name="foto" accept="image/*" class="form-control">
+          <div class="form-text">JPG, PNG, GIF. Máx 2MB.</div>
+        </div>
+
         <div class="col-12">
           <label class="form-label fw-medium">Observaciones</label>
           <textarea name="observaciones" class="form-control" rows="3" 

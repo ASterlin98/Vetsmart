@@ -1,8 +1,6 @@
 RewriteEngine On
-RewriteBase /
+RewriteBase /vetsmart/public/
 
-# No redirigir si el archivo existe
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-# Enviar todo a index.php
 RewriteRule ^ index.php [L]

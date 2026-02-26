@@ -12,15 +12,17 @@ class AuthController extends Controller
     {
         $error = $_SESSION['error'] ?? null;
         unset($_SESSION['error']);
-        $basePath = '/vetsmart'; // pásalo siempre a la vista
+        $basePath = $this->basePath();
         $this->view('auth/login', compact('error', 'basePath'));
     }
 
     public function login()
     {
+        $base = $this->basePath();
+
         if (!\CSRF::validate($_POST['_csrf'] ?? '')) {
             $_SESSION['error'] = 'Token CSRF inválido';
-            header('Location: /vetsmart/login');
+            header('Location: ' . $base . '/login');
             exit;
         }
 
@@ -33,14 +35,14 @@ class AuthController extends Controller
         // Si no existe usuario
         if (!$user) {
             $_SESSION['error'] = 'Credenciales inválidas';
-            header('Location: /vetsmart/login');
+            header('Location: ' . $base . '/login');
             exit;
         }
 
         // Si está bloqueado
         if ($userModel->estaBloqueado($user['id'])) {
             $_SESSION['error'] = 'Tu usuario ha sido bloqueado. Comunícate con el administrador.';
-            header('Location: /vetsmart/login');
+            header('Location: ' . $base . '/login');
             exit;
         }
 
@@ -57,7 +59,7 @@ class AuthController extends Controller
                 // Login exitoso: resetear intentos
                 $db->prepare("DELETE FROM login_intentos WHERE usuario_id = ?")->execute([$user['id']]);
                 $_SESSION['user'] = $user;
-                header('Location: /vetsmart/dashboard');
+                header('Location: ' . $base . '/dashboard');
                 exit;
             } else {
                 $intentos++;
@@ -72,12 +74,12 @@ class AuthController extends Controller
                 if ($intentos >= 3) {
                     $userModel->bloquear($user['id']);
                     $_SESSION['error'] = 'Tu usuario ha sido bloqueado por exceder los intentos. Comunícate con el administrador.';
-                    header('Location: /vetsmart/login');
+                    header('Location: ' . $base . '/login');
                     exit;
                 } else {
                     $restantes = 3 - $intentos;
                     $_SESSION['error'] = 'Credenciales inválidas. Te quedan ' . $restantes . ' intento(s) antes de ser bloqueado.';
-                    header('Location: /vetsmart/login');
+                    header('Location: ' . $base . '/login');
                     exit;
                 }
             }
@@ -85,11 +87,11 @@ class AuthController extends Controller
             // Admin/superadmin: solo validar credenciales
             if ($user && password_verify($password, $user['password'])) {
                 $_SESSION['user'] = $user;
-                header('Location: /vetsmart/dashboard');
+                header('Location: ' . $base . '/dashboard');
                 exit;
             } else {
                 $_SESSION['error'] = 'Credenciales inválidas';
-                header('Location: /vetsmart/login');
+                header('Location: ' . $base . '/login');
                 exit;
             }
         }
@@ -99,7 +101,7 @@ class AuthController extends Controller
     {
         session_unset();
         session_destroy();
-        header('Location: /vetsmart/login');
+        header('Location: ' . $this->basePath() . '/login');
         exit;
     }
 
@@ -134,7 +136,7 @@ class AuthController extends Controller
 
         if (empty($email)) {
             $_SESSION['error'] = "Debes ingresar tu correo";
-            header("Location: /vetsmart/auth/forgot");
+            header("Location: " . $this->basePath() . "/auth/forgot");
             exit;
         }
 
@@ -142,7 +144,7 @@ class AuthController extends Controller
 
         if (!$usuario) {
             $_SESSION['error'] = "No existe un usuario con ese correo";
-            header("Location: /vetsmart/auth/forgot");
+            header("Location: " . $this->basePath() . "/auth/forgot");
             exit;
         }
 
@@ -152,20 +154,22 @@ class AuthController extends Controller
 
         (new Usuario())->saveResetToken($usuario['id'], $token, $expira);
 
-        $resetUrl = "http://localhost/vetsmart/auth/reset?token=" . $token;
+        $resetUrl = rtrim(getenv('APP_BASE_URL') ?: 'http://localhost/vetsmart', '/') . '/auth/reset?token=' . $token;
 
         // Enviar correo con PHPMailer
         $mail = new PHPMailer(true);
 
         try {
-            // Config SMTP
+            // Config SMTP (ahora desde .env)
             $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com'; 
+            $mail->Host = getenv('MAIL_HOST') ?: 'smtp.gmail.com';
             $mail->SMTPAuth = true;
-            $mail->Username = 'andres.rojast98@gmail.com'; // tu correo
-            $mail->Password = 'pcmasukjpxvmsyvg'; // clave de aplicación (no la clave normal)
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            $mail->Port = 465;
+            $mail->Username = getenv('MAIL_USERNAME') ?: '';
+            $mail->Password = getenv('MAIL_PASSWORD') ?: '';
+            $mail->SMTPSecure = (getenv('MAIL_SECURE') === 'tls')
+                ? PHPMailer::ENCRYPTION_STARTTLS
+                : PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port = (int) (getenv('MAIL_PORT') ?: 465);
             $mail->SMTPOptions = [
                 'ssl' => [
                     'verify_peer' => false,
@@ -175,16 +179,21 @@ class AuthController extends Controller
             ];
 
             // Remitente y destinatario
-            $mail->setFrom('andres.rojast98@gmail.com', 'VetSmart');
+            $from = getenv('MAIL_FROM') ?: $mail->Username;
+            $fromName = getenv('MAIL_FROM_NAME') ?: 'VetSmart';
+            $mail->setFrom($from, $fromName);
             $mail->addAddress($usuario['email'], $usuario['nombre']);
 
             // Contenido
             $mail->isHTML(true);
             $mail->Subject = 'Restablece tu password - VetSmart';
-            $mail->Body    = "<p>Hola <strong><?= htmlspecialchars(\$usuario['nombre'] ?? 'usuario', ENT_QUOTES, 'UTF-8') ?></strong>,</p>
+            $safeName = htmlspecialchars($usuario['nombre'] ?? 'usuario', ENT_QUOTES, 'UTF-8');
+            $safeUrl  = htmlspecialchars($resetUrl, ENT_QUOTES, 'UTF-8');
+            $mail->Body    = "<p>Hola <strong>{$safeName}</strong>,</p>
                               <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>VetSmart</strong>.</p>
-                              <a href='{$resetUrl}'>{$resetUrl}</a><br><br>
-                              Este enlace expirará en 1 hora.";
+                              <p>Haz clic en el siguiente enlace o cópialo en tu navegador:</p>
+                              <p><a href=\"{$safeUrl}\">{$safeUrl}</a></p>
+                              <p>Este enlace expirará en 1 hora.</p>";
 
             $mail->send();
             $_SESSION['success'] = "Se ha enviado un enlace de recuperación a tu correo.";
@@ -192,7 +201,7 @@ class AuthController extends Controller
             $_SESSION['error'] = "No se pudo enviar el correo. Error: {$mail->ErrorInfo}";
         }
 
-        header("Location: /vetsmart/auth/forgot");
+        header("Location: " . $this->basePath() . "/auth/forgot");
         exit;
     }
 
@@ -235,7 +244,7 @@ class AuthController extends Controller
         $hash = password_hash($password, PASSWORD_BCRYPT);
         (new Usuario())->updatePassword($usuario['id'], $hash);
 
-        echo "Contraseña actualizada correctamente. <a href='/vetsmart/auth/login'>Ir al login</a>";
+        echo "Contraseña actualizada correctamente. <a href='" . $this->basePath() . "/auth/login'>Ir al login</a>";
     }
 
     public function showRegister()
@@ -315,7 +324,7 @@ class AuthController extends Controller
             'apellido' => $apellido
         ];
 
-        header("Location: /vetsmart/cliente/dashboard");
+        header("Location: " . $this->basePath() . "/cliente/dashboard");
         exit;
     }
 
@@ -331,7 +340,7 @@ class AuthController extends Controller
         // Validaciones básicas
         if (empty($nombre) || empty($apellido) || empty($docusu) || empty($email) || empty($password)) {
             $_SESSION['error'] = "Todos los campos obligatorios deben completarse.";
-            header("Location: /vetsmart/auth/register");
+            header("Location: " . $this->basePath() . "/auth/register");
             exit;
         }
 
@@ -341,7 +350,7 @@ class AuthController extends Controller
         $secret = $recConfig['secret_key'] ?? '';
         if (empty($secret) || empty($recaptchaResponse) || !$this->verifyRecaptcha($recaptchaResponse, $secret)) {
             $_SESSION['error'] = "Por favor completa el reCAPTCHA correctamente.";
-            header("Location: /vetsmart/auth/register");
+            header("Location: " . $this->basePath() . "/auth/register");
             exit;
         }
 
@@ -350,12 +359,12 @@ class AuthController extends Controller
         // Evitar duplicados
         if ($usuarioModel->findByEmail($email)) {
             $_SESSION['error'] = "El correo ya está registrado.";
-            header("Location: /vetsmart/auth/register");
+            header("Location: " . $this->basePath() . "/auth/register");
             exit;
         }
         if ($usuarioModel->findByDocusu($docusu)) {
             $_SESSION['error'] = "El documento ya está registrado.";
-            header("Location: /vetsmart/auth/register");
+            header("Location: " . $this->basePath() . "/auth/register");
             exit;
         }
 
@@ -366,13 +375,28 @@ class AuthController extends Controller
         if ($userId) {
             // Login automático
             $_SESSION['user'] = $usuarioModel->findByEmail($email);
-            header("Location: /vetsmart/dashboard");
+            header("Location: " . $this->basePath() . "/dashboard");
             exit;
         } else {
             $_SESSION['error'] = "Error al registrar el usuario.";
-            header("Location: /vetsmart/auth/register");
+            header("Location: " . $this->basePath() . "/auth/register");
             exit;
         }
+    }
+
+    /**
+     * Obtiene el base path configurado (.env APP_BASE_URL) o fallback /vetsmart.
+     */
+    private function basePath(): string
+    {
+        $url = getenv('APP_BASE_URL') ?: '/vetsmart';
+        // Si es URL absoluta, extraer sólo la ruta base
+        if (strpos($url, 'http') === 0) {
+            $parts = parse_url($url);
+            $path = $parts['path'] ?? '';
+            return rtrim($path, '/') ?: '/';
+        }
+        return rtrim($url, '/') ?: '/';
     }
 
     /**

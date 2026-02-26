@@ -60,10 +60,19 @@
                 <tr class="pet-row" data-species="<?= htmlspecialchars($m['especie']) ?>">
                   <td class="ps-4">
                     <div class="d-flex align-items-center">
-                      <?php $initial = strtoupper(substr((string)($m['nombre'] ?? ''),0,1)); ?>
-                      <div class="pet-avatar me-3" title="<?= htmlspecialchars($m['nombre']) ?>" style="background-color:#e5e7eb;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#6b7280;font-weight:600;">
-                        <?= htmlspecialchars($initial ?: 'M') ?>
-                      </div>
+                      <?php 
+                        $foto = $m['foto'] ?? null;
+                        $initial = strtoupper(substr((string)($m['nombre'] ?? ''),0,1)); 
+                      ?>
+                      <?php if (!empty($foto)): ?>
+                        <div class="pet-avatar me-3" title="<?= htmlspecialchars($m['nombre']) ?>">
+                            <img src="/vetsmart/public/assets/uploads/mascotas/<?= htmlspecialchars($foto) ?>" alt="<?= htmlspecialchars($m['nombre']) ?>" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                        </div>
+                      <?php else: ?>
+                        <div class="pet-avatar me-3" title="<?= htmlspecialchars($m['nombre']) ?>" style="background-color:#e5e7eb;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#6b7280;font-weight:600;">
+                            <?= htmlspecialchars($initial ?: 'M') ?>
+                        </div>
+                      <?php endif; ?>
                       <div>
                         <div class="fw-medium text-dark"><?= htmlspecialchars($m['nombre']) ?></div>
                         <?php if (!empty($m['color'])): ?>

@@ -3,6 +3,21 @@ session_start();
 
 define('APP_ROOT', dirname(__DIR__) . '/app');
 
+// Cargar variables de entorno desde .env si está presente (simple parser).
+$envFile = dirname(__DIR__) . '/.env';
+if (file_exists($envFile) && is_readable($envFile)) {
+    foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        if (str_starts_with($line, '#') || !str_contains($line, '=')) {
+            continue;
+        }
+        [$key, $value] = array_map('trim', explode('=', $line, 2));
+        // eliminar comillas envolventes
+        $value = trim($value, "\"'");
+        putenv("$key=$value");
+        $_ENV[$key] = $value;
+    }
+}
+
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../app/core/Database.php';
 
@@ -54,6 +69,12 @@ if ($basePath !== '' && strpos($path, $basePath) === 0) {
     $path = substr($path, strlen($basePath));
 }
 $path = $path ?: '/';
+
+// Primero intenta despachar usando Router + routes.php.
+$router = new Router($basePath, $pdo);
+if ($router->dispatch(false)) {
+    exit;
+}
 
 // Instancia del AuthController (tu AuthController actual probablemente no necesita $pdo)
 $authController = new AuthController(); // si tu AuthController requiere $pdo,  a new AuthController($pdo)
@@ -1443,6 +1464,11 @@ if (preg_match('#^/recepcionista/mascotas/delete/(\d+)$#', $path, $matches)) {
 
 
 
+
+if ($path === '/recepcionista/reportes/delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    (new RecepcionistaController($pdo))->eliminarArchivoReporte();
+    exit;
+}
 
 if ($path === '/recepcionista/ingresos') {
     $controller = new RecepcionistaController($pdo);

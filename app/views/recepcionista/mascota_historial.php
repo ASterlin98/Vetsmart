@@ -26,13 +26,26 @@
         <div class="card-header bg-success text-white">
           <i class="fas fa-info-circle me-2"></i>Ficha de la mascota
         </div>
-        <div class="card-body">
+        <div class="card-body text-center">
+             <div class="mb-3">
+              <?php if (!empty($mascota['foto']) && file_exists(dirname(dirname(dirname(__DIR__))) . '/public/assets/uploads/mascotas/' . $mascota['foto'])): ?>
+                 <div style="width:120px;height:120px;border-radius:50%;overflow:hidden;margin:0 auto;border: 3px solid #198754;">
+                    <img src="/vetsmart/public/assets/uploads/mascotas/<?= htmlspecialchars($mascota['foto']) ?>" alt="Foto Mascota" style="width:100%;height:100%;object-fit:cover;">
+                 </div>
+              <?php else: ?>
+                <div style="width:120px;height:120px;border-radius:50%;background:#e9ecef;display:flex;align-items:center;justify-content:center;font-size:40px;color:#6c757d;margin:0 auto;border: 3px solid #dee2e6;">
+                  <?= strtoupper(substr($mascota['nombre'] ?? 'M',0,1)) ?>
+                </div>
+              <?php endif; ?>
+             </div>
+             <div class="text-start">
           <div class="mb-2"><strong>Nombre:</strong> <?= htmlspecialchars($mascota['nombre'] ?? '-') ?></div>
           <div class="mb-2"><strong>Especie:</strong> <?= htmlspecialchars($mascota['especie'] ?? '-') ?></div>
           <div class="mb-2"><strong>Raza:</strong> <?= htmlspecialchars($mascota['raza'] ?? '-') ?></div>
           <div class="mb-2"><strong>Edad:</strong> <?= htmlspecialchars($mascota['edad'] ?? '-') ?></div>
           <div class="mb-2"><strong>Peso:</strong> <?= htmlspecialchars($mascota['peso'] ?? '-') ?></div>
           <div class="mb-2"><strong>Notas:</strong> <?= htmlspecialchars($mascota['notas'] ?? '-') ?></div>
+          </div>
         </div>
       </div>
 
@@ -58,6 +71,44 @@
     </div>
 
     <div class="col-12 col-lg-8">
+      
+      <!-- Archivos Adjuntos -->
+      <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-folder-open me-2 text-primary"></i>Archivos Adjuntos
+            </div>
+            <!-- Botón para subir archivo (redirige a reportes con preselección si fuera posible, por ahora solo link) -->
+            <a href="/vetsmart/recepcionista/reportes" class="btn btn-sm btn-outline-primary"><i class="fas fa-upload me-1"></i>Subir</a>
+        </div>
+        <div class="card-body p-0">
+          <?php if (!empty($archivos)): ?>
+            <ul class="list-group list-group-flush">
+              <?php foreach ($archivos as $f): 
+                  // Usar ruta relativa absoluta desde la raíz del servidor web
+                  $url = "/vetsmart/public/assets/uploads/reportes/" . $mascota['id'] . "/" . rawurlencode($f);
+              ?>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <a href="<?= $url ?>" target="_blank" class="text-decoration-none text-dark">
+                    <i class="fas fa-paperclip me-2 text-secondary"></i><?= htmlspecialchars($f) ?>
+                  </a>
+                  <form action="/vetsmart/recepcionista/reportes/delete" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar este archivo?');">
+                    <?php if (class_exists('CSRF')): ?><?= CSRF::inputField() ?><?php endif; ?>
+                    <input type="hidden" name="mascota_id" value="<?= $mascota['id'] ?>">
+                    <input type="hidden" name="filename" value="<?= htmlspecialchars($f) ?>">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </form>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          <?php else: ?>
+            <div class="p-3 text-muted text-center">No hay archivos adjuntos.</div>
+          <?php endif; ?>
+        </div>
+      </div>
+
       <div class="card shadow-sm border-0 mb-3">
         <div class="card-header bg-light">
           <i class="fas fa-user-md me-2 text-success"></i>Consultas medicas
@@ -78,11 +129,11 @@
                 <?php if (!empty($consultas)): ?>
                   <?php foreach ($consultas as $c): ?>
                     <tr>
-                      <td><?= htmlspecialchars($c['creado_en'] ?? '-') ?></td>
-                      <td><?= htmlspecialchars($c['motivo'] ?? '-') ?></td>
-                      <td><?= htmlspecialchars($c['diagnostico'] ?? '-') ?></td>
-                      <td><?= htmlspecialchars($c['tratamiento'] ?? '-') ?></td>
-                      <td><?= htmlspecialchars(trim(($c['nombre_empleado'] ?? $c['nombre_veterinario'] ?? '') . ' ' . ($c['apellido_empleado'] ?? $c['apellido_veterinario'] ?? ''))) ?></td>
+                      <td data-label="Fecha"><?= htmlspecialchars($c['creado_en'] ?? '-') ?></td>
+                      <td data-label="Motivo"><?= htmlspecialchars($c['motivo'] ?? '-') ?></td>
+                      <td data-label="Diagnóstico"><?= htmlspecialchars($c['diagnostico'] ?? '-') ?></td>
+                      <td data-label="Tratamiento"><?= htmlspecialchars($c['tratamiento'] ?? '-') ?></td>
+                      <td data-label="Atendido por"><?= htmlspecialchars(trim(($c['nombre_empleado'] ?? $c['nombre_veterinario'] ?? '') . ' ' . ($c['apellido_empleado'] ?? $c['apellido_veterinario'] ?? ''))) ?></td>
                     </tr>
                   <?php endforeach; ?>
                 <?php else: ?>
@@ -116,15 +167,15 @@
                 <?php if (!empty($citas)): ?>
                   <?php foreach ($citas as $c): ?>
                     <tr>
-                      <td><?= htmlspecialchars($c['fecha'] ?? '-') ?></td>
-                      <td><?= htmlspecialchars($c['servicio'] ?? '-') ?></td>
-                      <td>
+                      <td data-label="Fecha"><?= htmlspecialchars($c['fecha'] ?? '-') ?></td>
+                      <td data-label="Servicio"><?= htmlspecialchars($c['servicio'] ?? '-') ?></td>
+                      <td data-label="Estado">
                         <span class="badge estado-badge <?= 'estado-' . str_replace(' ', '-', strtolower($c['estado'] ?? 'pendiente')) ?>">
                           <?= htmlspecialchars(ucfirst($c['estado'] ?? 'pendiente')) ?>
                         </span>
                       </td>
-                      <td><?= htmlspecialchars($c['veterinario'] ?? '-') ?></td>
-                      <td><?= htmlspecialchars($c['notas'] ?? '-') ?></td>
+                      <td data-label="Veterinario"><?= htmlspecialchars($c['veterinario'] ?? '-') ?></td>
+                      <td data-label="Notas"><?= htmlspecialchars($c['notas'] ?? '-') ?></td>
                     </tr>
                   <?php endforeach; ?>
                 <?php else: ?>

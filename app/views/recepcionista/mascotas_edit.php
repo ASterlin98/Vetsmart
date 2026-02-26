@@ -5,9 +5,15 @@
     <div class="card shadow-sm">
       <div class="card-body text-center">
         <div class="mb-2">
-          <div style="width:160px;height:160px;border-radius:12px;background:#e9ecef;display:flex;align-items:center;justify-content:center;font-size:48px;color:#6c757d;" class="mx-auto">
-            <?= strtoupper(substr($mascota['nombre'],0,1)) ?>
-          </div>
+            <?php if (!empty($mascota['foto']) && file_exists(dirname(dirname(dirname(__DIR__))) . '/public/assets/uploads/mascotas/' . $mascota['foto'])): ?>
+               <div style="width:160px;height:160px;border-radius:12px;overflow:hidden;margin:0 auto;">
+                  <img src="/vetsmart/public/assets/uploads/mascotas/<?= htmlspecialchars($mascota['foto']) ?>" alt="Foto Mascota" style="width:100%;height:100%;object-fit:cover;">
+               </div>
+            <?php else: ?>
+              <div style="width:160px;height:160px;border-radius:12px;background:#e9ecef;display:flex;align-items:center;justify-content:center;font-size:48px;color:#6c757d;" class="mx-auto">
+                <?= strtoupper(substr($mascota['nombre'] ?? 'M',0,1)) ?>
+              </div>
+            <?php endif; ?>
         </div>
         <div class="fw-bold fs-5 mb-1"><?= htmlspecialchars($mascota['nombre']) ?></div>
         <div class="text-muted small mb-1"><?= htmlspecialchars(($mascota['especie'] ?? '-') . ' · ' . ($mascota['raza'] ?? '-')) ?></div>
@@ -62,7 +68,11 @@
     </select>
   </div>
 
-  <div class="alert alert-info py-2 px-3"> <i class="fas fa-info-circle me-1"></i> La foto se muestra con la inicial de la mascota.</div>
+  <div class="mb-3">
+      <label class="form-label">Actualizar Foto</label>
+      <input type="file" name="foto" accept="image/*" class="form-control">
+      <div class="form-text">Subir nueva foto para reemplazar la actual.</div>
+  </div>
 
   <div class="text-end">
     <button type="submit" class="btn btn-primary">Actualizar</button>

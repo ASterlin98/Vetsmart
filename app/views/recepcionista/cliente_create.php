@@ -260,16 +260,16 @@
 
 <script>
 // Ocultar campo de foto: usamos avatar por iniciales
-document.addEventListener('DOMContentLoaded', function(){
-  const form = document.getElementById('formCliente');
-  if (!form) return;
-  const file = form.querySelector('input[name="foto"]');
-  if (file) {
-    const lbl = file.previousElementSibling; // label
-    const help = file.nextElementSibling;   // form-text
-    file.remove(); if (help) help.remove(); if (lbl && lbl.tagName==='LABEL') lbl.remove();
-  }
-});
+// document.addEventListener('DOMContentLoaded', function(){
+//   const form = document.getElementById('formCliente');
+//   if (!form) return;
+//   const file = form.querySelector('input[name="foto"]');
+//   if (file) {
+//     const lbl = file.previousElementSibling; // label
+//     const help = file.nextElementSibling;   // form-text
+//     // file.remove(); if (help) help.remove(); if (lbl && lbl.tagName==='LABEL') lbl.remove();
+//   }
+// });
 
 document.addEventListener('DOMContentLoaded', function() {
   let idx = 1;
