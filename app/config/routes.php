@@ -85,6 +85,7 @@ return [
         'super_admin/configuracion/guardar' => 'SuperAdminController@guardarConfiguracion',
         // Cliente
         'cliente/perfil/actualizar' => 'ClienteController@actualizarPerfil',
+        'cliente/perfil/foto'       => 'ClienteController@subirFotoAjax',
         'cliente/mascotas/guardar'  => 'ClienteController@guardarMascota',
         'cliente/mascotas/editar'   => 'ClienteController@editarMascota',
         'cliente/mascotas/eliminar' => 'ClienteController@eliminarMascota',

@@ -9,6 +9,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            position: relative; /* Fix for some mobile browsers */
+        }
         body {
             display: flex;
             flex-direction: column;
@@ -39,6 +46,8 @@
             flex: 1;
             margin-top: 70px;
             transition: all 0.3s ease;
+            width: 100%;
+            overflow-x: hidden; /* Asegurar que el contenido no desborde */
         }
 
         .sidebar {
@@ -75,18 +84,29 @@
             }
             .table-responsive td {
                 display: flex;
+<<<<<<< HEAD
                 justify-content: space-between;
                 align-items: center;
                 padding: 0.75rem !important;
                 border-bottom: 1px solid #f3f4f6;
                 text-align: right;
                 font-size: 0.9rem;
+=======
+                flex-direction: column; /* Stack label and value vertically for better centering */
+                justify-content: center;
+                align-items: center;
+                padding: 1rem !important;
+                border-bottom: 1px solid #f3f4f6;
+                text-align: center;
+                font-size: 0.95rem;
+>>>>>>> 551a971277bd5d0b94296071273044a14c300280
             }
             .table-responsive td:last-child {
                 border-bottom: 0;
             }
             .table-responsive td::before {
                 content: attr(data-label);
+<<<<<<< HEAD
                 font-weight: 600;
                 color: #374151;
                 text-align: left;
@@ -105,6 +125,32 @@
             .table-responsive td .d-flex.align-items-center {
                 flex-direction: row-reverse;
                 gap: 0.5rem;
+=======
+                font-weight: 700;
+                color: #374151;
+                text-align: center;
+                margin-right: 0;
+                margin-bottom: 0.25rem;
+                display: block;
+                text-transform: uppercase;
+                font-size: 0.75rem;
+                letter-spacing: 0.5px;
+            }
+            /* Adjust specific elements inside cards */
+            .table-responsive td .btn {
+                width: 100%; /* Full width buttons */
+                margin: 0.25rem 0;
+            }
+            .table-responsive td .d-flex {
+                justify-content: center !important;
+                width: 100%;
+            }
+            /* Fix for avatar alignment in card view */
+            .table-responsive td .d-flex.align-items-center {
+                flex-direction: row; /* Normal row for avatar+name */
+                gap: 0.5rem;
+                justify-content: center !important;
+>>>>>>> 551a971277bd5d0b94296071273044a14c300280
             }
         }
 
@@ -613,6 +659,39 @@
 
     <div class="content">
         <main class="bg-white shadow-sm rounded-2xl p-6 border border-gray-200">
+            <?php
+            // Notificación global - muestra $_SESSION['mensaje'] como toast
+            if (!empty($_SESSION['mensaje'])):
+                $msgTipo = htmlspecialchars($_SESSION['mensaje']['tipo'] ?? 'info');
+                $msgTexto = htmlspecialchars($_SESSION['mensaje']['texto'] ?? '');
+                $msgIcon = match($msgTipo) {
+                    'success' => 'check-circle',
+                    'danger'  => 'exclamation-triangle',
+                    'warning' => 'exclamation-circle',
+                    default   => 'info-circle',
+                };
+                unset($_SESSION['mensaje']);
+            ?>
+            <div class="alert alert-<?= $msgTipo ?> alert-dismissible fade show d-flex align-items-center shadow-sm mb-4" 
+                 role="alert" id="globalToast"
+                 style="animation: slideDown 0.4s ease-out; border-left: 4px solid;">
+                <i class="fas fa-<?= $msgIcon ?> fa-lg me-3"></i>
+                <div class="flex-grow-1"><?= $msgTexto ?></div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <script>
+                // Auto-ocultar después de 5 segundos
+                setTimeout(function() {
+                    var toast = document.getElementById('globalToast');
+                    if (toast) {
+                        toast.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                        toast.style.opacity = '0';
+                        toast.style.transform = 'translateY(-20px)';
+                        setTimeout(function() { toast.remove(); }, 500);
+                    }
+                }, 5000);
+            </script>
+            <?php endif; ?>
             <?= $content ?? '' ?>
         </main>
 

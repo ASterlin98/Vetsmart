@@ -93,7 +93,7 @@
               <td class="ps-4">
                 <div class="pet-avatar">
                   <?php if (!empty($m['foto'])): ?>
-                    <img src="/vetsmart/assets/uploads/mascotas/<?= htmlspecialchars($m['foto']) ?>" 
+                    <img src="/vetsmart/public/assets/uploads/mascotas/<?= htmlspecialchars($m['foto']) ?>" 
                          class="pet-image" 
                          alt="<?= htmlspecialchars($m['nombre'] ?? '') ?>">
                   <?php else: ?>
@@ -153,7 +153,7 @@
                           <div class="col-md-4 text-center">
                             <div class="pet-photo-preview mb-2">
                               <?php if (!empty($m['foto'])): ?>
-                                <img src="/vetsmart/assets/uploads/mascotas/<?= htmlspecialchars($m['foto']) ?>" alt="<?= htmlspecialchars($m['nombre'] ?? '') ?>">
+                                <img src="/vetsmart/public/assets/uploads/mascotas/<?= htmlspecialchars($m['foto']) ?>" alt="<?= htmlspecialchars($m['nombre'] ?? '') ?>">
                               <?php else: ?>
                                 <div class="pet-placeholder large"><i class="fas fa-paw"></i></div>
                               <?php endif; ?>

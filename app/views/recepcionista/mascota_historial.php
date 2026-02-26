@@ -15,9 +15,14 @@
         <?php endif; ?>
       </div>
     </div>
-    <a href="/vetsmart/recepcionista/mascotas" class="btn btn-outline-secondary">
-      <i class="fas fa-arrow-left me-1"></i> Volver
-    </a>
+    <div class="d-flex gap-2">
+        <a href="/vetsmart/reportes/mascota/<?= $mascota['id'] ?>/pdf" target="_blank" class="btn btn-outline-danger">
+            <i class="fas fa-file-pdf me-1"></i> Historial PDF
+        </a>
+        <a href="/vetsmart/recepcionista/mascotas" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Volver
+        </a>
+    </div>
   </div>
 
   <div class="row g-3">
@@ -78,8 +83,14 @@
             <div>
                 <i class="fas fa-folder-open me-2 text-primary"></i>Archivos Adjuntos
             </div>
+<<<<<<< HEAD
             <!-- Botón para subir archivo (redirige a reportes con preselección si fuera posible, por ahora solo link) -->
             <a href="/vetsmart/recepcionista/reportes" class="btn btn-sm btn-outline-primary"><i class="fas fa-upload me-1"></i>Subir</a>
+=======
+            <div>
+                <a href="/vetsmart/recepcionista/reportes" class="btn btn-sm btn-outline-primary"><i class="fas fa-upload me-1"></i>Subir</a>
+            </div>
+>>>>>>> 551a971277bd5d0b94296071273044a14c300280
         </div>
         <div class="card-body p-0">
           <?php if (!empty($archivos)): ?>

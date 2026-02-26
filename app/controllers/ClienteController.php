@@ -231,6 +231,98 @@ class ClienteController
         exit;
     }
 
+    /**
+     * Subida AJAX de foto de perfil (tipo Instagram: instantánea).
+     * Recibe multipart/form-data con campo "foto".
+     * Devuelve JSON: { success: true, url: "..." } o { success: false, error: "..." }
+     */
+    public function subirFotoAjax(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $this->verificarSesion();
+
+        $id = (int)($_SESSION['user']['id'] ?? 0);
+
+        // Validar CSRF (enviado por header o por campo)
+        $token = $_POST['_csrf'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        if (!CSRF::validate($token)) {
+            echo json_encode(['success' => false, 'error' => 'Sesión expirada. Recarga la página.']);
+            return;
+        }
+
+        if (empty($_FILES['foto']['name'])) {
+            echo json_encode(['success' => false, 'error' => 'No se recibió ningún archivo.']);
+            return;
+        }
+
+        $maxSize = 2 * 1024 * 1024;
+        $tmp = (string)($_FILES['foto']['tmp_name'] ?? '');
+
+        if (($_FILES['foto']['size'] ?? 0) > $maxSize) {
+            echo json_encode(['success' => false, 'error' => 'La imagen excede 2MB.']);
+            return;
+        }
+
+        $info = @getimagesize($tmp);
+        if ($info === false) {
+            echo json_encode(['success' => false, 'error' => 'Archivo de imagen inválido.']);
+            return;
+        }
+
+        $mime = (string)($info['mime'] ?? '');
+        if (!in_array($mime, ['image/jpeg', 'image/png'], true)) {
+            echo json_encode(['success' => false, 'error' => 'Formato no permitido. Usa JPG o PNG.']);
+            return;
+        }
+
+        $w = (int)($info[0] ?? 0);
+        $h = (int)($info[1] ?? 0);
+        if ($w > 2000 || $h > 2000) {
+            echo json_encode(['success' => false, 'error' => 'La imagen supera 2000x2000 píxeles.']);
+            return;
+        }
+
+        // Obtener foto anterior
+        $prevFoto = null;
+        try {
+            $pf = $this->pdo->prepare('SELECT foto FROM perfil WHERE usuario_id = :id');
+            $pf->execute([':id' => $id]);
+            $row = $pf->fetch(PDO::FETCH_ASSOC);
+            $prevFoto = $row['foto'] ?? null;
+        } catch (Throwable $e) { /* ignorar */ }
+
+        $ext = strtolower((string)pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+        $uploadDir = APP_ROOT . '/public/assets/uploads/clientes';
+        if (!is_dir($uploadDir)) { @mkdir($uploadDir, 0777, true); }
+
+        $fotoNombre = 'cliente_' . $id . '_' . time() . '.' . $ext;
+        $dest = $uploadDir . '/' . $fotoNombre;
+
+        if (!@move_uploaded_file($tmp, $dest)) {
+            echo json_encode(['success' => false, 'error' => 'Error al guardar la imagen en el servidor.']);
+            return;
+        }
+
+        // Actualizar en BD
+        require_once APP_ROOT . '/models/Cliente.php';
+        $clienteModel = new Cliente($this->pdo);
+        try {
+            $clienteModel->updateFotoPerfil($id, $fotoNombre);
+        } catch (Throwable $e) {
+            echo json_encode(['success' => false, 'error' => 'Error al actualizar en base de datos.']);
+            return;
+        }
+
+        // Eliminar foto anterior
+        if (!empty($prevFoto) && $prevFoto !== $fotoNombre) {
+            $old = $uploadDir . '/' . basename((string)$prevFoto);
+            if (@is_file($old)) { @unlink($old); }
+        }
+
+        $url = '/vetsmart/public/assets/uploads/clientes/' . rawurlencode($fotoNombre);
+        echo json_encode(['success' => true, 'url' => $url]);
+    }
+
     public function mascotas(): void
     {
         $this->verificarSesion();
@@ -494,33 +586,84 @@ class ClienteController
             $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Mascota invÃƒÂ¡lida.'];
             header('Location: /vetsmart/cliente/citas/agendar'); exit;
         }
-        // Anti-duplicados: misma fecha y hora para el mismo empleado o la misma mascota
-        $check = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM citas 
-             WHERE DATE(fecha)=DATE(:f1) AND TIME(fecha)=TIME(:f2)
-               AND (mascota_id = :mid OR (empleado_id IS NOT NULL AND empleado_id = :eid))"
-        );
-        $check->execute([
-            ':f1' => $fecha,
-            ':f2' => $fecha,
-            ':mid' => $mascotaId,
-            ':eid' => $empleadoId ?? 0,
-        ]);
-        if ((int)$check->fetchColumn() > 0) {
-            $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Ya existe una cita para esa fecha y hora (mascota o empleado).'];
-            header('Location: /vetsmart/cliente/citas/agendar'); exit;
-        }
-
-        // Validar que la fecha no esté en el pasado
+        // Validar que la fecha no esté en el pasado (con timezone de Colombia)
         try {
-            $dt = new DateTime($fecha);
-            $now = new DateTime('now');
+            $tz = new DateTimeZone('America/Bogota');
+            $dt = new DateTime($fecha, $tz);
+            $now = new DateTime('now', $tz);
             if ($dt < $now) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'No se permiten agendar citas en fechas u horas pasadas.'];
                 header('Location: /vetsmart/cliente/citas/agendar'); exit;
             }
         } catch (Throwable $e) {
             $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Fecha/Hora inválida.'];
+            header('Location: /vetsmart/cliente/citas/agendar'); exit;
+        }
+
+        // Anti-duplicados / solapamiento con duración del servicio
+        try {
+            // Obtener duración del servicio en minutos (fallback 30min)
+            $durStmt = $this->pdo->prepare("SELECT duracion_min FROM servicios WHERE id = ? LIMIT 1");
+            $durStmt->execute([$servicioId]);
+            $durMin = (int)$durStmt->fetchColumn();
+            if ($durMin <= 0) $durMin = 30;
+
+            $newStart = new DateTime($fecha);
+            $newEnd = (clone $newStart)->add(new DateInterval('PT' . $durMin . 'M'));
+
+            // 1. Verificar solapamiento por empleado (si tiene empleado asignado)
+            if ($empleadoId) {
+                $stmt = $this->pdo->prepare(
+                    "SELECT c.id, c.fecha, c.servicio_id FROM citas c
+                     WHERE DATE(c.fecha) = DATE(:fecha) AND c.empleado_id = :eid AND c.estado != 'cancelada'"
+                );
+                $stmt->execute([':fecha' => $fecha, ':eid' => $empleadoId]);
+                $existingEmp = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                foreach ($existingEmp as $ex) {
+                    $exStart = new DateTime($ex['fecha']);
+                    $dStmt = $this->pdo->prepare("SELECT duracion_min, nombre FROM servicios WHERE id = ? LIMIT 1");
+                    $dStmt->execute([(int)$ex['servicio_id']]);
+                    $svc = $dStmt->fetch(PDO::FETCH_ASSOC);
+                    $exDur = isset($svc['duracion_min']) ? (int)$svc['duracion_min'] : 30;
+                    if ($exDur <= 0) $exDur = 30;
+                    $svcName = $svc['nombre'] ?? 'Servicio';
+                    $exEnd = (clone $exStart)->add(new DateInterval('PT' . $exDur . 'M'));
+
+                    if ($newStart < $exEnd && $exStart < $newEnd) {
+                        $conflictTime = $exStart->format('H:i');
+                        $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>"Conflicto: el empleado ya tiene una cita a las $conflictTime ($svcName). Elige otro horario."];
+                        header('Location: /vetsmart/cliente/citas/agendar'); exit;
+                    }
+                }
+            }
+
+            // 2. Verificar solapamiento por mascota
+            $stmt2 = $this->pdo->prepare(
+                "SELECT c.id, c.fecha, c.servicio_id FROM citas c
+                 WHERE DATE(c.fecha) = DATE(:fecha) AND c.mascota_id = :mid AND c.estado != 'cancelada'"
+            );
+            $stmt2->execute([':fecha' => $fecha, ':mid' => $mascotaId]);
+            $existingPet = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($existingPet as $ex) {
+                $exStart = new DateTime($ex['fecha']);
+                $dStmt = $this->pdo->prepare("SELECT duracion_min, nombre FROM servicios WHERE id = ? LIMIT 1");
+                $dStmt->execute([(int)$ex['servicio_id']]);
+                $svc = $dStmt->fetch(PDO::FETCH_ASSOC);
+                $exDur = isset($svc['duracion_min']) ? (int)$svc['duracion_min'] : 30;
+                if ($exDur <= 0) $exDur = 30;
+                $svcName = $svc['nombre'] ?? 'Servicio';
+                $exEnd = (clone $exStart)->add(new DateInterval('PT' . $exDur . 'M'));
+
+                if ($newStart < $exEnd && $exStart < $newEnd) {
+                    $conflictTime = $exStart->format('H:i');
+                    $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>"Conflicto: tu mascota ya tiene una cita a las $conflictTime ($svcName). Elige otro horario."];
+                    header('Location: /vetsmart/cliente/citas/agendar'); exit;
+                }
+            }
+        } catch (Throwable $e) {
+            $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Error al validar disponibilidad. Intenta nuevamente.'];
             header('Location: /vetsmart/cliente/citas/agendar'); exit;
         }
 
