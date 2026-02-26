@@ -8,9 +8,9 @@ require_once APP_ROOT . '/models/Mascota.php';
 require_once APP_ROOT . '/models/Cita.php';
 require_once APP_ROOT . '/models/Servicio.php';
 require_once APP_ROOT . '/models/Vacuna.php';
-require_once APP_ROOT . '/models/RolePermission.php';
+
 require_once APP_ROOT . '/models/Config.php';
-require_once APP_ROOT . '/models/Permiso.php';
+
 // Nuevo: modelo centralizado para estadísticas
 require_once APP_ROOT . '/models/SuperAdmin.php';
 
@@ -24,9 +24,9 @@ class SuperAdminController extends Controller
     private $citaModel;
     private $servicioModel;
     private $vacunaModel;
-    private $rolePermissionModel;
+
     private $configModel;
-    private $permisoModel;
+
     private $superAdminModel; // NUEVO
 
     public function __construct($pdo)
@@ -38,9 +38,9 @@ class SuperAdminController extends Controller
         try { $this->citaModel     = new Cita($pdo); } catch (\Throwable $e) { $this->citaModel = null; }
         try { $this->servicioModel = new Servicio($pdo); } catch (\Throwable $e) { $this->servicioModel = null; }
         try { $this->vacunaModel   = new Vacuna($pdo); } catch (\Throwable $e) { $this->vacunaModel = null; }
-        try { $this->rolePermissionModel = new RolePermission($pdo); } catch (\Throwable $e) { $this->rolePermissionModel = null; }
+
         try { $this->configModel = new Config($pdo); } catch (\Throwable $e) { $this->configModel = null; }
-        try { $this->permisoModel = new Permiso($pdo); } catch (\Throwable $e) { $this->permisoModel = null; }
+
         // Instanciar SuperAdmin model (si existe)
         try { $this->superAdminModel = new SuperAdmin($pdo); } catch (\Throwable $e) { $this->superAdminModel = null; }
     }
@@ -303,221 +303,4 @@ class SuperAdminController extends Controller
         exit;
     }
 
-    public function permisos()
-    {
-        if (!$this->permisoModel || !$this->rolePermissionModel) {
-            $this->view('super_admin/permisos', ['error' => 'Los modelos necesarios no están disponibles.'], 'main_superadmin');
-            return;
-        }
-
-        $permisos = $this->permisoModel->getAll();
-        $modulos = $this->permisoModel->getModules();
-        $roles = $this->rolePermissionModel->getAllRoles(); // Fetch roles
-
-        $permisosAgrupados = [];
-        foreach ($permisos as $permiso) {
-            $permisosAgrupados[$permiso['modulo']][] = $permiso;
-        }
-
-        $this->view('super_admin/permisos', [
-            'permisosAgrupados' => $permisosAgrupados,
-            'modulos' => $modulos,
-            'roles' => $roles, // Pass roles to the view
-        ], 'main_superadmin');
-    }
-
-    public function guardarPermiso()
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !$this->permisoModel) {
-            header('Location: /vetsmart/super_admin/permisos');
-            exit;
-        }
-
-        $data = [
-            'modulo' => trim($_POST['modulo']),
-            'nombre' => trim($_POST['nombre']),
-            'descripcion' => trim($_POST['descripcion']),
-            'accion' => trim($_POST['accion']),
-            'orden' => (int)($_POST['orden'] ?? 0),
-            'activo' => isset($_POST['activo']) ? 1 : 0
-        ];
-
-        if (!empty(trim($_POST['nuevo_modulo']))) {
-            $data['modulo'] = strtolower(str_replace(' ', '_', trim($_POST['nuevo_modulo'])));
-        }
-
-        try {
-            if ($this->permisoModel->create($data)) {
-                $_SESSION['flash_success'] = 'Permiso creado correctamente.';
-            } else {
-                $_SESSION['flash_error'] = 'No se pudo crear el permiso. Verifique los datos.';
-            }
-        } catch (Exception $e) {
-            $_SESSION['flash_error'] = 'Error al crear el permiso: ' . $e->getMessage();
-        }
-
-        header('Location: /vetsmart/super_admin/permisos');
-        exit;
-    }
-
-    public function actualizarPermiso()
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !$this->permisoModel) {
-            header('Location: /vetsmart/super_admin/permisos');
-            exit;
-        }
-
-        $id = (int)($_POST['id'] ?? 0);
-        if ($id <= 0) {
-            $_SESSION['flash_error'] = 'ID de permiso no válido.';
-            header('Location: /vetsmart/super_admin/permisos');
-            exit;
-        }
-
-        $data = [
-            'modulo' => trim($_POST['modulo']),
-            'nombre' => trim($_POST['nombre']),
-            'descripcion' => trim($_POST['descripcion']),
-            'accion' => trim($_POST['accion']),
-            'orden' => (int)($_POST['orden'] ?? 0),
-            'activo' => isset($_POST['activo']) ? 1 : 0
-        ];
-
-        try {
-            if ($this->permisoModel->update($id, $data)) {
-                $_SESSION['flash_success'] = 'Permiso actualizado correctamente.';
-            } else {
-                $_SESSION['flash_error'] = 'No se pudo actualizar el permiso. Verifique los datos.';
-            }
-        } catch (Exception $e) {
-            $_SESSION['flash_error'] = 'Error al actualizar el permiso: ' . $e->getMessage();
-        }
-
-        header('Location: /vetsmart/super_admin/permisos');
-        exit;
-    }
-
-    public function eliminarPermiso($id)
-    {
-        $id = (int)$id;
-        if ($id <= 0 || !$this->permisoModel) {
-            header('Location: /vetsmart/super_admin/permisos');
-            exit;
-        }
-
-        try {
-            if ($this->permisoModel->delete($id)) {
-                $_SESSION['flash_success'] = 'Permiso eliminado correctamente.';
-            } else {
-                $_SESSION['flash_error'] = 'No se pudo eliminar el permiso.';
-            }
-        } catch (Exception $e) {
-            $_SESSION['flash_error'] = 'Error al eliminar el permiso: ' . $e->getMessage();
-        }
-
-        header('Location: /vetsmart/super_admin/permisos');
-        exit;
-    }
-
-    /**
-     * API: Obtiene los permisos disponibles y los asignados a un rol específico.
-     * Devuelve JSON con estructura para mostrar checkboxes por módulo.
-     */
-    public function obtenerPermisosRol()
-    {
-        header('Content-Type: application/json; charset=utf-8');
-
-        $roleId = $_GET['role_id'] ?? null;
-        if (!$roleId || !is_numeric($roleId) || (int)$roleId <= 0) {
-            http_response_code(400);
-            echo json_encode(['error' => 'role_id inválido']);
-            exit;
-        }
-
-        if (!$this->rolePermissionModel || !$this->permisoModel) {
-            http_response_code(500);
-            echo json_encode(['error' => 'Modelos no disponibles']);
-            exit;
-        }
-
-        try {
-            // Obtener todos los permisos agrupados por módulo
-            $permisosAgrupados = $this->rolePermissionModel->getAllPermissionsGroupedByModule();
-            
-            // Obtener los IDs de permisos asignados a este rol
-            $permisosAsignados = $this->rolePermissionModel->getPermissionIdsByRoleId((int)$roleId);
-            $permisosAsignadosIds = array_map('intval', $permisosAsignados);
-
-            // Construir respuesta con módulos y permisos
-            $respuesta = [];
-            foreach ($permisosAgrupados as $modulo => $permisos) {
-                $permisosModulo = [];
-                foreach ($permisos as $permiso) {
-                    $permisosModulo[] = [
-                        'id' => (int)$permiso['id'],
-                        'nombre' => $permiso['nombre'],
-                        'descripcion' => $permiso['descripcion'],
-                        'asignado' => in_array((int)$permiso['id'], $permisosAsignadosIds)
-                    ];
-                }
-                $respuesta[$modulo] = $permisosModulo;
-            }
-
-            echo json_encode(['success' => true, 'permisos' => $respuesta]);
-            exit;
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
-            exit;
-        }
-    }
-
-    /**
-     * API: Guarda los permisos asignados a un rol.
-     * Espera JSON POST con role_id y array de permission_ids.
-     */
-    public function guardarPermisosRol()
-    {
-        header('Content-Type: application/json; charset=utf-8');
-
-        if (!$this->rolePermissionModel) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => 'Modelo RolePermission no disponible']);
-            exit;
-        }
-
-        // Leer JSON del body
-        $input = json_decode(file_get_contents('php://input'), true);
-
-        $roleId = $input['role_id'] ?? null;
-        $permissionIds = $input['permission_ids'] ?? [];
-
-        if (!$roleId || !is_numeric($roleId) || (int)$roleId <= 0) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'role_id inválido']);
-            exit;
-        }
-
-        // Proteger super admin
-        if ((int)$roleId === 1) {
-            http_response_code(403);
-            echo json_encode(['success' => false, 'error' => 'No se pueden modificar permisos del Super Admin']);
-            exit;
-        }
-
-        try {
-            $resultado = $this->rolePermissionModel->updatePermissionsForRole((int)$roleId, $permissionIds);
-            if ($resultado) {
-                echo json_encode(['success' => true, 'message' => 'Permisos guardados correctamente']);
-            } else {
-                http_response_code(500);
-                echo json_encode(['success' => false, 'error' => 'Error al guardar permisos']);
-            }
-            exit;
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
-            exit;
-        }
-    }
 }

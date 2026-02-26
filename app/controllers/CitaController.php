@@ -369,12 +369,7 @@ class CitaController
                 exit;
             }
         } catch (Throwable $e) {
-<<<<<<< HEAD
-            // si la fecha es inválida, rechazamos
-            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Fecha inválida.'];
-=======
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Fecha/Hora inválida.'];
->>>>>>> 551a971277bd5d0b94296071273044a14c300280
             header('Location: /vetsmart/recepcionista/citas');
             exit;
         }

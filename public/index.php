@@ -404,12 +404,6 @@ try {
         exit;
     }
 
-    // === gestion de Permisos por Rol (solo superadmin) ===
-    if ($path === '/superadmin/permisos' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-        $controller = new SuperAdminController($pdo);
-        $controller->permisos();
-        exit;
-    }
 
 
     // ==================== CLIENTES ====================
@@ -1065,39 +1059,7 @@ if ($path === '/super_admin/exportarReportes' && $_SERVER['REQUEST_METHOD'] === 
     exit;
 }
 
-// ==================== SUPER ADMIN: GESTION DE PERMISOS (CRUD) ====================
-if ($path === '/super_admin/permisos' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new SuperAdminController($pdo);
-    $controller->permisos();
-    exit;
-}
-// API: Obtener permisos de un rol específico
-if ($path === '/super_admin/permisos/obtener' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new SuperAdminController($pdo);
-    $controller->obtenerPermisosRol();
-    exit;
-}
-// API: Guardar permisos de un rol
-if ($path === '/super_admin/permisos/guardar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new SuperAdminController($pdo);
-    $controller->guardarPermisosRol();
-    exit;
-}
-if ($path === '/super_admin/guardarPermiso' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new SuperAdminController($pdo);
-    $controller->guardarPermiso();
-    exit;
-}
-if ($path === '/super_admin/actualizarPermiso' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new SuperAdminController($pdo);
-    $controller->actualizarPermiso();
-    exit;
-}
-if (preg_match('#^/super_admin/eliminarPermiso/(\d+)$#', $path, $matches)) {
-    $controller = new SuperAdminController($pdo);
-    $controller->eliminarPermiso($matches[1]);
-    exit;
-}
+
 
 // ==================== CENTRO DE SOPORTE ====================
 if ($path === '/soporte' && $_SERVER['REQUEST_METHOD'] === 'GET') {
