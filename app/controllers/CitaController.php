@@ -261,6 +261,7 @@ class CitaController
     public function store(): void
     {
         $this->verificarSesion();
+        
         // CSRF
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
@@ -278,6 +279,18 @@ class CitaController
             'estado' => 'pendiente',
             'notas' => $_POST['notas'] ?? ''
         ];
+        
+        // Asegurar formato MySQL (YYYY-MM-DD HH:MM:SS)
+        if (!empty($data['fecha'])) {
+             $data['fecha'] = str_replace('T', ' ', $data['fecha']);
+             if (strlen($data['fecha']) == 16) { $data['fecha'] .= ':00'; }
+        }
+
+        if (empty($data['fecha']) || empty($data['cliente_id']) || empty($data['empleado_id']) || empty($data['servicio_id'])) {
+             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Faltan campos obligatorios.'];
+             header('Location: /vetsmart/recepcionista/citas');
+             exit;
+        }
 
         // Validación de rol para servicios de peluquería
         if ($this->esServicioPeluqueria((int)$data['servicio_id']) && !$this->esPeluquero((int)$data['empleado_id'])) {
@@ -333,7 +346,6 @@ class CitaController
 
                 // Solapamiento: newStart < exEnd AND exStart < newEnd
                 if ($newStart < $exEnd && $exStart < $newEnd) {
-                    error_log("[OVERLAP CHECK STORE] ¡SOLAPAMIENTO DETECTADO!");
                     $conflictTime = $exStart->format('H:i');
                     $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => "Conflicto: existe una cita que se solapa a las $conflictTime (servicio: $svcName). Por favor reprograme." ];
                     header('Location: /vetsmart/recepcionista/citas');
@@ -341,7 +353,6 @@ class CitaController
                 }
             }
         } catch (Throwable $e) {
-            error_log('Error comprobando solapamientos de cita: ' . $e->getMessage());
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Error al validar disponibilidad. Intenta nuevamente.'];
             header('Location: /vetsmart/recepcionista/citas');
             exit;
@@ -349,16 +360,16 @@ class CitaController
 
         // Validar que la fecha completa no esté en el pasado
         try {
-            $dt = new DateTime((string)$data['fecha']);
-            $now = new DateTime('now');
+            $tz = new DateTimeZone('America/Bogota');
+            $dt = new DateTime((string)$data['fecha'], $tz);
+            $now = new DateTime('now', $tz);
             if ($dt < $now) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'No se permiten citas en fechas u horas pasadas.'];
                 header('Location: /vetsmart/recepcionista/citas');
                 exit;
             }
         } catch (Throwable $e) {
-            // si la fecha es inválida, rechazamos
-            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Fecha inválida.'];
+            $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Fecha/Hora inválida.'];
             header('Location: /vetsmart/recepcionista/citas');
             exit;
         }

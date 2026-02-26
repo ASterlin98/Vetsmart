@@ -240,7 +240,7 @@
           <i class="fas fa-phone text-primary"></i>
         </div>
         <h6>Soporte</h6>
-        <p class="text-muted small">¿Necesitas ayuda? Llámanos al (123) 456-7890</p>
+        <p class="text-muted small">¿Necesitas ayuda? Escribenos: soporte.vetmart@gmail.com</p>
       </div>
     </div>
   </div>

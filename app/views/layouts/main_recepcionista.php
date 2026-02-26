@@ -22,7 +22,6 @@ $nav_links = [
     ['url' => '/vetsmart/recepcionista/citas', 'icon' => 'fas fa-plus-circle', 'text' => 'Crear Cita'],
     ['url' => '/vetsmart/recepcionista/clientes', 'icon' => 'fas fa-users', 'text' => 'Gestión de Clientes'],
     ['url' => '/vetsmart/recepcionista/mascotas', 'icon' => 'fas fa-paw', 'text' => 'Gestión de Mascotas'],
-    ['url' => '/vetsmart/recepcionista/reportes', 'icon' => 'fas fa-chart-bar', 'text' => 'Reportes'],
 ];
 
 // Incluye el layout unificado

@@ -19,7 +19,7 @@
         </div>
         <?php unset($_SESSION['mensaje']); ?>
       <?php endif; ?>
-      <form action="/vetsmart/recepcionista/citas/store" method="POST" class="row g-4">
+      <form action="/vetsmart/citas/store" method="POST" class="row g-4">
         <?= CSRF::inputField(); ?>
         
         <!-- Client & Pet Section -->
@@ -216,7 +216,7 @@
                 <span class="d-none d-sm-inline">Cancelar</span>
               </a>
 
-              <button type="submit" class="btn btn-primary btn-save px-4" aria-label="Guardar cita" data-original-text="<i class=\"fas fa-save me-1\" aria-hidden=\"true\"></i>Guardar Cita">
+              <button type="submit" class="btn btn-primary btn-save px-4" aria-label="Guardar cita" data-original-text="<i class='fas fa-save me-1'></i>Guardar Cita">
                 <span class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span>
                 <i class="fas fa-save me-1" aria-hidden="true"></i>
                 <span class="btn-text">Guardar Cita</span>
@@ -672,7 +672,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Update hidden datetime field
   function updateHiddenDateTime() {
-    const dateString = selectedDate.toISOString().split('T')[0];
+    // Usar componentes locales para evitar problemas de timezone con toISOString()
+    const year = selectedDate.getFullYear();
+    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(selectedDate.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
+    
     const timeString = fechaTime.value;
     
     if (dateString && timeString) {
