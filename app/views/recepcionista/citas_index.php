@@ -141,7 +141,7 @@
                     <?php $estadoNorm = strtolower(trim((string)($c['estado'] ?? 'pendiente'))); ?>
                     <form action="<?= BASE ?>/recepcionista/agenda/update" method="post" class="d-inline-flex align-items-center gap-1">
                       <input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
-                      <input type="hidden" name="redirect" value="<?= BASE ?>/recepcionista/citas">
+                      <input type="hidden" name="redirect" value=BASE . "/recepcionista/citas">
                       <select name="estado" class="form-select form-select-sm">
                         <?php $opts = ['pendiente','completada']; foreach ($opts as $opt): ?>
                           <option value="<?= $opt ?>" <?= $estadoNorm===$opt?'selected':'' ?>><?= ucfirst($opt) ?></option>

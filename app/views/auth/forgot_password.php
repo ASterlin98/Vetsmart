@@ -6,10 +6,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen flex items-center justify-center"
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-6"
       style="background-image: url('<?= BASE ?>/public/assets/css/img4.jpg'); background-size: cover; background-position: center;">
 
-  <div>
+  <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-6 sm:p-8 relative z-10">
     <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
       ¿Olvidaste tu contraseña?
     </h2>

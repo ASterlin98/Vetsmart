@@ -97,7 +97,7 @@
             <ul class="list-group list-group-flush">
               <?php foreach ($archivos as $f): 
                   // Usar ruta relativa absoluta desde la raíz del servidor web
-                  $url = "<?= BASE ?>/public/assets/uploads/reportes/" . $mascota['id'] . "/" . rawurlencode($f);
+                  $url = BASE . "/public/assets/uploads/reportes/" . $mascota['id'] . "/" . rawurlencode($f);
               ?>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                   <a href="<?= $url ?>" target="_blank" class="text-decoration-none text-dark">

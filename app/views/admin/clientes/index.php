@@ -157,7 +157,7 @@ function avatar_color_for($text) {
 
     <?php if (!empty($totalPages) && $totalPages > 1):
       $currentPath = strtok($_SERVER['REQUEST_URI'], '?');
-      $baseUrl = $currentPath ?: '<?= BASE ?>/admin/clientes';
+      $baseUrl = $currentPath ?: BASE . '/admin/clientes';
     ?>
       <nav aria-label="Paginación clientes">
         <ul class="pagination mb-0">
@@ -417,7 +417,7 @@ function avatar_color_for($text) {
       document.getElementById('edit_direccion').value = direccion;
 
       const formEditar = document.getElementById('formEditarCliente');
-      formEditar.action = '<?= BASE ?>/admin/clientes/' + encodeURIComponent(id) + '/actualizar';
+      formEditar.action = BASE . '/admin/clientes/' + encodeURIComponent(id) + '/actualizar';
 
       editarModal.show();
     });
@@ -453,15 +453,15 @@ function avatar_color_for($text) {
 
       // link a ficha completa
       const link = document.getElementById('view_full_link');
-      if (link) link.href = '<?= BASE ?>/admin/clientes/' + encodeURIComponent(id);
+      if (link) link.href = BASE . '/admin/clientes/' + encodeURIComponent(id);
 
       // boton agregar mascota
-      if (addPetBtn) addPetBtn.href = '<?= BASE ?>/admin/clientes/' + encodeURIComponent(id) + '/mascotas/crear';
+      if (addPetBtn) addPetBtn.href = BASE . '/admin/clientes/' + encodeURIComponent(id) + '/mascotas/crear';
 
       // cargar mascotas via API
 if (mascotasContainer) {
   mascotasContainer.innerHTML = '<div class="text-muted small">Cargando mascotas...</div>';
-  fetch('<?= BASE ?>/api/clientes/' + encodeURIComponent(id) + '/mascotas')
+  fetch(BASE . '/api/clientes/' + encodeURIComponent(id) + '/mascotas')
     .then(res => {
       if (!res.ok) throw new Error('Error cargando mascotas');
       return res.json();
@@ -494,7 +494,7 @@ if (mascotasContainer) {
         const viewLink = document.createElement('a');
         viewLink.className = 'btn btn-sm btn-outline-primary';
         viewLink.href =
-          '<?= BASE ?>/admin/clientes/' +
+          BASE . '/admin/clientes/' +
           encodeURIComponent(id) +
           '/mascotas/' +
           encodeURIComponent(p.id ?? p.ID ?? p.Id ?? '');
@@ -505,7 +505,7 @@ if (mascotasContainer) {
         const editLink = document.createElement('a');
         editLink.className = 'btn btn-sm btn-outline-warning';
         editLink.href =
-          '<?= BASE ?>/admin/clientes/' +
+          BASE . '/admin/clientes/' +
           encodeURIComponent(id) +
           '/mascotas/' +
           encodeURIComponent(p.id ?? p.ID ?? p.Id ?? '') +
@@ -517,7 +517,7 @@ if (mascotasContainer) {
         const deleteLink = document.createElement('a');
         deleteLink.className = 'btn btn-sm btn-outline-danger';
         deleteLink.href =
-          '<?= BASE ?>/admin/clientes/' +
+          BASE . '/admin/clientes/' +
           encodeURIComponent(id) +
           '/mascotas/' +
           encodeURIComponent(p.id ?? p.ID ?? p.Id ?? '') +

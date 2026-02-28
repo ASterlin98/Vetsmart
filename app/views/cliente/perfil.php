@@ -1,7 +1,7 @@
 <?php $n = trim((string)($cliente["nombre"] ?? "")); $a = trim((string)($cliente["apellido"] ?? "")); $ini = mb_strtoupper(mb_substr($n,0,1).mb_substr($a,0,1)); ?><?php
 // $cliente: array con datos y 'foto' si existe en tabla perfil
 $foto = $cliente['foto'] ?? null;
-$fotoUrl = $foto ? "<?= BASE ?>/public/assets/uploads/clientes/" . rawurlencode($foto) : null;
+$fotoUrl = $foto ? BASE . "/public/assets/uploads/clientes/" . rawurlencode($foto) : null;
 // Token CSRF para la subida AJAX
 $csrfToken = CSRF::generateToken();
 ?>
@@ -160,7 +160,7 @@ function subirFotoInstantanea(input) {
   document.getElementById('avatar-overlay').style.display = 'none';
   document.getElementById('avatar-loading').style.display = 'flex';
 
-  fetch('<?= BASE ?>/cliente/perfil/foto', {
+  fetch(BASE . '/cliente/perfil/foto', {
     method: 'POST',
     body: formData,
     headers: {

@@ -704,7 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewImg = previewDiv.querySelector('img');
 
     if (foto) {
-        previewImg.src = '<?= BASE ?>/public/assets/uploads/clientes/' + foto;
+        previewImg.src = BASE . '/public/assets/uploads/clientes/' + foto;
         previewDiv.style.display = 'block';
     } else {
         previewDiv.style.display = 'none';

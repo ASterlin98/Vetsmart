@@ -68,7 +68,7 @@ $mensaje = $_SESSION['mensaje'] ?? null; if (isset($_SESSION['mensaje'])) unset(
               </select>
             </div>
             <button type="submit" class="btn btn-success"><i class="fas fa-download me-2"></i>Descargar PDF</button>
-            <button type="button" class="btn btn-outline-success" onclick="var id=this.form.mascota_pdf.value; if(id){ window.open('<?= BASE ?>/reportes/mascota/'+id+'/pdf/preview','_blank');}"><i class="fas fa-eye me-2"></i>Vista previa</button>
+            <button type="button" class="btn btn-outline-success" onclick="var id=this.form.mascota_pdf.value; if(id){ window.open(BASE . '/reportes/mascota/'+id+'/pdf/preview','_blank');}"><i class="fas fa-eye me-2"></i>Vista previa</button>
           </form>
         </div>
       </div>
@@ -96,7 +96,7 @@ $mensaje = $_SESSION['mensaje'] ?? null; if (isset($_SESSION['mensaje'])) unset(
                 <td>
                   <?php foreach ($files as $f): 
                       // Ruta relativa al document root del servidor web
-                      $url = "<?= BASE ?>/public/assets/uploads/reportes/" . $mascota['id'] . "/" . rawurlencode($f); 
+                      $url = BASE . "/public/assets/uploads/reportes/" . $mascota['id'] . "/" . rawurlencode($f); 
                   ?>
                     <a href="<?= $url ?>" target="_blank" class="me-2"><i class="fas fa-paperclip me-1"></i><?= htmlspecialchars($f) ?></a>
                   <?php endforeach; ?>

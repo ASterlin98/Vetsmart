@@ -47,7 +47,7 @@
 <?php if ($totalPages > 1):
         // Construir base URL sin querystring para enlaces de paginación
         $currentPath = strtok($_SERVER['REQUEST_URI'], '?');
-        $baseUrl = $currentPath ?: '<?= BASE ?>/admin/clientes';
+        $baseUrl = $currentPath ?: BASE . '/admin/clientes';
 ?>
     <div class="d-flex justify-content-between align-items-center mt-3">
         <div class="text-muted small">Mostrando <strong><?= $start ?></strong> - <strong><?= min($start + count($clientes) - 1, $total) ?></strong> de <strong><?= $total ?></strong></div>

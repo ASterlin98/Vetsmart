@@ -176,7 +176,7 @@ $csrf = $_SESSION['csrf_token'];
 <script>
 (function(){
   // Ajusta basePath si tu aplicación no está en /vetsmart
-  const basePath = '<?= BASE ?>';
+  const basePath = BASE;
   const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   const VET_ID = <?= json_encode($_SESSION['user']['id'] ?? null) ?>;
 

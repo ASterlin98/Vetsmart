@@ -384,19 +384,9 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Obtiene el base path configurado (.env APP_BASE_URL) o fallback /vetsmart.
-     */
     private function basePath(): string
     {
-        $url = getenv('APP_BASE_URL') ?: '';
-        // Si es URL absoluta, extraer sólo la ruta base
-        if (strpos($url, 'http') === 0) {
-            $parts = parse_url($url);
-            $path = $parts['path'] ?? '';
-            return rtrim($path, '/') ?: '/';
-        }
-        return rtrim($url, '/') ?: '/';
+        return defined('BASE') ? BASE : '';
     }
 
     /**

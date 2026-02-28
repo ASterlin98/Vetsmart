@@ -9,11 +9,11 @@ $header_title = '🐾 VetSmart Cliente';
 
 // Define los enlaces de navegación para el cliente
 $nav_links = [
-    ['url' => '<?= BASE ?>/cliente/dashboard', 'icon' => 'fas fa-home', 'text' => 'Dashboard'],
-    ['url' => '<?= BASE ?>/cliente/citas', 'icon' => 'fas fa-calendar-alt', 'text' => 'Mis Citas'],
-    ['url' => '<?= BASE ?>/cliente/mascotas', 'icon' => 'fas fa-paw', 'text' => 'Mis Mascotas'],
-    ['url' => '<?= BASE ?>/cliente/historial', 'icon' => 'fas fa-file-medical', 'text' => 'Historial Clínico'],
-    ['url' => '<?= BASE ?>/cliente/reportes', 'icon' => 'fas fa-chart-bar', 'text' => 'Reportes'],
+    ['url' => BASE . '/cliente/dashboard', 'icon' => 'fas fa-home', 'text' => 'Dashboard'],
+    ['url' => BASE . '/cliente/citas', 'icon' => 'fas fa-calendar-alt', 'text' => 'Mis Citas'],
+    ['url' => BASE . '/cliente/mascotas', 'icon' => 'fas fa-paw', 'text' => 'Mis Mascotas'],
+    ['url' => BASE . '/cliente/historial', 'icon' => 'fas fa-file-medical', 'text' => 'Historial Clínico'],
+    ['url' => BASE . '/cliente/reportes', 'icon' => 'fas fa-chart-bar', 'text' => 'Reportes'],
 ];
 
 // Incluye el layout unificado
