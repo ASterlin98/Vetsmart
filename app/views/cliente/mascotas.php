@@ -33,7 +33,7 @@
         <i class="fas fa-plus-circle text-primary me-2"></i>
         <h6 class="mb-0">Registrar nueva mascota</h6>
       </div>
-      <form method="post" action="/vetsmart/cliente/mascotas/guardar" enctype="multipart/form-data" class="row g-3">
+      <form method="post" action="<?= BASE ?>/cliente/mascotas/guardar" enctype="multipart/form-data" class="row g-3">
         <?= CSRF::inputField(); ?>
         <div class="col-md-3">
           <label class="form-label small">Nombre</label>
@@ -93,7 +93,7 @@
               <td class="ps-4">
                 <div class="pet-avatar">
                   <?php if (!empty($m['foto'])): ?>
-                    <img src="/vetsmart/public/assets/uploads/mascotas/<?= htmlspecialchars($m['foto']) ?>" 
+                    <img src="<?= BASE ?>/public/assets/uploads/mascotas/<?= htmlspecialchars($m['foto']) ?>" 
                          class="pet-image" 
                          alt="<?= htmlspecialchars($m['nombre'] ?? '') ?>">
                   <?php else: ?>
@@ -127,7 +127,7 @@
                   </button>
 
                   <!-- Delete Form -->
-                  <form method="post" action="/vetsmart/cliente/mascotas/eliminar" class="d-inline" 
+                  <form method="post" action="<?= BASE ?>/cliente/mascotas/eliminar" class="d-inline" 
                         onsubmit="return confirm('¿Esta seguro de que desea eliminar a <?= htmlspecialchars(addslashes($m['nombre'] ?? '')) ?>?')">
                     <?= CSRF::inputField(); ?>
                     <input type="hidden" name="id" value="<?= (int)$m['id'] ?>">
@@ -146,14 +146,14 @@
                       <button type="button" class="btn btn-sm btn-light" onclick="closeEditModal(<?= (int)$m['id'] ?>)">×</button>
                     </div>
                     <div class="pet-modal__body">
-                      <form method="post" action="/vetsmart/cliente/mascotas/editar" enctype="multipart/form-data">
+                      <form method="post" action="<?= BASE ?>/cliente/mascotas/editar" enctype="multipart/form-data">
                         <?= CSRF::inputField(); ?>
                         <input type="hidden" name="id" value="<?= (int)$m['id'] ?>">
                         <div class="row g-3">
                           <div class="col-md-4 text-center">
                             <div class="pet-photo-preview mb-2">
                               <?php if (!empty($m['foto'])): ?>
-                                <img src="/vetsmart/public/assets/uploads/mascotas/<?= htmlspecialchars($m['foto']) ?>" alt="<?= htmlspecialchars($m['nombre'] ?? '') ?>">
+                                <img src="<?= BASE ?>/public/assets/uploads/mascotas/<?= htmlspecialchars($m['foto']) ?>" alt="<?= htmlspecialchars($m['nombre'] ?? '') ?>">
                               <?php else: ?>
                                 <div class="pet-placeholder large"><i class="fas fa-paw"></i></div>
                               <?php endif; ?>

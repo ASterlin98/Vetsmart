@@ -31,7 +31,7 @@
                 <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
             <?php elseif (empty($settings)): ?>
                  <div class="alert alert-info">No hay ajustes de configuración definidos en la base de datos. Se pueden añadir nuevos desde el formulario.</div>
-                 <form action="/vetsmart/super_admin/actualizarConfiguracion" method="POST">
+                 <form action="<?= BASE ?>/super_admin/actualizarConfiguracion" method="POST">
                     <div class="mb-3">
                         <label for="site_name" class="form-label">Nombre del Sitio</label>
                         <input type="text" class="form-control" id="site_name" name="site_name" value="">
@@ -43,7 +43,7 @@
                     <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                 </form>
             <?php else: ?>
-                <form action="/vetsmart/super_admin/actualizarConfiguracion" method="POST">
+                <form action="<?= BASE ?>/super_admin/actualizarConfiguracion" method="POST">
 
                     <div class="mb-3">
                         <label for="site_name" class="form-label">Nombre del Sitio</label>

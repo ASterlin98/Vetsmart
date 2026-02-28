@@ -179,7 +179,7 @@ $empleado_id = $empleado_id ?? 0;
                     Agendar Nueva Cita de Peluquería
                 </div>
 
-                <form method="POST" action="/vetsmart/peluquero/guardar-cita-peluqueria" id="agendarForm">
+                <form method="POST" action="<?= BASE ?>/peluquero/guardar-cita-peluqueria" id="agendarForm">
                     <!-- Cliente -->
                     <div class="form-group">
                         <label for="cliente_id">Cliente <span class="required">*</span></label>
@@ -240,7 +240,7 @@ $empleado_id = $empleado_id ?? 0;
 
                     <!-- Botones de acción -->
                     <div class="form-actions">
-                        <a href="/vetsmart/peluquero/agenda" class="btn btn-secondary">
+                        <a href="<?= BASE ?>/peluquero/agenda" class="btn btn-secondary">
                             <i class="fas fa-times me-2"></i>Cancelar
                         </a>
                         <button type="submit" class="btn btn-primary">
@@ -265,7 +265,7 @@ $empleado_id = $empleado_id ?? 0;
         }
 
         // Realizar solicitud AJAX para obtener mascotas
-        fetch(`/vetsmart/api/clientes/${clienteId}/mascotas`)
+        fetch(`<?= BASE ?>/api/clientes/${clienteId}/mascotas`)
             .then(response => response.json())
             .then(mascotas => {
                 if (!Array.isArray(mascotas) || mascotas.length === 0) {

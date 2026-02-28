@@ -24,7 +24,7 @@ class ServiciosController extends Controller {
             $_POST['activo'] = isset($_POST['activo']) ? 1 : 0;
 
             $this->servicioModel->crear($_POST);
-            header('Location: /vetsmart/admin/servicios');
+            header('Location: ' . BASE . '/admin/servicios');
             exit;
         }
     }
@@ -40,7 +40,7 @@ class ServiciosController extends Controller {
             $_POST['activo'] = isset($_POST['activo']) ? 1 : 0;
 
             $this->servicioModel->actualizar($id, $_POST);
-            header('Location: /vetsmart/admin/servicios');
+            header('Location: ' . BASE . '/admin/servicios');
             exit;
         }
     }
@@ -60,7 +60,7 @@ class ServiciosController extends Controller {
                 $_SESSION['flash_error'] = "Error en la base de datos: " . $e->getMessage();
             }
         }
-        header('Location: /vetsmart/admin/servicios');
+        header('Location: ' . BASE . '/admin/servicios');
         exit;
     }
 }

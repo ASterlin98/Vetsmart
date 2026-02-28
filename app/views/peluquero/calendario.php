@@ -6,7 +6,7 @@ declare(strict_types=1);
   <div class="d-flex align-items-center justify-content-between mb-3">
     <h2 class="mb-0">Mi agenda (semana)</h2>
     <div class="d-flex gap-2">
-      <a class="btn btn-primary btn-sm" href="/vetsmart/peluquero/agenda/agendar">
+      <a class="btn btn-primary btn-sm" href="<?= BASE ?>/peluquero/agenda/agendar">
         <i class="fas fa-plus me-2"></i>Agendar Cita
       </a>
       <?php
@@ -14,9 +14,9 @@ declare(strict_types=1);
         $prev = (clone $desdeDT)->modify('-7 days')->format('Y-m-d');
         $next = (clone $desdeDT)->modify('+7 days')->format('Y-m-d');
       ?>
-      <a class="btn btn-outline-secondary btn-sm" href="/vetsmart/peluquero/agenda?desde=<?= $prev ?>">« Semana anterior</a>
-      <a class="btn btn-outline-secondary btn-sm" href="/vetsmart/peluquero/agenda?desde=<?= date('Y-m-d') ?>">Hoy</a>
-      <a class="btn btn-outline-secondary btn-sm" href="/vetsmart/peluquero/agenda?desde=<?= $next ?>">Siguiente semana »</a>
+      <a class="btn btn-outline-secondary btn-sm" href="<?= BASE ?>/peluquero/agenda?desde=<?= $prev ?>">« Semana anterior</a>
+      <a class="btn btn-outline-secondary btn-sm" href="<?= BASE ?>/peluquero/agenda?desde=<?= date('Y-m-d') ?>">Hoy</a>
+      <a class="btn btn-outline-secondary btn-sm" href="<?= BASE ?>/peluquero/agenda?desde=<?= $next ?>">Siguiente semana »</a>
     </div>
   </div>
 

@@ -59,7 +59,11 @@ require_once APP_ROOT . '/controllers/AdminController.php';
 require_once APP_ROOT . '/controllers/SoporteController.php';
 
 // Detectar base path (subcarpeta donde vive la app)
-$basePath = (strpos($_SERVER['HTTP_HOST'], 'render.com') !== false) ? '' : '/vetsmart';
+// Detectar basePath dinámico a partir del .env
+$appBaseUrl = getenv('APP_BASE_URL') ?: 'http://localhost/vetsmart';
+$basePath = parse_url($appBaseUrl, PHP_URL_PATH) ?: '';
+$basePath = (strpos($_SERVER['HTTP_HOST'], 'render.com') !== false) ? '' : rtrim($basePath, '/');
+define('BASE', $basePath); // Para usar en las vistas
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 

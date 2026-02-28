@@ -4,7 +4,7 @@
     <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 
-<form method="POST" action="/vetsmart/admin/clientes/guardar">
+<form method="POST" action="<?= BASE ?>/admin/clientes/guardar">
     <div class="row mb-3">
         <div class="col">
             <label>Nombre</label>

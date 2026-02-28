@@ -9,10 +9,10 @@ $header_title = '✂️ VetSmart Peluquero';
 
 // Define los enlaces de navegación para el peluquero
 $nav_links = [
-    ['url' => '/vetsmart/peluquero/dashboard', 'icon' => 'fas fa-home', 'text' => 'Dashboard'],
-    ['url' => '/vetsmart/peluquero/agenda', 'icon' => 'fas fa-calendar-alt', 'text' => 'Mi Agenda'],
-    ['url' => '/vetsmart/peluquero/citas', 'icon' => 'fas fa-cut', 'text' => 'Citas de Peluquería'],
-    ['url' => '/vetsmart/peluquero/reportes', 'icon' => 'fas fa-chart-bar', 'text' => 'Reportes'],
+    ['url' => '<?= BASE ?>/peluquero/dashboard', 'icon' => 'fas fa-home', 'text' => 'Dashboard'],
+    ['url' => '<?= BASE ?>/peluquero/agenda', 'icon' => 'fas fa-calendar-alt', 'text' => 'Mi Agenda'],
+    ['url' => '<?= BASE ?>/peluquero/citas', 'icon' => 'fas fa-cut', 'text' => 'Citas de Peluquería'],
+    ['url' => '<?= BASE ?>/peluquero/reportes', 'icon' => 'fas fa-chart-bar', 'text' => 'Reportes'],
 ];
 
 // Incluye el layout unificado

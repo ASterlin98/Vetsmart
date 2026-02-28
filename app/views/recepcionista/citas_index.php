@@ -8,7 +8,7 @@
       <p class="text-muted mb-0">Administra y organiza todas las citas del sistema</p>
     </div>
     
-    <a href="/vetsmart/recepcionista/citas/create" class="btn btn-success btn-lg px-4">
+    <a href="<?= BASE ?>/recepcionista/citas/create" class="btn btn-success btn-lg px-4">
       <i class="fas fa-plus-circle me-2"></i>Nueva Cita
     </a>
   </div>
@@ -74,7 +74,7 @@
         <h5 class="card-title mb-0">
           <i class="fas fa-list me-2 text-success"></i>Lista de Citas
         </h5>
-        <form class="d-flex gap-2" method="get" action="/vetsmart/recepcionista/citas">
+        <form class="d-flex gap-2" method="get" action="<?= BASE ?>/recepcionista/citas">
           <?php $estSel = $estado ?? ''; ?>
           <select name="estado" class="form-select form-select-sm" style="width:auto">
             <option value="">Todos</option>
@@ -84,7 +84,7 @@
           <button class="btn btn-outline-secondary btn-sm" type="submit">
             <i class="fas fa-filter me-1"></i>Filtrar
           </button>
-          <a class="btn btn-outline-secondary btn-sm" href="/vetsmart/recepcionista/citas">Limpiar</a>
+          <a class="btn btn-outline-secondary btn-sm" href="<?= BASE ?>/recepcionista/citas">Limpiar</a>
         </form>
       </div>
     </div>
@@ -114,7 +114,7 @@
                     <div class="d-flex align-items-center">
                       <?php if (!empty($c['cliente_foto']) && file_exists(dirname(dirname(dirname(__DIR__))) . '/public/assets/uploads/clientes/' . $c['cliente_foto'])): ?>
                         <div class="avatar-sm me-2 overflow-hidden border">
-                           <img src="/vetsmart/public/assets/uploads/clientes/<?= htmlspecialchars($c['cliente_foto']) ?>" alt="Foto" style="width:100%;height:100%;object-fit:cover;">
+                           <img src="<?= BASE ?>/public/assets/uploads/clientes/<?= htmlspecialchars($c['cliente_foto']) ?>" alt="Foto" style="width:100%;height:100%;object-fit:cover;">
                         </div>
                       <?php else: ?>
                         <div class="avatar-sm bg-primary text-white me-2">
@@ -128,7 +128,7 @@
                     <div class="d-flex align-items-center">
                         <?php if (!empty($c['mascota_foto']) && file_exists(dirname(dirname(dirname(__DIR__))) . '/public/assets/uploads/mascotas/' . $c['mascota_foto'])): ?>
                             <div class="avatar-sm me-2 overflow-hidden border rounded-circle">
-                               <img src="/vetsmart/public/assets/uploads/mascotas/<?= htmlspecialchars($c['mascota_foto']) ?>" alt="Mascota" style="width:100%;height:100%;object-fit:cover;">
+                               <img src="<?= BASE ?>/public/assets/uploads/mascotas/<?= htmlspecialchars($c['mascota_foto']) ?>" alt="Mascota" style="width:100%;height:100%;object-fit:cover;">
                             </div>
                         <?php else: ?>
                              <span class="badge bg-light text-dark me-1"><i class="fas fa-paw"></i></span>
@@ -139,9 +139,9 @@
                   <td><?= htmlspecialchars($c['servicio'] ?? '-') ?></td>
                   <td>
                     <?php $estadoNorm = strtolower(trim((string)($c['estado'] ?? 'pendiente'))); ?>
-                    <form action="/vetsmart/recepcionista/agenda/update" method="post" class="d-inline-flex align-items-center gap-1">
+                    <form action="<?= BASE ?>/recepcionista/agenda/update" method="post" class="d-inline-flex align-items-center gap-1">
                       <input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
-                      <input type="hidden" name="redirect" value="/vetsmart/recepcionista/citas">
+                      <input type="hidden" name="redirect" value="<?= BASE ?>/recepcionista/citas">
                       <select name="estado" class="form-select form-select-sm">
                         <?php $opts = ['pendiente','completada']; foreach ($opts as $opt): ?>
                           <option value="<?= $opt ?>" <?= $estadoNorm===$opt?'selected':'' ?>><?= ucfirst($opt) ?></option>
@@ -152,10 +152,10 @@
                   </td>
                   <td class="text-center pe-3">
                     <div class="btn-group">
-                      <a href="/vetsmart/citas/edit/<?= $c['id'] ?>" class="btn btn-sm btn-outline-warning">
+                      <a href="<?= BASE ?>/citas/edit/<?= $c['id'] ?>" class="btn btn-sm btn-outline-warning">
                         <i class="fas fa-edit"></i>
                       </a>
-                      <a href="/vetsmart/citas/delete/<?= $c['id'] ?>" 
+                      <a href="<?= BASE ?>/citas/delete/<?= $c['id'] ?>" 
                          class="btn btn-sm btn-outline-danger"
                          onclick="return confirm('¿Seguro que deseas eliminar esta cita?')">
                         <i class="fas fa-trash"></i>
@@ -170,7 +170,7 @@
                   <div class="empty-state">
                     <i class="fas fa-calendar-times fa-2x text-muted mb-2"></i>
                     <p class="text-muted mb-2">No hay citas registradas</p>
-                    <a href="/vetsmart/recepcionista/citas/create" class="btn btn-success btn-sm">
+                    <a href="<?= BASE ?>/recepcionista/citas/create" class="btn btn-success btn-sm">
                       <i class="fas fa-plus-circle me-1"></i>Crear Primera Cita
                     </a>
                   </div>

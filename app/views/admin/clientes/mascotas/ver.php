@@ -48,7 +48,7 @@
       <div class="d-grid gap-2">
 
         <!-- Botón de volver -->
-        <a href="/vetsmart/admin/clientes" 
+        <a href="<?= BASE ?>/admin/clientes" 
            class="btn btn-secondary mt-2">
           ← Volver a Clientes
         </a>

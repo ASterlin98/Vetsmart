@@ -1,7 +1,7 @@
 <div class="container-fluid mb-4">
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="h3 mb-4 text-gray-800">Reportes</h1>
-        <a href="/vetsmart/admin/reportesSoporte" class="btn btn-primary mb-4">Crear Ticket de Soporte</a>
+        <a href="<?= BASE ?>/admin/reportesSoporte" class="btn btn-primary mb-4">Crear Ticket de Soporte</a>
     </div>
 
   <!-- Filtros -->
@@ -16,7 +16,7 @@
     </div>
     <div class="col-md-4 d-flex align-items-end">
       <button type="submit" class="btn btn-primary me-2">Filtrar</button>
-      <a href="/vetsmart/admin/exportarReportesExcel?desde=<?= urlencode($desde) ?>&hasta=<?= urlencode($hasta) ?>" class="btn btn-success">📊 Exportar Excel</a>
+      <a href="<?= BASE ?>/admin/exportarReportesExcel?desde=<?= urlencode($desde) ?>&hasta=<?= urlencode($hasta) ?>" class="btn btn-success">📊 Exportar Excel</a>
     </div>
   </form>
   

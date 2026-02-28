@@ -16,10 +16,10 @@
       </div>
     </div>
     <div class="d-flex gap-2">
-        <a href="/vetsmart/reportes/mascota/<?= $mascota['id'] ?>/pdf" target="_blank" class="btn btn-outline-danger">
+        <a href="<?= BASE ?>/reportes/mascota/<?= $mascota['id'] ?>/pdf" target="_blank" class="btn btn-outline-danger">
             <i class="fas fa-file-pdf me-1"></i> Historial PDF
         </a>
-        <a href="/vetsmart/recepcionista/mascotas" class="btn btn-outline-secondary">
+        <a href="<?= BASE ?>/recepcionista/mascotas" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-1"></i> Volver
         </a>
     </div>
@@ -35,7 +35,7 @@
              <div class="mb-3">
               <?php if (!empty($mascota['foto']) && file_exists(dirname(dirname(dirname(__DIR__))) . '/public/assets/uploads/mascotas/' . $mascota['foto'])): ?>
                  <div style="width:120px;height:120px;border-radius:50%;overflow:hidden;margin:0 auto;border: 3px solid #198754;">
-                    <img src="/vetsmart/public/assets/uploads/mascotas/<?= htmlspecialchars($mascota['foto']) ?>" alt="Foto Mascota" style="width:100%;height:100%;object-fit:cover;">
+                    <img src="<?= BASE ?>/public/assets/uploads/mascotas/<?= htmlspecialchars($mascota['foto']) ?>" alt="Foto Mascota" style="width:100%;height:100%;object-fit:cover;">
                  </div>
               <?php else: ?>
                 <div style="width:120px;height:120px;border-radius:50%;background:#e9ecef;display:flex;align-items:center;justify-content:center;font-size:40px;color:#6c757d;margin:0 auto;border: 3px solid #dee2e6;">
@@ -85,10 +85,10 @@
             </div>
 <<<<<<< HEAD
             <!-- Botón para subir archivo (redirige a reportes con preselección si fuera posible, por ahora solo link) -->
-            <a href="/vetsmart/recepcionista/reportes" class="btn btn-sm btn-outline-primary"><i class="fas fa-upload me-1"></i>Subir</a>
+            <a href="<?= BASE ?>/recepcionista/reportes" class="btn btn-sm btn-outline-primary"><i class="fas fa-upload me-1"></i>Subir</a>
 =======
             <div>
-                <a href="/vetsmart/recepcionista/reportes" class="btn btn-sm btn-outline-primary"><i class="fas fa-upload me-1"></i>Subir</a>
+                <a href="<?= BASE ?>/recepcionista/reportes" class="btn btn-sm btn-outline-primary"><i class="fas fa-upload me-1"></i>Subir</a>
             </div>
 >>>>>>> 551a971277bd5d0b94296071273044a14c300280
         </div>
@@ -97,13 +97,13 @@
             <ul class="list-group list-group-flush">
               <?php foreach ($archivos as $f): 
                   // Usar ruta relativa absoluta desde la raíz del servidor web
-                  $url = "/vetsmart/public/assets/uploads/reportes/" . $mascota['id'] . "/" . rawurlencode($f);
+                  $url = "<?= BASE ?>/public/assets/uploads/reportes/" . $mascota['id'] . "/" . rawurlencode($f);
               ?>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                   <a href="<?= $url ?>" target="_blank" class="text-decoration-none text-dark">
                     <i class="fas fa-paperclip me-2 text-secondary"></i><?= htmlspecialchars($f) ?>
                   </a>
-                  <form action="/vetsmart/recepcionista/reportes/delete" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar este archivo?');">
+                  <form action="<?= BASE ?>/recepcionista/reportes/delete" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar este archivo?');">
                     <?php if (class_exists('CSRF')): ?><?= CSRF::inputField() ?><?php endif; ?>
                     <input type="hidden" name="mascota_id" value="<?= $mascota['id'] ?>">
                     <input type="hidden" name="filename" value="<?= htmlspecialchars($f) ?>">

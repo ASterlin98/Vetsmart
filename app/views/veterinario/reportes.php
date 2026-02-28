@@ -32,7 +32,7 @@ $hasta = $_GET['hasta'] ?? '';
       <small class="text-muted">Resumen de actividad desde <strong><?= $desde ?: 'inicio' ?></strong> hasta <strong><?= $hasta ?: 'hoy' ?></strong></small>
     </div>
     <div class="d-flex gap-2">
-      <form id="exportForm" method="POST" action="/vetsmart/veterinario/reportes/exportar" class="d-flex gap-2">
+      <form id="exportForm" method="POST" action="<?= BASE ?>/veterinario/reportes/exportar" class="d-flex gap-2">
         <input type="hidden" name="desde" value="<?= htmlspecialchars($desde) ?>">
         <input type="hidden" name="hasta" value="<?= htmlspecialchars($hasta) ?>">
         <button type="submit" class="btn btn-danger">Exportar PDF</button>

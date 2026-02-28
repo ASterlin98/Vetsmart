@@ -38,8 +38,8 @@ $current_user_id = $_SESSION['user']['id'];
 <div class="container-fluid px-4">
     <h1 class="mt-4">Detalle del Ticket #<?= htmlspecialchars($ticket['id']) ?></h1>
     <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="/vetsmart/admin/dashboard">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="/vetsmart/admin/soporte">Soporte</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE ?>/admin/dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE ?>/admin/soporte">Soporte</a></li>
         <li class="breadcrumb-item active">Ver Ticket</li>
     </ol>
 
@@ -65,7 +65,7 @@ $current_user_id = $_SESSION['user']['id'];
                     </div>
                 </div>
                 <div class="card-footer">
-                    <form action="/vetsmart/soporte/responder" method="POST">
+                    <form action="<?= BASE ?>/soporte/responder" method="POST">
                         <input type="hidden" name="ticket_id" value="<?= $ticket['id'] ?>">
                         <div class="input-group">
                             <textarea name="mensaje" class="form-control" placeholder="Escribe tu respuesta..." rows="3" required></textarea>

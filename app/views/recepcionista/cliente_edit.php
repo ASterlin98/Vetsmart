@@ -22,7 +22,7 @@
           <div class="mb-2">
             <?php if (!empty($cliente['foto']) && file_exists(dirname(dirname(dirname(__DIR__))) . '/public/assets/uploads/clientes/' . $cliente['foto'])): ?>
                <div style="width:160px;height:160px;border-radius:12px;overflow:hidden;margin:0 auto;">
-                  <img src="/vetsmart/public/assets/uploads/clientes/<?= htmlspecialchars($cliente['foto']) ?>" alt="Foto Cliente" style="width:100%;height:100%;object-fit:cover;">
+                  <img src="<?= BASE ?>/public/assets/uploads/clientes/<?= htmlspecialchars($cliente['foto']) ?>" alt="Foto Cliente" style="width:100%;height:100%;object-fit:cover;">
                </div>
             <?php else: ?>
               <div style="width:160px;height:160px;border-radius:12px;background:#e9ecef;display:flex;align-items:center;justify-content:center;font-size:48px;color:#6c757d;" class="mx-auto">
@@ -39,7 +39,7 @@
     <div class="col-lg-8">
       <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
-          <form action="/vetsmart/recepcionista/clientes/update" method="POST" enctype="multipart/form-data" id="formClienteEdit">
+          <form action="<?= BASE ?>/recepcionista/clientes/update" method="POST" enctype="multipart/form-data" id="formClienteEdit">
         <?= CSRF::inputField(); ?>
         <input type="hidden" name="id" value="<?= htmlspecialchars($cliente['id']) ?>">
 
@@ -117,7 +117,7 @@
         <!-- Form Actions -->
         <div class="form-actions border-top pt-4">
           <div class="d-flex gap-2 justify-content-end">
-            <a href="/vetsmart/recepcionista/clientes" class="btn btn-outline-secondary">
+            <a href="<?= BASE ?>/recepcionista/clientes" class="btn btn-outline-secondary">
               <i class="fas fa-arrow-left me-1"></i>Cancelar
             </a>
             <button type="submit" class="btn btn-success px-4">

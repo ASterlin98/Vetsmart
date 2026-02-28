@@ -1,7 +1,7 @@
 <h1>Gestión de Citas</h1>
 
 <?php if (puede('citas','crear')): ?>
-  <a href="/vetsmart/recepcionista/citas/create" class="btn btn-primary">Nueva Cita</a>
+  <a href="<?= BASE ?>/recepcionista/citas/create" class="btn btn-primary">Nueva Cita</a>
 <?php endif; ?>
 
 <table class="table">
@@ -13,11 +13,11 @@
         <td><?= $c['fecha'] ?></td>
         <td>
           <?php if (puede('citas','editar')): ?>
-            <a href="/vetsmart/citas/edit/<?= $c['id'] ?>" class="btn btn-sm btn-warning">Editar</a>
+            <a href="<?= BASE ?>/citas/edit/<?= $c['id'] ?>" class="btn btn-sm btn-warning">Editar</a>
           <?php endif; ?>
 
           <?php if (puede('citas','eliminar')): ?>
-            <a href="/vetsmart/citas/delete/<?= $c['id'] ?>" class="btn btn-sm btn-danger">Eliminar</a>
+            <a href="<?= BASE ?>/citas/delete/<?= $c['id'] ?>" class="btn btn-sm btn-danger">Eliminar</a>
           <?php endif; ?>
         </td>
       </tr>

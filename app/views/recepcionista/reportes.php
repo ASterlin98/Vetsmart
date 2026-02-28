@@ -24,7 +24,7 @@ $mensaje = $_SESSION['mensaje'] ?? null; if (isset($_SESSION['mensaje'])) unset(
           <strong><i class="fas fa-upload me-2"></i>Cargar archivo</strong>
         </div>
         <div class="card-body">
-          <form action="/vetsmart/recepcionista/reportes/upload" method="POST" enctype="multipart/form-data">
+          <form action="<?= BASE ?>/recepcionista/reportes/upload" method="POST" enctype="multipart/form-data">
             <?php if (class_exists('CSRF')): ?>
               <?= CSRF::inputField() ?>
             <?php endif; ?>
@@ -44,7 +44,7 @@ $mensaje = $_SESSION['mensaje'] ?? null; if (isset($_SESSION['mensaje'])) unset(
             </div>
             <div class="d-flex gap-2">
               <button type="submit" class="btn btn-primary"><i class="fas fa-cloud-upload-alt me-2"></i>Subir</button>
-              <a href="/vetsmart/recepcionista/reportes" class="btn btn-outline-secondary">Limpiar</a>
+              <a href="<?= BASE ?>/recepcionista/reportes" class="btn btn-outline-secondary">Limpiar</a>
             </div>
           </form>
         </div>
@@ -57,7 +57,7 @@ $mensaje = $_SESSION['mensaje'] ?? null; if (isset($_SESSION['mensaje'])) unset(
           <strong><i class="fas fa-file-pdf me-2"></i>Descargar historial clínico</strong>
         </div>
         <div class="card-body">
-          <form action="#" onsubmit="event.preventDefault(); var id = this.mascota_pdf.value; if(id){ window.location='/vetsmart/reportes/mascota/'+id+'/pdf'; }">
+          <form action="#" onsubmit="event.preventDefault(); var id = this.mascota_pdf.value; if(id){ window.location='<?= BASE ?>/reportes/mascota/'+id+'/pdf'; }">
             <div class="mb-3">
               <label class="form-label">Mascota</label>
               <select name="mascota_pdf" class="form-select" required>
@@ -68,7 +68,7 @@ $mensaje = $_SESSION['mensaje'] ?? null; if (isset($_SESSION['mensaje'])) unset(
               </select>
             </div>
             <button type="submit" class="btn btn-success"><i class="fas fa-download me-2"></i>Descargar PDF</button>
-            <button type="button" class="btn btn-outline-success" onclick="var id=this.form.mascota_pdf.value; if(id){ window.open('/vetsmart/reportes/mascota/'+id+'/pdf/preview','_blank');}"><i class="fas fa-eye me-2"></i>Vista previa</button>
+            <button type="button" class="btn btn-outline-success" onclick="var id=this.form.mascota_pdf.value; if(id){ window.open('<?= BASE ?>/reportes/mascota/'+id+'/pdf/preview','_blank');}"><i class="fas fa-eye me-2"></i>Vista previa</button>
           </form>
         </div>
       </div>
@@ -96,7 +96,7 @@ $mensaje = $_SESSION['mensaje'] ?? null; if (isset($_SESSION['mensaje'])) unset(
                 <td>
                   <?php foreach ($files as $f): 
                       // Ruta relativa al document root del servidor web
-                      $url = "/vetsmart/public/assets/uploads/reportes/" . $mascota['id'] . "/" . rawurlencode($f); 
+                      $url = "<?= BASE ?>/public/assets/uploads/reportes/" . $mascota['id'] . "/" . rawurlencode($f); 
                   ?>
                     <a href="<?= $url ?>" target="_blank" class="me-2"><i class="fas fa-paperclip me-1"></i><?= htmlspecialchars($f) ?></a>
                   <?php endforeach; ?>

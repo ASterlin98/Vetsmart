@@ -45,7 +45,7 @@ class ClientesController extends Controller {
 
 public function guardar() {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        header('Location: /vetsmart/admin/clientes');
+        header('Location: ' . BASE . '/admin/clientes');
         exit;
     }
 
@@ -64,7 +64,7 @@ public function guardar() {
 
     try {
         $newId = $this->clienteModel->crear($_POST);
-        header('Location: /vetsmart/admin/clientes');
+        header('Location: ' . BASE . '/admin/clientes');
         exit;
     } catch (Exception $e) {
         error_log('ClientesController::guardar error: ' . $e->getMessage());
@@ -115,7 +115,7 @@ public function guardar() {
 
             try {
                 $this->clienteModel->actualizar($id, $_POST);
-                header("Location: /vetsmart/admin/clientes");
+                header("Location: ' . BASE . '/admin/clientes");
             } catch (Exception $e) {
                 error_log('ClientesController::actualizar error: ' . $e->getMessage());
                 $cliente = $this->clienteModel->getById($id);
@@ -129,7 +129,7 @@ public function guardar() {
 
     public function eliminar($id) {
         $this->clienteModel->eliminar($id);
-        header('Location: /vetsmart/admin/clientes');
+        header('Location: ' . BASE . '/admin/clientes');
     }
 
     // Mascotas
@@ -139,7 +139,7 @@ public function guardar() {
 
     public function guardarMascota($idCliente) {
         $this->mascotaModel->crear($idCliente, $_POST);
-        header("Location: /vetsmart/admin/clientes/$idCliente");
+        header("Location: ' . BASE . '/admin/clientes/$idCliente");
     }
 
     public function editarMascota($idCliente, $idMascota) {
@@ -149,13 +149,13 @@ public function guardar() {
 
     public function eliminarMascota($idCliente, $idMascota) {
         $this->mascotaModel->eliminar($idMascota);
-        header("Location: /vetsmart/admin/clientes/$idCliente");
+        header("Location: ' . BASE . '/admin/clientes/$idCliente");
     }
 
     public function actualizarMascota($idCliente, $idMascota) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $this->mascotaModel->actualizar($idMascota, $_POST);
-        header("Location: /vetsmart/admin/clientes");
+        header("Location: ' . BASE . '/admin/clientes");
         exit;
     } else {
         http_response_code(405);

@@ -1,5 +1,5 @@
 <h2>Agregar Mascota</h2>
-<form method="POST" action="/vetsmart/admin/clientes/<?= $cliente_id ?>/mascotas/guardar">
+<form method="POST" action="<?= BASE ?>/admin/clientes/<?= $cliente_id ?>/mascotas/guardar">
     <div class="mb-3">
         <label>Nombre</label>
         <input type="text" name="nombre" class="form-control" required>

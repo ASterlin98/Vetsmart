@@ -8,13 +8,12 @@
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 // Calcular base dinámico para construir URLs que funcionen tanto en /vetsmart como en root
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-if ($base === '' || $base === '.' ) $base = '';
+$base = defined('BASE') ? BASE : '';
 
 // Valores seguros para renderizar
 $id_mascota_html = htmlspecialchars($id_mascota ?? '', ENT_QUOTES, 'UTF-8');
 $empleado_id_html = htmlspecialchars($_SESSION['user']['id'] ?? '', ENT_QUOTES, 'UTF-8');
-$csrf_html = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
+$csrf_html = htmlspecialchars(CSRF::generateToken(), ENT_QUOTES, 'UTF-8');
 
 // intentar extraer cliente_id desde $mascota si se pasó
 $cliente_id_from_mascota = null;

@@ -14,7 +14,7 @@ $cita = $cita ?? null;
     </div>
   </div>
 
-  <form action="/vetsmart/veterinario/consultas/guardar" method="POST">
+  <form action="<?= BASE ?>/veterinario/consultas/guardar" method="POST">
     <div class="row g-3">
       <div class="col-lg-8">
         <div class="card border-0 shadow-sm p-3 mb-3">
@@ -86,7 +86,7 @@ $cita = $cita ?? null;
 
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">Guardar consulta</button>
-            <a href="/vetsmart/veterinario/consultas" class="btn btn-outline-secondary">Cancelar</a>
+            <a href="<?= BASE ?>/veterinario/consultas" class="btn btn-outline-secondary">Cancelar</a>
             <button type="submit" name="guardar_y_nuevo" value="1" class="btn btn-outline-primary">Guardar y nueva</button>
           </div>
         </div>
@@ -109,7 +109,7 @@ $cita = $cita ?? null;
             <div class="mb-2"><?= htmlspecialchars(($mascota['nombre_dueno'] ?? '') . ' ' . ($mascota['apellido_dueno'] ?? '')) ?></div>
             <div class="small text-muted">Teléfono</div>
             <div class="mb-2"><?= htmlspecialchars($mascota['telefono_dueno'] ?? '-') ?></div>
-            <a href="/vetsmart/veterinario/mascotas/<?= $mascota['id'] ?>/historial" class="btn btn-sm btn-outline-info w-100">Ver historial</a>
+            <a href="<?= BASE ?>/veterinario/mascotas/<?= $mascota['id'] ?>/historial" class="btn btn-sm btn-outline-info w-100">Ver historial</a>
           <?php else: ?>
             <div class="text-muted">No hay mascota seleccionada. Puedes seleccionar una en el campo "Mascota" o crear la consulta desde la ficha de la mascota.</div>
           <?php endif; ?>
@@ -118,8 +118,8 @@ $cita = $cita ?? null;
         <div class="card border-0 shadow-sm p-3">
           <h6 class="fw-semibold">Atajos</h6>
           <div class="d-grid gap-2">
-            <a href="/vetsmart/veterinario/mascotas" class="btn btn-sm btn-outline-primary">Buscar mascota</a>
-            <a href="/vetsmart/veterinario/consultas" class="btn btn-sm btn-outline-secondary">Volver a consultas</a>
+            <a href="<?= BASE ?>/veterinario/mascotas" class="btn btn-sm btn-outline-primary">Buscar mascota</a>
+            <a href="<?= BASE ?>/veterinario/consultas" class="btn btn-sm btn-outline-secondary">Volver a consultas</a>
           </div>
         </div>
       </div>

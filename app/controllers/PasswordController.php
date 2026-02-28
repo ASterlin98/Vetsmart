@@ -16,7 +16,7 @@ class PasswordController extends Controller
 
         if (empty($email)) {
             $_SESSION['error'] = "Debes ingresar tu correo";
-            header("Location: /vetsmart/password/forgot");
+            header("Location: ' . BASE . '/password/forgot");
             exit;
         }
 
@@ -24,7 +24,7 @@ class PasswordController extends Controller
 
         if (!$usuario) {
             $_SESSION['error'] = "No existe un usuario con ese correo";
-            header("Location: /vetsmart/password/forgot");
+            header("Location: ' . BASE . '/password/forgot");
             exit;
         }
 
@@ -35,7 +35,7 @@ class PasswordController extends Controller
         (new Usuario())->saveResetToken($usuario['id'], $token, $expira);
 
         // Link de prueba (luego lo mandamos con PHPMailer)
-        $resetUrl = "http://localhost/vetsmart/password/reset?token=" . $token;
+        $resetUrl = rtrim(getenv('APP_BASE_URL') ?: '', '/') . "/password/reset?token=" . $token;
 
         echo "Link de recuperación: <a href='$resetUrl'>$resetUrl</a>";
     }
@@ -74,6 +74,6 @@ class PasswordController extends Controller
         $hash = password_hash($password, PASSWORD_BCRYPT);
         (new Usuario())->updatePassword($usuario['id'], $hash);
 
-        echo "Contraseña actualizada correctamente. <a href='/vetsmart/login'>Ir al login</a>";
+        echo "Contraseña actualizada correctamente. <a href='" . BASE . "/login'>Ir al login</a>";
     }
 }

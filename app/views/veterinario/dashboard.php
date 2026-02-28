@@ -33,10 +33,10 @@ $assignedMascotas = $assignedMascotas ?? [];
       <small class="text-muted">Resumen rápido de tu actividad</small>
     </div>
     <div class="d-flex gap-2">
-      <a href="/vetsmart/veterinario/mis-citas" class="btn btn-primary">
+      <a href="<?= BASE ?>/veterinario/mis-citas" class="btn btn-primary">
         <i class="bi bi-calendar3"></i> Ver calendario
       </a>
-      <a href="/vetsmart/veterinario/pacientes" class="btn btn-outline-secondary">
+      <a href="<?= BASE ?>/veterinario/pacientes" class="btn btn-outline-secondary">
         <i class="bi bi-people"></i> Pacientes
       </a>
     </div>
@@ -156,7 +156,7 @@ $assignedMascotas = $assignedMascotas ?? [];
                   </div>
                   <div class="text-end">
                     <div class="fw-bold"><?= date('H:i', strtotime($t['fecha'])) ?></div>
-                    <a href="/vetsmart/veterinario/mascotas/<?= htmlspecialchars($t['mascota_id'] ?? '') ?>/historial" class="btn btn-sm btn-outline-light mt-2" data-bs-toggle="tooltip" title="Ver historial">
+                    <a href="<?= BASE ?>/veterinario/mascotas/<?= htmlspecialchars($t['mascota_id'] ?? '') ?>/historial" class="btn btn-sm btn-outline-light mt-2" data-bs-toggle="tooltip" title="Ver historial">
                       <i class="bi bi-journal-text"></i>
                     </a>
                   </div>
@@ -196,7 +196,7 @@ $assignedMascotas = $assignedMascotas ?? [];
                           <div class="small text-muted">Próx: <?= htmlspecialchars(date('d/m/Y H:i', strtotime($m['proxima_cita']))) ?></div>
                         <?php endif; ?>
                       </div>
-                      <a href="/vetsmart/veterinario/mascotas/<?= htmlspecialchars($m['id'] ?? '') ?>/historial" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Ver historial">
+                      <a href="<?= BASE ?>/veterinario/mascotas/<?= htmlspecialchars($m['id'] ?? '') ?>/historial" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Ver historial">
                         <i class="bi bi-journal-text"></i>
                       </a>
                     </div>
@@ -211,8 +211,8 @@ $assignedMascotas = $assignedMascotas ?? [];
       <!-- Acciones rápidas -->
       <div class="card card-hero">
         <div class="card-body text-center">
-          <a href="/vetsmart/veterinario/mis-citas" class="btn btn-primary w-100 mb-2"><i class="bi bi-calendar2-week"></i> Ir a mis citas</a>
-          <a href="/vetsmart/veterinario/pacientes" class="btn btn-outline-secondary w-100"><i class="bi bi-folder2-open"></i> Ver pacientes</a>
+          <a href="<?= BASE ?>/veterinario/mis-citas" class="btn btn-primary w-100 mb-2"><i class="bi bi-calendar2-week"></i> Ir a mis citas</a>
+          <a href="<?= BASE ?>/veterinario/pacientes" class="btn btn-outline-secondary w-100"><i class="bi bi-folder2-open"></i> Ver pacientes</a>
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@
     <div class="d-flex gap-2">
       <input type="text" id="searchServicio" class="form-control" placeholder="🔍 Buscar servicio...">
       <!-- Botón que abre modal Crear -->
-      <a href="/vetsmart/admin/servicios/crear" class="btn btn-primary">
+      <a href="<?= BASE ?>/admin/servicios/crear" class="btn btn-primary">
         ➕ Nuevo Servicio
       </a>
     </div>
@@ -60,10 +60,10 @@
                         : '<span class="badge bg-secondary px-3 py-2">Inactivo</span>' ?>
                 </td>
                 <td>
-                  <a href="/vetsmart/admin/servicios/<?= $s['id'] ?>/editar"
+                  <a href="<?= BASE ?>/admin/servicios/<?= $s['id'] ?>/editar"
                      class="btn btn-sm btn-warning shadow-sm"
                      title="Editar">✏️</a>
-                  <a href="/vetsmart/admin/servicios/<?= $s['id'] ?>/eliminar" 
+                  <a href="<?= BASE ?>/admin/servicios/<?= $s['id'] ?>/eliminar" 
                      class="btn btn-sm btn-danger shadow-sm" 
                      onclick="return confirm('¿Eliminar este servicio?')" 
                      title="Eliminar">🗑️</a>

@@ -4,7 +4,7 @@
     <?= $accion === 'editar' ? 'Editar Movimiento' : 'Nuevo Movimiento' ?>
   </h1>
 
-  <form action="<?= $accion==='editar' ? '/vetsmart/recepcionista/ingresos/' . (int)$item['id'] . '/update' : '/vetsmart/recepcionista/ingresos/store' ?>" method="post" class="card p-3 shadow-sm" id="movForm">
+  <form action="<?= $accion==='editar' ? '<?= BASE ?>/recepcionista/ingresos/' . (int)$item['id'] . '/update' : '<?= BASE ?>/recepcionista/ingresos/store' ?>" method="post" class="card p-3 shadow-sm" id="movForm">
     <?= CSRF::inputField(); ?>
     <div class="row g-3">
       <div class="col-md-3">
@@ -68,7 +68,7 @@
     </div>
 
     <div class="text-end mt-3">
-      <a class="btn btn-outline-secondary" href="/vetsmart/recepcionista/ingresos">Cancelar</a>
+      <a class="btn btn-outline-secondary" href="<?= BASE ?>/recepcionista/ingresos">Cancelar</a>
       <button class="btn btn-success" type="submit"><i class="fas fa-save me-1"></i>Guardar</button>
     </div>
   </form>

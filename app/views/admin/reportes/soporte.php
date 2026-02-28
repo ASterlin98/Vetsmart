@@ -4,7 +4,7 @@
 
 <div class="container">
     <h2>Crear Ticket de Soporte</h2>
-    <form action="/vetsmart/admin/guardarTicket" method="post">
+    <form action="<?= BASE ?>/admin/guardarTicket" method="post">
         <div class="mb-3">
             <label for="asunto" class="form-label">Asunto</label>
             <input type="text" class="form-control" id="asunto" name="asunto" required>

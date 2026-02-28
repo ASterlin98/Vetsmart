@@ -23,7 +23,7 @@ $reportesDisponibles = $reportesDisponibles ?? 1;
   <div class="row g-3 mb-4">
     <!-- Mascotas -->
     <div class="col-xl-3 col-md-6">
-      <a href="/vetsmart/cliente/mascotas" class="text-decoration-none">
+      <a href="<?= BASE ?>/cliente/mascotas" class="text-decoration-none">
         <div class="card stat-card border-0 shadow-sm h-100">
           <div class="card-body text-center p-4">
             <div class="stat-icon mb-3">
@@ -39,7 +39,7 @@ $reportesDisponibles = $reportesDisponibles ?? 1;
 
     <!-- Próximas Citas -->
     <div class="col-xl-3 col-md-6">
-      <a href="/vetsmart/cliente/citas" class="text-decoration-none">
+      <a href="<?= BASE ?>/cliente/citas" class="text-decoration-none">
         <div class="card stat-card border-0 shadow-sm h-100">
           <div class="card-body text-center p-4">
             <div class="stat-icon mb-3">
@@ -61,7 +61,7 @@ $reportesDisponibles = $reportesDisponibles ?? 1;
 
     <!-- Historial -->
     <div class="col-xl-3 col-md-6">
-      <a href="/vetsmart/cliente/historial" class="text-decoration-none">
+      <a href="<?= BASE ?>/cliente/historial" class="text-decoration-none">
         <div class="card stat-card border-0 shadow-sm h-100">
           <div class="card-body text-center p-4">
             <div class="stat-icon mb-3">
@@ -77,7 +77,7 @@ $reportesDisponibles = $reportesDisponibles ?? 1;
 
     <!-- Reportes -->
     <div class="col-xl-3 col-md-6">
-      <a href="/vetsmart/cliente/reportes" class="text-decoration-none">
+      <a href="<?= BASE ?>/cliente/reportes" class="text-decoration-none">
         <div class="card stat-card border-0 shadow-sm h-100">
           <div class="card-body text-center p-4">
             <div class="stat-icon mb-3">
@@ -105,7 +105,7 @@ $reportesDisponibles = $reportesDisponibles ?? 1;
                 <span class="ms-3 fw-bold text-muted"><?= (int)$perfilCompleto ?>% Completado</span>
             </div>
             <p class="text-muted small">Mantén tu perfil actualizado para una mejor comunicación con la veterinaria.</p>
-            <a href="/vetsmart/cliente/perfil" class="btn btn-outline-primary btn-sm">
+            <a href="<?= BASE ?>/cliente/perfil" class="btn btn-outline-primary btn-sm">
                 <i class="fas fa-user-edit me-1"></i>Editar Perfil
             </a>
         </div>
@@ -120,7 +120,7 @@ $reportesDisponibles = $reportesDisponibles ?? 1;
                 </div>
                 <h5 class="mb-2">¿Necesitas una cita?</h5>
                 <p class="mb-4 opacity-75">Agenda una nueva consulta para tu mascota rapida y facilmente.</p>
-                <a href="/vetsmart/cliente/citas" class="btn btn-light text-primary fw-bold w-100">
+                <a href="<?= BASE ?>/cliente/citas" class="btn btn-light text-primary fw-bold w-100">
                     Agendar Cita
                 </a>
             </div>

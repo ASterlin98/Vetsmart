@@ -13,10 +13,10 @@
         </div>
       </div>
       <div class="header-actions d-flex gap-2">
-        <a class="btn btn-primary" href="/vetsmart/peluquero/agenda">
+        <a class="btn btn-primary" href="<?= BASE ?>/peluquero/agenda">
           <i class="fas fa-calendar-alt me-2"></i>Ver Agenda
         </a>
-        <a class="btn btn-success" href="/vetsmart/peluquero/agenda/agendar">
+        <a class="btn btn-success" href="<?= BASE ?>/peluquero/agenda/agendar">
           <i class="fas fa-plus me-2"></i>Agendar Cita
         </a>
       </div>
@@ -133,7 +133,7 @@
                           <i class="fas fa-calendar me-1"></i><?= htmlspecialchars($cita['fecha'] ?? date('Y-m-d')) ?>
                         </small>
                       </div>
-                      <a href="/vetsmart/peluquero/citas" class="btn btn-sm btn-outline-primary">
+                      <a href="<?= BASE ?>/peluquero/citas" class="btn btn-sm btn-outline-primary">
                         <i class="fas fa-arrow-right"></i>
                       </a>
                     </div>
@@ -145,7 +145,7 @@
             <div class="text-center py-5 px-3">
               <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
               <p class="text-muted mb-0">No hay citas próximas</p>
-              <a href="/vetsmart/peluquero/agenda/agendar" class="btn btn-sm btn-primary mt-3">
+              <a href="<?= BASE ?>/peluquero/agenda/agendar" class="btn btn-sm btn-primary mt-3">
                 <i class="fas fa-plus me-1"></i>Agendar Nueva Cita
               </a>
             </div>
@@ -164,15 +164,15 @@
         </div>
         <div class="card-body">
           <div class="d-grid gap-2">
-            <a href="/vetsmart/peluquero/agenda/agendar" class="btn btn-primary d-flex align-items-center justify-content-between">
+            <a href="<?= BASE ?>/peluquero/agenda/agendar" class="btn btn-primary d-flex align-items-center justify-content-between">
               <span><i class="fas fa-calendar-plus me-2"></i>Nueva Cita</span>
               <i class="fas fa-arrow-right"></i>
             </a>
-            <a href="/vetsmart/peluquero/agenda" class="btn btn-outline-primary d-flex align-items-center justify-content-between">
+            <a href="<?= BASE ?>/peluquero/agenda" class="btn btn-outline-primary d-flex align-items-center justify-content-between">
               <span><i class="fas fa-calendar-alt me-2"></i>Ver Agenda</span>
               <i class="fas fa-arrow-right"></i>
             </a>
-            <a href="/vetsmart/peluquero/clientes" class="btn btn-outline-secondary d-flex align-items-center justify-content-between">
+            <a href="<?= BASE ?>/peluquero/clientes" class="btn btn-outline-secondary d-flex align-items-center justify-content-between">
               <span><i class="fas fa-users me-2"></i>Clientes</span>
               <i class="fas fa-arrow-right"></i>
             </a>

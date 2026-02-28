@@ -5,7 +5,7 @@ declare(strict_types=1);
 <div class="container py-3">
   <div class="d-flex align-items-center justify-content-between mb-3">
     <h2 class="mb-0">Citas de Peluquería</h2>
-    <a href="/vetsmart/peluquero/servicios" class="btn btn-outline-secondary">Servicios</a>
+    <a href="<?= BASE ?>/peluquero/servicios" class="btn btn-outline-secondary">Servicios</a>
   </div>
 
   <form method="get" class="row g-2 mb-3">
@@ -62,14 +62,14 @@ declare(strict_types=1);
             </td>
             <td class="text-end">
               <?php if (($c['estado'] ?? '') === 'pendiente'): ?>
-                <form method="post" action="/vetsmart/peluquero/citas/atender" class="d-inline">
+                <form method="post" action="<?= BASE ?>/peluquero/citas/atender" class="d-inline">
                   <?= CSRF::inputField() ?>
                   <input type="hidden" name="cita_id" value="<?= (int)$c['id'] ?>">
                   <button class="btn btn-sm btn-info">Atender</button>
                 </form>
               <?php endif; ?>
               <?php if (in_array((string)($c['estado'] ?? ''), ['confirmada','pendiente'], true)): ?>
-                <form method="post" action="/vetsmart/peluquero/citas/finalizar" class="d-inline" onsubmit="return confirm('¿Finalizar servicio y registrar precio fijo del servicio?');">
+                <form method="post" action="<?= BASE ?>/peluquero/citas/finalizar" class="d-inline" onsubmit="return confirm('¿Finalizar servicio y registrar precio fijo del servicio?');">
                   <?= CSRF::inputField() ?>
                   <input type="hidden" name="cita_id" value="<?= (int)$c['id'] ?>">
                   <span class="me-2 small text-muted">Precio: $ <?= number_format((float)($c['precio'] ?? 0), 2) ?></span>

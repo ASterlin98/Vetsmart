@@ -42,13 +42,13 @@ if (!$consulta) {
 </div>
 
 <div class="modal-footer d-flex justify-content-between">
-  <form action="/vetsmart/veterinario/consultas/<?= $consulta['id'] ?>/eliminar" method="POST"
+  <form action="<?= BASE ?>/veterinario/consultas/<?= $consulta['id'] ?>/eliminar" method="POST"
         onsubmit="return confirm('¿Eliminar esta consulta?');" class="me-auto">
     <button type="submit" class="btn btn-danger btn-sm">🗑️ Eliminar</button>
   </form>
 
   <div>
-    <a href="/vetsmart/veterinario/consultas/<?= $consulta['id'] ?>/editar"
+    <a href="<?= BASE ?>/veterinario/consultas/<?= $consulta['id'] ?>/editar"
        class="btn btn-warning btn-sm btn-editar-consulta"
        data-id="<?= $consulta['id'] ?>">✏️ Editar</a>
 

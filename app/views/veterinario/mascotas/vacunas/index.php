@@ -3,7 +3,7 @@
     <h5 class="mb-0">💉 Registrar nueva vacuna</h5>
   </div>
   <div class="card-body">
-    <form method="POST" action="/vetsmart/veterinario/vacunas/guardar">
+    <form method="POST" action="<?= BASE ?>/veterinario/vacunas/guardar">
       <input type="hidden" name="mascota_id" value="<?= $mascota['id'] ?>">
 
       <div class="row g-3">
@@ -62,9 +62,9 @@
                 <td><?= $v['proxima_dosis'] ? htmlspecialchars($v['proxima_dosis']) : '<span class="text-muted">-</span>' ?></td>
                 <td><?= $v['descripcion'] ? htmlspecialchars($v['descripcion']) : '<span class="text-muted">Sin descripción</span>' ?></td>
                 <td class="text-center">
-                  <a href="/vetsmart/veterinario/mascotas/<?= $mascota['id'] ?>/vacunas/<?= $v['id'] ?>/editar" 
+                  <a href="<?= BASE ?>/veterinario/mascotas/<?= $mascota['id'] ?>/vacunas/<?= $v['id'] ?>/editar" 
                      class="btn btn-sm btn-warning me-1">✏️</a>
-                  <a href="/vetsmart/veterinario/vacunas/<?= $v['id'] ?>/mascota/<?= $mascota['id'] ?>/eliminar" 
+                  <a href="<?= BASE ?>/veterinario/vacunas/<?= $v['id'] ?>/mascota/<?= $mascota['id'] ?>/eliminar" 
                      class="btn btn-sm btn-danger"
                      onclick="return confirm('¿Eliminar esta vacuna?')">🗑️</a>
                 </td>
@@ -76,6 +76,6 @@
     </div>
   </div>
   <div class="card-footer text-end">
-    <a href="/vetsmart/veterinario/mascotas/<?= $mascota['id'] ?>/historial" class="btn btn-secondary">⬅️ Volver al historial</a>
+    <a href="<?= BASE ?>/veterinario/mascotas/<?= $mascota['id'] ?>/historial" class="btn btn-secondary">⬅️ Volver al historial</a>
   </div>
 </div>

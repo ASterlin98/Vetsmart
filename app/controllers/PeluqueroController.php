@@ -21,7 +21,7 @@ class PeluqueroController extends Controller
         $roleId = (int)($u['role_id'] ?? $u['role'] ?? 0);
         // Role id 5 corresponde a peluquero en tu esquema de roles
         if ($roleName !== 'peluquero' && $roleId !== 5) {
-            header('Location: /vetsmart/login');
+            header('Location: ' . BASE . '/login');
             exit;
         }
     }
@@ -296,7 +296,7 @@ class PeluqueroController extends Controller
         $this->pdo->prepare("INSERT INTO atenciones_peluqueria (cita_id, inicio_at) VALUES (?, NOW())")
             ->execute([$citaId]);
 
-        header('Location: /vetsmart/peluquero/citas');
+        header('Location: ' . BASE . '/peluquero/citas');
         exit;
     }
 
@@ -329,7 +329,7 @@ class PeluqueroController extends Controller
             $ins->execute([$citaId, $precio, $notas]);
         }
 
-        header('Location: /vetsmart/peluquero/citas');
+        header('Location: ' . BASE . '/peluquero/citas');
         exit;
     }
 
@@ -468,7 +468,7 @@ class PeluqueroController extends Controller
         $empId = (int)($_SESSION['user']['id'] ?? 0);
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /vetsmart/peluquero/agenda');
+            header('Location: ' . BASE . '/peluquero/agenda');
             exit;
         }
 
@@ -482,7 +482,7 @@ class PeluqueroController extends Controller
 
             if (!$cliente_id || !$mascota_id || !$servicio_id || !$fecha || !$hora) {
                 $_SESSION['flash_error'] = 'Por favor completa todos los campos obligatorios.';
-                header('Location: /vetsmart/peluquero/agenda/agendar');
+                header('Location: ' . BASE . '/peluquero/agenda/agendar');
                 exit;
             }
 
@@ -496,12 +496,12 @@ class PeluqueroController extends Controller
                 $now = new DateTime('now');
                 if ($dt < $now) {
                     $_SESSION['flash_error'] = 'No se permiten agendar citas en fechas u horas pasadas.';
-                    header('Location: /vetsmart/peluquero/agenda/agendar');
+                    header('Location: ' . BASE . '/peluquero/agenda/agendar');
                     exit;
                 }
             } catch (Throwable $e) {
                 $_SESSION['flash_error'] = 'Fecha u hora inválida.';
-                header('Location: /vetsmart/peluquero/agenda/agendar');
+                header('Location: ' . BASE . '/peluquero/agenda/agendar');
                 exit;
             }
 
@@ -518,16 +518,16 @@ class PeluqueroController extends Controller
 
             if ($result) {
                 $_SESSION['flash_success'] = 'Cita agendada correctamente.';
-                header('Location: /vetsmart/peluquero/dashboard');
+                header('Location: ' . BASE . '/peluquero/dashboard');
             } else {
                 $_SESSION['flash_error'] = 'Error al guardar la cita. Intenta de nuevo.';
-                header('Location: /vetsmart/peluquero/agenda/agendar');
+                header('Location: ' . BASE . '/peluquero/agenda/agendar');
             }
             exit;
         } catch (Throwable $e) {
             error_log("Error al guardar cita: " . $e->getMessage());
             $_SESSION['flash_error'] = 'Error al guardar la cita. Intenta de nuevo.';
-            header('Location: /vetsmart/peluquero/agenda/agendar');
+            header('Location: ' . BASE . '/peluquero/agenda/agendar');
             exit;
         }
     }

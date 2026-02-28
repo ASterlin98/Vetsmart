@@ -9,10 +9,10 @@ $header_title = '👨‍⚕️ Veterinario VetSmart';
 
 // Define los enlaces de navegación para el veterinario
 $nav_links = [
-    ['url' => '/vetsmart/veterinario/dashboard', 'icon' => 'fas fa-home', 'text' => 'Dashboard'],
-    ['url' => '/vetsmart/veterinario/agenda', 'icon' => 'fas fa-calendar-alt', 'text' => 'Mi Agenda'],
-    ['url' => '/vetsmart/veterinario/consultas', 'icon' => 'fas fa-file-medical', 'text' => 'Estado'],
-    ['url' => '/vetsmart/veterinario/reportes', 'icon' => 'fas fa-chart-bar', 'text' => 'Reportes'],
+    ['url' => '<?= BASE ?>/veterinario/dashboard', 'icon' => 'fas fa-home', 'text' => 'Dashboard'],
+    ['url' => '<?= BASE ?>/veterinario/agenda', 'icon' => 'fas fa-calendar-alt', 'text' => 'Mi Agenda'],
+    ['url' => '<?= BASE ?>/veterinario/consultas', 'icon' => 'fas fa-file-medical', 'text' => 'Estado'],
+    ['url' => '<?= BASE ?>/veterinario/reportes', 'icon' => 'fas fa-chart-bar', 'text' => 'Reportes'],
 ];
 
 // Incluye el layout unificado

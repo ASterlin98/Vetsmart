@@ -26,7 +26,7 @@ class AdminController extends Controller
         $stmt = $this->pdo->prepare("UPDATE usuarios SET is_blocked = 0 WHERE id = :id AND role_id IN (3,4,5,6)");
         $stmt->execute([':id' => $id]);
         // Redirigir de vuelta a la lista de bloqueados
-        header("Location: /vetsmart/admin/locked_users");
+        header("Location: ' . BASE . '/admin/locked_users");
         exit;
     }
     private $pdo;
@@ -144,7 +144,7 @@ class AdminController extends Controller
             ]);
 
             $this->pdo->commit();
-            header("Location: /vetsmart/admin/empleados");
+            header("Location: ' . BASE . '/admin/empleados");
             exit;
         } catch (Exception $e) {
             $this->pdo->rollBack();
@@ -243,7 +243,7 @@ class AdminController extends Controller
             }
 
             $this->pdo->commit();
-            header("Location: /vetsmart/admin/empleados");
+            header("Location: ' . BASE . '/admin/empleados");
             exit;
         } catch (Exception $e) {
             $this->pdo->rollBack();
@@ -259,7 +259,7 @@ class AdminController extends Controller
             $this->pdo->prepare("DELETE FROM emp_det WHERE usuario_id = :id")->execute([':id' => $id]);
             $this->pdo->prepare("DELETE FROM usuarios WHERE id = :id")->execute([':id' => $id]);
             $this->pdo->commit();
-            header("Location: /vetsmart/admin/empleados");
+            header("Location: ' . BASE . '/admin/empleados");
             exit;
         } catch (Exception $e) {
             $this->pdo->rollBack();
@@ -289,11 +289,11 @@ public function guardarHorarioSemana()
         ]);
 
         $_SESSION['flash_success'] = "Horario semanal guardado correctamente.";
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     } catch (Exception $e) {
         $_SESSION['flash_error'] = "Error guardando horario: " . $e->getMessage();
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     }
 }
@@ -322,11 +322,11 @@ public function guardarTurno()
         ]);
 
         $_SESSION['flash_success'] = "Turno guardado correctamente.";
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     } catch (Exception $e) {
         $_SESSION['flash_error'] = "Error guardando turno: " . $e->getMessage();
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     }
 }
@@ -354,11 +354,11 @@ public function guardarSolicitud()
         ]);
 
         $_SESSION['flash_success'] = "Solicitud registrada correctamente.";
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     } catch (Exception $e) {
         $_SESSION['flash_error'] = "Error guardando solicitud: " . $e->getMessage();
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     }
 }
@@ -422,7 +422,7 @@ public function editarHorarioSemana($id) {
 
     if (!$horario) {
         $_SESSION['flash_error'] = "Horario no encontrado.";
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     }
 
@@ -458,7 +458,7 @@ public function actualizarHorarioSemana($id) {
         $_SESSION['flash_error'] = "Error al actualizar el horario: " . $e->getMessage();
     }
 
-    header("Location: /vetsmart/admin/horarios");
+    header("Location: ' . BASE . '/admin/horarios");
     exit;
 }
 
@@ -469,11 +469,11 @@ public function eliminarSemana($id)
         $stmt->execute([':id' => $id]);
 
         $_SESSION['flash_success'] = "Horario eliminado.";
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     } catch (Exception $e) {
         $_SESSION['flash_error'] = "Error al eliminar horario: " . $e->getMessage();
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     }
 }
@@ -484,7 +484,7 @@ public function editarTurno($id) {
 
     if (!$turno) {
         $_SESSION['flash_error'] = "Turno no encontrado.";
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     }
 
@@ -513,11 +513,11 @@ public function actualizarTurno($id)
         $stmt->execute();
 
         $_SESSION['flash_success'] = "Turno actualizado.";
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     } catch (Exception $e) {
         $_SESSION['flash_error'] = "Error al actualizar turno: " . $e->getMessage();
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     }
 }
@@ -529,11 +529,11 @@ public function eliminarTurno($id)
         $stmt->execute([':id' => $id]);
 
         $_SESSION['flash_success'] = "Turno eliminado.";
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     } catch (Exception $e) {
         $_SESSION['flash_error'] = "Error al eliminar turno: " . $e->getMessage();
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     }
 }
@@ -545,7 +545,7 @@ public function editarSolicitud($id) {
 
     if (!$solicitud) {
         $_SESSION['flash_error'] = "Solicitud no encontrada.";
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     }
 
@@ -574,11 +574,11 @@ public function actualizarSolicitud($id)
         $stmt->execute();
 
         $_SESSION['flash_success'] = "Solicitud actualizada.";
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     } catch (Exception $e) {
         $_SESSION['flash_error'] = "Error al actualizar solicitud: " . $e->getMessage();
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     }
 }
@@ -590,11 +590,11 @@ public function eliminarSolicitud($id)
         $stmt->execute([':id' => $id]);
 
         $_SESSION['flash_success'] = "Solicitud eliminada.";
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     } catch (Exception $e) {
         $_SESSION['flash_error'] = "Error al eliminar solicitud: " . $e->getMessage();
-        header("Location: /vetsmart/admin/horarios");
+        header("Location: ' . BASE . '/admin/horarios");
         exit;
     }
 }
@@ -603,7 +603,7 @@ public function agenda()
 {
     if (session_status() !== PHP_SESSION_ACTIVE) session_start();
     $user = $_SESSION['user'] ?? null;
-    if (!$user) { header('Location: /vetsmart/login'); exit; }
+    if (!$user) { header('Location: ' . BASE . '/login'); exit; }
 
     // filtros
     $desde = $_GET['desde'] ?? date('Y-m-01');
@@ -983,7 +983,7 @@ public function verTicket($id)
         $mensajes = $ticketModel->getMessagesByTicketId($id);
         $this->view('admin/soporte/ver', ['ticket' => $ticket, 'mensajes' => $mensajes], 'main_admin');
     } else {
-        header('Location: /vetsmart/admin/soporte');
+        header('Location: ' . BASE . '/admin/soporte');
         exit;
     }
 }
@@ -1202,10 +1202,10 @@ public function reportesIndex()
 
             $ticketModel = new Ticket($this->pdo);
             if ($ticketModel->create($data)) {
-                header('Location: /vetsmart/admin/reportes');
+                header('Location: ' . BASE . '/admin/reportes');
             } else {
                 // Handle error
-                header('Location: /vetsmart/admin/reportesSoporte');
+                header('Location: ' . BASE . '/admin/reportesSoporte');
             }
         }
     }
@@ -1262,7 +1262,7 @@ public function exportarReportesExcel()
 public function actualizarMascota(int $cliente_id, int $mascota_id)
 {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        header("Location: /vetsmart/admin/clientes/{$cliente_id}/mascotas/{$mascota_id}/editar");
+        header("Location: ' . BASE . '/admin/clientes/{$cliente_id}/mascotas/{$mascota_id}/editar");
         exit;
     }
 
@@ -1276,7 +1276,7 @@ public function actualizarMascota(int $cliente_id, int $mascota_id)
 
     if ($nombre === '') {
         $_SESSION['flash_error'] = 'El nombre es obligatorio.';
-        header("Location: /vetsmart/admin/clientes/{$cliente_id}/mascotas/{$mascota_id}/editar");
+        header("Location: ' . BASE . '/admin/clientes/{$cliente_id}/mascotas/{$mascota_id}/editar");
         exit;
     }
 
@@ -1304,12 +1304,12 @@ public function actualizarMascota(int $cliente_id, int $mascota_id)
         ]);
 
         $_SESSION['flash_success'] = 'Mascota actualizada correctamente.';
-        header("Location: /vetsmart/admin/clientes/{$cliente_id}");
+        header("Location: ' . BASE . '/admin/clientes/{$cliente_id}");
         exit;
     } catch (PDOException $e) {
         error_log("actualizarMascota error: " . $e->getMessage());
         $_SESSION['flash_error'] = 'Error actualizando mascota. Revisa logs.';
-        header("Location: /vetsmart/admin/clientes/{$cliente_id}/mascotas/{$mascota_id}/editar");
+        header("Location: ' . BASE . '/admin/clientes/{$cliente_id}/mascotas/{$mascota_id}/editar");
         exit;
     }
 }

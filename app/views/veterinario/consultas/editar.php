@@ -14,7 +14,7 @@ if (!$consulta) {
   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
 </div>
 
-<form id="formEditarConsulta" action="/vetsmart/veterinario/consultas/actualizar/<?= (int)$consulta['id'] ?>" method="POST">
+<form id="formEditarConsulta" action="<?= BASE ?>/veterinario/consultas/actualizar/<?= (int)$consulta['id'] ?>" method="POST">
   <div class="modal-body">
     <div id="editarAlert" class="alert d-none small py-2 px-3 mb-3"></div>
 

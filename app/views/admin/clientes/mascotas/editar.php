@@ -1,5 +1,5 @@
 <h2>Editar Mascota</h2>
-<form method="POST" action="/vetsmart/admin/clientes/<?= $cliente_id ?>/mascotas/<?= $mascota['id'] ?>/actualizar">
+<form method="POST" action="<?= BASE ?>/admin/clientes/<?= $cliente_id ?>/mascotas/<?= $mascota['id'] ?>/actualizar">
     <div class="mb-3">
         <label>Nombre</label>
         <input type="text" name="nombre" class="form-control" value="<?= htmlspecialchars($mascota['nombre']) ?>" required>

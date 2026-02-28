@@ -198,7 +198,7 @@
                                 <li class="list-group-item">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <a href="/vetsmart/soporte/ver/<?= $ticket['id'] ?>" class="fw-semibold text-decoration-none text-dark"><?= htmlspecialchars($ticket['asunto']) ?></a>
+                                            <a href="<?= BASE ?>/soporte/ver/<?= $ticket['id'] ?>" class="fw-semibold text-decoration-none text-dark"><?= htmlspecialchars($ticket['asunto']) ?></a>
                                             <div class="small text-muted">Por: <?= htmlspecialchars($ticket['creador_nombre']) ?></div>
                                         </div>
                                         <span class="badge bg-info text-dark"><?= htmlspecialchars($ticket['prioridad']) ?></span>

@@ -1,14 +1,14 @@
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h4 mb-0"><i class="fas fa-cash-register text-success me-2"></i>Ingresos y Egresos</h1>
-    <a href="/vetsmart/recepcionista/ingresos/create" class="btn btn-success"><i class="fas fa-plus me-1"></i>Nuevo</a>
+    <a href="<?= BASE ?>/recepcionista/ingresos/create" class="btn btn-success"><i class="fas fa-plus me-1"></i>Nuevo</a>
   </div>
 
   <?php if (!empty($_SESSION['mensaje'])): $m = $_SESSION['mensaje']; unset($_SESSION['mensaje']); ?>
     <div class="alert alert-<?= htmlspecialchars($m['tipo']) ?>"><?= htmlspecialchars($m['texto']) ?></div>
   <?php endif; ?>
 
-  <form class="row g-2 mb-3" method="get" action="/vetsmart/recepcionista/ingresos">
+  <form class="row g-2 mb-3" method="get" action="<?= BASE ?>/recepcionista/ingresos">
     <div class="col-auto">
       <select name="tipo" class="form-select">
         <option value="">Todos</option>
@@ -24,7 +24,7 @@
     </div>
     <div class="col-auto">
       <button class="btn btn-outline-success" type="submit"><i class="fas fa-filter me-1"></i>Filtrar</button>
-      <a class="btn btn-outline-secondary" href="/vetsmart/recepcionista/ingresos">Limpiar</a>
+      <a class="btn btn-outline-secondary" href="<?= BASE ?>/recepcionista/ingresos">Limpiar</a>
     </div>
   </form>
 
@@ -51,8 +51,8 @@
               </td>
               <td class="text-end">$ <?= number_format((float)$it['monto'], 2) ?></td>
               <td class="text-end">
-                <a href="/vetsmart/recepcionista/ingresos/<?= (int)$it['id'] ?>/edit" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
-                <a href="/vetsmart/recepcionista/ingresos/<?= (int)$it['id'] ?>/delete" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar movimiento?')"><i class="fas fa-trash"></i></a>
+                <a href="<?= BASE ?>/recepcionista/ingresos/<?= (int)$it['id'] ?>/edit" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                <a href="<?= BASE ?>/recepcionista/ingresos/<?= (int)$it['id'] ?>/delete" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar movimiento?')"><i class="fas fa-trash"></i></a>
               </td>
             </tr>
           <?php endforeach; else: ?>

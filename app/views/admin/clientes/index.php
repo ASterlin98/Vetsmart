@@ -136,7 +136,7 @@ function avatar_color_for($text) {
                                         data-direccion="<?= htmlspecialchars($c['direccion'] ?? '', ENT_QUOTES) ?>"
                                         title="Editar">✏️</button>
 
-                                <a href="/vetsmart/admin/clientes/<?= urlencode($cid) ?>/eliminar" class="btn btn-sm btn-danger" title="Eliminar"
+                                <a href="<?= BASE ?>/admin/clientes/<?= urlencode($cid) ?>/eliminar" class="btn btn-sm btn-danger" title="Eliminar"
                                    onclick="return confirm('¿Eliminar cliente?')">🗑️</a>
                             </td>
                         </tr>
@@ -157,7 +157,7 @@ function avatar_color_for($text) {
 
     <?php if (!empty($totalPages) && $totalPages > 1):
       $currentPath = strtok($_SERVER['REQUEST_URI'], '?');
-      $baseUrl = $currentPath ?: '/vetsmart/admin/clientes';
+      $baseUrl = $currentPath ?: '<?= BASE ?>/admin/clientes';
     ?>
       <nav aria-label="Paginación clientes">
         <ul class="pagination mb-0">
@@ -182,7 +182,7 @@ function avatar_color_for($text) {
 <div class="modal fade" id="nuevoClienteModal" tabindex="-1" aria-labelledby="nuevoClienteLabel" aria-hidden="true">
   <div class="modal-dialog modal-sm modal-dialog-centered">
     <div class="modal-content">
-      <form id="formNuevoCliente" method="POST" action="/vetsmart/admin/clientes/guardar" novalidate>
+      <form id="formNuevoCliente" method="POST" action="<?= BASE ?>/admin/clientes/guardar" novalidate>
         <div class="modal-header">
           <h5 class="modal-title" id="nuevoClienteLabel">Nuevo Cliente</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -417,7 +417,7 @@ function avatar_color_for($text) {
       document.getElementById('edit_direccion').value = direccion;
 
       const formEditar = document.getElementById('formEditarCliente');
-      formEditar.action = '/vetsmart/admin/clientes/' + encodeURIComponent(id) + '/actualizar';
+      formEditar.action = '<?= BASE ?>/admin/clientes/' + encodeURIComponent(id) + '/actualizar';
 
       editarModal.show();
     });
@@ -453,15 +453,15 @@ function avatar_color_for($text) {
 
       // link a ficha completa
       const link = document.getElementById('view_full_link');
-      if (link) link.href = '/vetsmart/admin/clientes/' + encodeURIComponent(id);
+      if (link) link.href = '<?= BASE ?>/admin/clientes/' + encodeURIComponent(id);
 
       // boton agregar mascota
-      if (addPetBtn) addPetBtn.href = '/vetsmart/admin/clientes/' + encodeURIComponent(id) + '/mascotas/crear';
+      if (addPetBtn) addPetBtn.href = '<?= BASE ?>/admin/clientes/' + encodeURIComponent(id) + '/mascotas/crear';
 
       // cargar mascotas via API
 if (mascotasContainer) {
   mascotasContainer.innerHTML = '<div class="text-muted small">Cargando mascotas...</div>';
-  fetch('/vetsmart/api/clientes/' + encodeURIComponent(id) + '/mascotas')
+  fetch('<?= BASE ?>/api/clientes/' + encodeURIComponent(id) + '/mascotas')
     .then(res => {
       if (!res.ok) throw new Error('Error cargando mascotas');
       return res.json();
@@ -494,7 +494,7 @@ if (mascotasContainer) {
         const viewLink = document.createElement('a');
         viewLink.className = 'btn btn-sm btn-outline-primary';
         viewLink.href =
-          '/vetsmart/admin/clientes/' +
+          '<?= BASE ?>/admin/clientes/' +
           encodeURIComponent(id) +
           '/mascotas/' +
           encodeURIComponent(p.id ?? p.ID ?? p.Id ?? '');
@@ -505,7 +505,7 @@ if (mascotasContainer) {
         const editLink = document.createElement('a');
         editLink.className = 'btn btn-sm btn-outline-warning';
         editLink.href =
-          '/vetsmart/admin/clientes/' +
+          '<?= BASE ?>/admin/clientes/' +
           encodeURIComponent(id) +
           '/mascotas/' +
           encodeURIComponent(p.id ?? p.ID ?? p.Id ?? '') +
@@ -517,7 +517,7 @@ if (mascotasContainer) {
         const deleteLink = document.createElement('a');
         deleteLink.className = 'btn btn-sm btn-outline-danger';
         deleteLink.href =
-          '/vetsmart/admin/clientes/' +
+          '<?= BASE ?>/admin/clientes/' +
           encodeURIComponent(id) +
           '/mascotas/' +
           encodeURIComponent(p.id ?? p.ID ?? p.Id ?? '') +

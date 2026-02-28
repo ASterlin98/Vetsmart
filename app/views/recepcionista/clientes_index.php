@@ -15,7 +15,7 @@
           <i class="fas fa-search"></i>
         </button>
       </div>
-      <a href="/vetsmart/recepcionista/clientes/create" class="btn btn-success">
+      <a href="<?= BASE ?>/recepcionista/clientes/create" class="btn btn-success">
         <i class="fas fa-user-plus me-1"></i>Nuevo Cliente
       </a>
     </div>
@@ -67,7 +67,7 @@
                       ?>
                       <?php if ($tieneFoto): ?>
                         <div class="avatar-circle me-3" style="width:40px;height:40px;border-radius:50%;overflow:hidden;">
-                          <img src="/vetsmart/public/assets/uploads/clientes/<?= htmlspecialchars($foto) ?>" alt="Foto" style="width:100%;height:100%;object-fit:cover;">
+                          <img src="<?= BASE ?>/public/assets/uploads/clientes/<?= htmlspecialchars($foto) ?>" alt="Foto" style="width:100%;height:100%;object-fit:cover;">
                         </div>
                       <?php else: ?>
                         <div class="avatar-circle bg-primary text-white me-3" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;">
@@ -107,17 +107,17 @@
                   </td>
                   <td class="text-center pe-4">
                     <div class="btn-group btn-group-sm" role="group">
-                      <a href="/vetsmart/recepcionista/clientes/ver/<?= $cli['id'] ?>" 
+                      <a href="<?= BASE ?>/recepcionista/clientes/ver/<?= $cli['id'] ?>" 
                          class="btn btn-outline-secondary btn-action" title="Ver perfil">
                         <i class="fas fa-id-badge"></i>
                       </a>
-                      <a href="/vetsmart/recepcionista/clientes/edit/<?= $cli['id'] ?>" 
+                      <a href="<?= BASE ?>/recepcionista/clientes/edit/<?= $cli['id'] ?>" 
                          class="btn btn-outline-primary btn-action"
                          data-bs-toggle="tooltip" 
                          title="Editar cliente">
                         <i class="fas fa-edit"></i>
                       </a>
-                      <a href="/vetsmart/recepcionista/clientes/<?= $cli['id'] ?>/eliminar" 
+                      <a href="<?= BASE ?>/recepcionista/clientes/<?= $cli['id'] ?>/eliminar" 
                          class="btn btn-outline-danger btn-action"
                          onclick="return confirm('¿Está seguro de eliminar este cliente y todos sus datos asociados?')"
                          data-bs-toggle="tooltip" 
@@ -135,7 +135,7 @@
                     <i class="fas fa-users fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No hay clientes registrados</h5>
                     <p class="text-muted mb-3">Comience agregando el primer cliente al sistema.</p>
-                    <a href="/vetsmart/recepcionista/clientes/create" class="btn btn-success">
+                    <a href="<?= BASE ?>/recepcionista/clientes/create" class="btn btn-success">
                       <i class="fas fa-user-plus me-2"></i>Registrar Primer Cliente
                     </a>
                   </div>

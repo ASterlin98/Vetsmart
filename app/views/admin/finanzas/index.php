@@ -13,7 +13,7 @@
     </div>
     <div class="col-md-4 d-flex align-items-end">
       <button type="submit" class="btn btn-primary me-2">Filtrar</button>
-      <a href="/vetsmart/admin/exportarFinanzasExcel?desde=<?= urlencode($desde) ?>&hasta=<?= urlencode($hasta) ?>" class="btn btn-success">📊 Exportar Excel</a>
+      <a href="<?= BASE ?>/admin/exportarFinanzasExcel?desde=<?= urlencode($desde) ?>&hasta=<?= urlencode($hasta) ?>" class="btn btn-success">📊 Exportar Excel</a>
     </div>
   </form>
 

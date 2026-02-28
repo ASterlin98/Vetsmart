@@ -5,8 +5,8 @@
 <div class="container-fluid px-4">
     <h1 class="mt-4">Crear Nuevo Ticket de Soporte</h1>
     <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="/vetsmart/super_admin/dashboard">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="/vetsmart/soporte">Soporte</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE ?>/super_admin/dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE ?>/soporte">Soporte</a></li>
         <li class="breadcrumb-item active">Crear Ticket</li>
     </ol>
 
@@ -24,7 +24,7 @@
             Detalles del Nuevo Ticket
         </div>
         <div class="card-body">
-            <form action="/vetsmart/soporte/guardar" method="POST">
+            <form action="<?= BASE ?>/soporte/guardar" method="POST">
                 <div class="mb-3">
                     <label for="asunto" class="form-label">Asunto</label>
                     <input type="text" class="form-control" id="asunto" name="asunto" required>
@@ -63,7 +63,7 @@
 
                 <hr>
                 <button type="submit" class="btn btn-primary">Crear Ticket</button>
-                <a href="/vetsmart/soporte" class="btn btn-secondary">Cancelar</a>
+                <a href="<?= BASE ?>/soporte" class="btn btn-secondary">Cancelar</a>
             </form>
         </div>
     </div>

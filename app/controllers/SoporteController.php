@@ -59,7 +59,7 @@ class SoporteController extends Controller {
      */
     public function guardar() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /vetsmart/soporte/crear');
+            header('Location: ' . BASE . '/soporte/crear');
             exit;
         }
 
@@ -75,10 +75,10 @@ class SoporteController extends Controller {
 
         if ($ticketId) {
             $this->ticketModel->addMessage($ticketId, $data['usuario_id'], $data['descripcion']);
-            header('Location: /vetsmart/soporte/ver/' . $ticketId);
+            header('Location: ' . BASE . '/soporte/ver/' . $ticketId);
         } else {
             $_SESSION['flash_error'] = "No se pudo crear el ticket.";
-            header('Location: /vetsmart/soporte/crear');
+            header('Location: ' . BASE . '/soporte/crear');
         }
         exit;
     }
@@ -98,7 +98,7 @@ class SoporteController extends Controller {
 
         if (empty($mensaje)) {
             $_SESSION['flash_error'] = "El mensaje no puede estar vacío.";
-            header('Location: /vetsmart/soporte/ver/' . $ticket_id);
+            header('Location: ' . BASE . '/soporte/ver/' . $ticket_id);
             exit;
         }
 
@@ -108,7 +108,7 @@ class SoporteController extends Controller {
             $_SESSION['flash_error'] = "No se pudo enviar la respuesta.";
         }
 
-        header('Location: /vetsmart/soporte/ver/' . $ticket_id);
+        header('Location: ' . BASE . '/soporte/ver/' . $ticket_id);
         exit;
     }
 
@@ -125,7 +125,7 @@ class SoporteController extends Controller {
 
         if ($ticket_id <= 0) {
             $_SESSION['flash_error'] = "Error: ID de ticket no válido. La operación ha sido cancelada para proteger los datos.";
-            header('Location: /vetsmart/soporte');
+            header('Location: ' . BASE . '/soporte');
             exit;
         }
 
@@ -139,7 +139,7 @@ class SoporteController extends Controller {
             $_SESSION['flash_error'] = "No se pudo actualizar el ticket.";
         }
 
-        header('Location: /vetsmart/soporte/ver/' . $ticket_id);
+        header('Location: ' . BASE . '/soporte/ver/' . $ticket_id);
         exit;
     }
 }

@@ -96,13 +96,13 @@ class SuperAdminController extends Controller
     public function actualizarConfiguracion()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /vetsmart/super_admin/configuracion');
+            header('Location: ' . BASE . '/super_admin/configuracion');
             exit;
         }
 
         if (!$this->configModel) {
             // Manejar el error, quizás redirigir con un mensaje
-            header('Location: /vetsmart/super_admin/configuracion?error=model_unavailable');
+            header('Location: ' . BASE . '/super_admin/configuracion?error=model_unavailable');
             exit;
         }
 
@@ -116,9 +116,9 @@ class SuperAdminController extends Controller
         $success = $this->configModel->updateSettings($settings);
 
         if ($success) {
-            header('Location: /vetsmart/super_admin/configuracion?success=true');
+            header('Location: ' . BASE . '/super_admin/configuracion?success=true');
         } else {
-            header('Location: /vetsmart/super_admin/configuracion?error=update_failed');
+            header('Location: ' . BASE . '/super_admin/configuracion?error=update_failed');
         }
         exit;
     }

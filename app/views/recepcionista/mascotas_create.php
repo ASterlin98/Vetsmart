@@ -12,7 +12,7 @@
   <!-- Main Form -->
   <div class="card border-0 shadow-sm">
     <div class="card-body p-4">
-      <form action="/vetsmart/recepcionista/mascotas/store" method="POST" enctype="multipart/form-data" class="row g-4">
+      <form action="<?= BASE ?>/recepcionista/mascotas/store" method="POST" enctype="multipart/form-data" class="row g-4">
         <?= CSRF::inputField(); ?>
         
         <!-- Basic Information -->
@@ -146,7 +146,7 @@
         <div class="col-12">
           <div class="border-top pt-4">
             <div class="d-flex gap-2 justify-content-end">
-              <a href="/vetsmart/recepcionista/mascotas" class="btn btn-outline-secondary">
+              <a href="<?= BASE ?>/recepcionista/mascotas" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-1"></i>Volver
               </a>
               <button type="submit" class="btn btn-success px-4">

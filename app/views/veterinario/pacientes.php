@@ -23,8 +23,8 @@
             <td><?= htmlspecialchars($m['nombre_dueno'] . ' ' . $m['apellido_dueno']) ?></td>
             <td><?= htmlspecialchars($m['telefono_dueno']) ?></td>
             <td>
-                <a href="/vetsmart/veterinario/mascotas/<?= $m['id'] ?>/historial" class="btn btn-sm btn-info">📋 Historial</a>
-                <a href="/vetsmart/veterinario/mascotas/<?= $m['id'] ?>/agendar" class="btn btn-sm btn-primary">📅 Agendar Cita</a>
+                <a href="<?= BASE ?>/veterinario/mascotas/<?= $m['id'] ?>/historial" class="btn btn-sm btn-info">📋 Historial</a>
+                <a href="<?= BASE ?>/veterinario/mascotas/<?= $m['id'] ?>/agendar" class="btn btn-sm btn-primary">📅 Agendar Cita</a>
             </td>
         </tr>
         <?php endforeach; ?>

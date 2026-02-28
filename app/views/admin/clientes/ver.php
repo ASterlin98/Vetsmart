@@ -1,11 +1,11 @@
 <h3>Mascotas</h3>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <a href="/vetsmart/admin/clientes/<?php echo $cliente['id']; ?>/mascotas/crear" class="btn btn-success">
+    <a href="<?= BASE ?>/admin/clientes/<?php echo $cliente['id']; ?>/mascotas/crear" class="btn btn-success">
         ➕ Nueva Mascota
     </a>
 
-    <a href="/vetsmart/admin/clientes" class="btn btn-secondary">
+    <a href="<?= BASE ?>/admin/clientes" class="btn btn-secondary">
         🔙 Volver a Clientes
     </a>
 </div>
@@ -34,11 +34,11 @@
             <td><?php echo htmlspecialchars($m['peso']); ?> kg</td>
             <td>
                 <!-- Editar -->
-                <a href="/vetsmart/admin/clientes/<?php echo $cliente['id']; ?>/mascotas/<?php echo $m['id']; ?>/editar" 
+                <a href="<?= BASE ?>/admin/clientes/<?php echo $cliente['id']; ?>/mascotas/<?php echo $m['id']; ?>/editar" 
                    class="btn btn-sm btn-warning">✏️ Editar</a>
 
                 <!-- Eliminar -->
-                <a href="/vetsmart/admin/clientes/<?php echo $cliente['id']; ?>/mascotas/<?php echo $m['id']; ?>/eliminar" 
+                <a href="<?= BASE ?>/admin/clientes/<?php echo $cliente['id']; ?>/mascotas/<?php echo $m['id']; ?>/eliminar" 
                    class="btn btn-sm btn-danger"
                    onclick="return confirm('¿Eliminar mascota?')">🗑️</a>
             </td>

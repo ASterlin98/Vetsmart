@@ -5,12 +5,12 @@
 <div class="container-fluid px-4">
     <h1 class="mt-4">Centro de Soporte</h1>
     <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="/vetsmart/super_admin/dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE ?>/super_admin/dashboard">Dashboard</a></li>
         <li class="breadcrumb-item active">Soporte</li>
     </ol>
 
     <div class="mb-4">
-        <a href="/vetsmart/soporte/crear" class="btn btn-primary">
+        <a href="<?= BASE ?>/soporte/crear" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i>
             Crear Nuevo Ticket
         </a>
@@ -22,7 +22,8 @@
             Listado de Tickets de Soporte
         </div>
         <div class="card-body">
-            <table class="table table-striped table-hover">
+            <div class="table-responsive">
+            <table class="table table-striped table-hover" style="white-space: nowrap;">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -82,7 +83,7 @@
                                 <td><?= htmlspecialchars($ticket['asignado_nombre'] ?? 'N/A') ?></td>
                                 <td><?= date('d/m/Y H:i', strtotime($ticket['actualizado_en'])) ?></td>
                                 <td>
-                                    <a href="/vetsmart/soporte/ver/<?= $ticket['id'] ?>" class="btn btn-sm btn-info">
+                                    <a href="<?= BASE ?>/soporte/ver/<?= $ticket['id'] ?>" class="btn btn-sm btn-info">
                                         Ver
                                     </a>
                                 </td>
@@ -91,6 +92,7 @@
                     <?php endif; ?>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>

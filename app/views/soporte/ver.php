@@ -58,8 +58,8 @@ $current_user_id = $_SESSION['user']['id'];
 <div class="container-fluid px-4">
     <h1 class="mt-4">Detalle del Ticket #<?= htmlspecialchars($ticket['id']) ?></h1>
     <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="/vetsmart/super_admin/dashboard">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="/vetsmart/soporte">Soporte</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE ?>/super_admin/dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE ?>/soporte">Soporte</a></li>
         <li class="breadcrumb-item active">Ver Ticket</li>
     </ol>
 
@@ -98,7 +98,7 @@ $current_user_id = $_SESSION['user']['id'];
                     </div>
                 </div>
                 <div class="card-footer">
-                    <form action="/vetsmart/soporte/responder" method="POST">
+                    <form action="<?= BASE ?>/soporte/responder" method="POST">
                         <input type="hidden" name="ticket_id" value="<?= $ticket['id'] ?>">
                         <div class="input-group">
                             <textarea name="mensaje" class="form-control" placeholder="Escribe tu respuesta..." rows="3" required></textarea>
@@ -124,7 +124,7 @@ $current_user_id = $_SESSION['user']['id'];
                         <li class="list-group-item"><strong>Última Actividad:</strong> <?= date('d/m/Y H:i', strtotime($ticket['actualizado_en'])) ?></li>
                     </ul>
                     <hr>
-                    <form action="/vetsmart/soporte/actualizarMeta" method="POST">
+                    <form action="<?= BASE ?>/soporte/actualizarMeta" method="POST">
                         <input type="hidden" name="ticket_id" value="<?= htmlspecialchars($ticket['id']) ?>">
                         <div class="mb-3">
                             <label for="estado" class="form-label">Estado</label>

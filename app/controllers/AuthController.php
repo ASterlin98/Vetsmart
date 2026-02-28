@@ -154,7 +154,7 @@ class AuthController extends Controller
 
         (new Usuario())->saveResetToken($usuario['id'], $token, $expira);
 
-        $resetUrl = rtrim(getenv('APP_BASE_URL') ?: 'http://localhost/vetsmart', '/') . '/auth/reset?token=' . $token;
+        $resetUrl = rtrim(getenv('APP_BASE_URL') ?: '', '/') . '/auth/reset?token=' . $token;
 
         // Enviar correo con PHPMailer
         $mail = new PHPMailer(true);
@@ -389,7 +389,7 @@ class AuthController extends Controller
      */
     private function basePath(): string
     {
-        $url = getenv('APP_BASE_URL') ?: '/vetsmart';
+        $url = getenv('APP_BASE_URL') ?: '';
         // Si es URL absoluta, extraer sólo la ruta base
         if (strpos($url, 'http') === 0) {
             $parts = parse_url($url);

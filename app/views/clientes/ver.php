@@ -7,7 +7,7 @@
 
 <hr>
 <h3>Mascotas</h3>
-<a href="/vetsmart/admin/clientes/<?= $cliente['idusu'] ?>/mascotas/crear" class="btn btn-success mb-3">➕ Nueva Mascota</a>
+<a href="<?= BASE ?>/admin/clientes/<?= $cliente['idusu'] ?>/mascotas/crear" class="btn btn-success mb-3">➕ Nueva Mascota</a>
 
 <table class="table table-bordered">
     <thead>
@@ -29,8 +29,8 @@
                 <td><?= htmlspecialchars($m['edad']) ?></td>
                 <td><?= htmlspecialchars($m['peso']) ?></td>
                 <td>
-                    <a href="/vetsmart/admin/clientes/<?= $cliente['idusu'] ?>/mascotas/<?= $m['id'] ?>/editar" class="btn btn-sm btn-warning">✏️ Editar</a>
-                    <a href="/vetsmart/admin/clientes/<?= $cliente['idusu'] ?>/mascotas/<?= $m['id'] ?>/eliminar" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar mascota?')">🗑️</a>
+                    <a href="<?= BASE ?>/admin/clientes/<?= $cliente['idusu'] ?>/mascotas/<?= $m['id'] ?>/editar" class="btn btn-sm btn-warning">✏️ Editar</a>
+                    <a href="<?= BASE ?>/admin/clientes/<?= $cliente['idusu'] ?>/mascotas/<?= $m['id'] ?>/eliminar" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar mascota?')">🗑️</a>
                 </td>
             </tr>
         <?php endforeach; ?>

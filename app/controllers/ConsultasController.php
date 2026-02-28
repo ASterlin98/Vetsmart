@@ -83,7 +83,7 @@ class ConsultasController extends Controller {
 
     public function guardar() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /vetsmart/veterinario/consultas');
+            header('Location: ' . BASE . '/veterinario/consultas');
             exit;
         }
         $data = [
@@ -100,12 +100,12 @@ class ConsultasController extends Controller {
 
         if (empty($data['mascota_id'])) {
             $_SESSION['flash_error'] = 'Debe seleccionar una mascota.';
-            header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '/vetsmart/veterinario/consultas'));
+            header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? BASE . '/veterinario/consultas'));
             exit;
         }
 
         $id = $this->consultaModel->crear($data);
-        header('Location: /vetsmart/veterinario/consultas/ver/' . $id);
+        header('Location: ' . BASE . '/veterinario/consultas/ver/' . $id);
         exit;
     }
 
@@ -145,7 +145,7 @@ public function actualizar($id)
             echo json_encode(['success' => false, 'message' => 'Método no permitido']);
         } else {
             $_SESSION['flash_error'] = 'Método no permitido.';
-            header('Location: /vetsmart/veterinario/consultas');
+            header('Location: ' . BASE . '/veterinario/consultas');
         }
         exit;
     }
@@ -169,7 +169,7 @@ public function actualizar($id)
             echo json_encode(['success' => true, 'message' => 'Consulta actualizada correctamente.']);
         } else {
             $_SESSION['flash_success'] = 'Consulta actualizada correctamente.';
-            header('Location: /vetsmart/veterinario/consultas/ver/' . $id);
+            header('Location: ' . BASE . '/veterinario/consultas/ver/' . $id);
         }
     } catch (Exception $e) {
         error_log("Error al actualizar consulta: " . $e->getMessage());
@@ -178,7 +178,7 @@ public function actualizar($id)
             echo json_encode(['success' => false, 'message' => 'Error al actualizar la consulta.']);
         } else {
             $_SESSION['flash_error'] = 'Error actualizando la consulta.';
-            header('Location: /vetsmart/veterinario/consultas/editar/' . $id);
+            header('Location: ' . BASE . '/veterinario/consultas/editar/' . $id);
         }
     }
 
@@ -191,7 +191,7 @@ public function eliminar($id) {
     $consultaModel->eliminar($id);
     
     $_SESSION['flash_success'] = 'Consulta eliminada correctamente.';
-    header('Location: /vetsmart/veterinario/consultas');
+    header('Location: ' . BASE . '/veterinario/consultas');
     exit;
 }
 

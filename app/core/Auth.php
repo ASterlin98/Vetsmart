@@ -7,7 +7,7 @@ class Auth {
 
     public static function check(): void {
         if (empty($_SESSION['user'])) {
-            header('Location: /login');
+            header('Location: ' . (defined('BASE') ? BASE : '') . '/login');
             exit;
         }
     }

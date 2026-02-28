@@ -6,7 +6,7 @@
   <title>Registro - VetSmart</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/vetsmart/public/assets/css/responsive.css">
+  <link rel="stylesheet" href="<?= BASE ?>/public/assets/css/responsive.css">
   <?php $siteKey = $siteKey ?? ($recaptcha_site_key ?? ''); ?>
   <?php if (!empty($siteKey)): ?>
     <script src="https://www.google.com/recaptcha/api.js?render=<?= htmlspecialchars($siteKey) ?>"></script>
@@ -21,7 +21,7 @@
     }
 
     .auth-page {
-      background-image: url('/vetsmart/public/assets/css/img5.jpg');
+      background-image: url('<?= BASE ?>/public/assets/css/img5.jpg');
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
@@ -250,7 +250,7 @@
       </div>
     <?php endif; ?>
 
-    <form method="post" action="/vetsmart/auth/storeClient" class="space-y-3 sm:space-y-4">
+    <form method="post" action="<?= BASE ?>/auth/storeClient" class="space-y-3 sm:space-y-4">
       <?= \CSRF::inputField() ?>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -281,7 +281,7 @@
     </form>
 
     <p class="text-center mt-5 sm:mt-6 text-sm">
-      <a href="/vetsmart/auth/login" class="text-blue-600 hover:underline font-medium">
+      <a href="<?= BASE ?>/auth/login" class="text-blue-600 hover:underline font-medium">
         Ya tengo una cuenta
       </a>
     </p>

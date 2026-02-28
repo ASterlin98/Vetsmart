@@ -16,7 +16,7 @@ class CitaController
     private function verificarSesion(): void
     {
         if (empty($_SESSION['user'])) {
-            header('Location: /vetsmart/login');
+            header('Location: ' . BASE . '/login');
             exit;
         }
     }
@@ -100,7 +100,7 @@ class CitaController
         $token = (string)($_POST['_csrf'] ?? '');
         if (!CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Token inválido'];
-            header('Location: /vetsmart/recepcionista/citas-peluqueria/create');
+            header('Location: ' . BASE . '/recepcionista/citas-peluqueria/create');
             exit;
         }
 
@@ -114,7 +114,7 @@ class CitaController
 
         if (!$cliente_id || !$mascota_id || !$peluquero_id || !$servicio_id || $fecha === '' || $hora === '') {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Completa todos los campos obligatorios.'];
-            header('Location: /vetsmart/recepcionista/citas-peluqueria/create');
+            header('Location: ' . BASE . '/recepcionista/citas-peluqueria/create');
             exit;
         }
 
@@ -125,12 +125,12 @@ class CitaController
             $now = new DateTime('now');
             if ($dt < $now) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'No se permiten citas en fechas u horas pasadas.'];
-                header('Location: /vetsmart/recepcionista/citas-peluqueria/create');
+                header('Location: ' . BASE . '/recepcionista/citas-peluqueria/create');
                 exit;
             }
         } catch (Throwable $e) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Fecha u hora inválida.'];
-            header('Location: /vetsmart/recepcionista/citas-peluqueria/create');
+            header('Location: ' . BASE . '/recepcionista/citas-peluqueria/create');
             exit;
         }
 
@@ -178,14 +178,14 @@ class CitaController
                 if ($newStart < $exEnd && $exStart < $newEnd) {
                     error_log("[OVERLAP CHECK] ¡SOLAPAMIENTO DETECTADO!");
                     $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Conflicto: el peluquero ya tiene una cita que se solapa en ese horario (desde ' . $exStart->format('H:i') . ').'];
-                    header('Location: /vetsmart/recepcionista/citas-peluqueria/create');
+                    header('Location: ' . BASE . '/recepcionista/citas-peluqueria/create');
                     exit;
                 }
             }
         } catch (Throwable $e) {
             error_log('Error comprobando solapamientos de cita peluqueria: ' . $e->getMessage());
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Error al validar disponibilidad. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/citas-peluqueria/create');
+            header('Location: ' . BASE . '/recepcionista/citas-peluqueria/create');
             exit;
         }
 
@@ -253,7 +253,7 @@ class CitaController
         }
 
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Cita de peluquería creada.'];
-        header('Location: /vetsmart/recepcionista/agenda');
+        header('Location: ' . BASE . '/recepcionista/agenda');
         exit;
     }
 
@@ -266,7 +266,7 @@ class CitaController
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/citas');
+            header('Location: ' . BASE . '/recepcionista/citas');
             exit;
         }
 
@@ -288,14 +288,14 @@ class CitaController
 
         if (empty($data['fecha']) || empty($data['cliente_id']) || empty($data['empleado_id']) || empty($data['servicio_id'])) {
              $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Faltan campos obligatorios.'];
-             header('Location: /vetsmart/recepcionista/citas');
+             header('Location: ' . BASE . '/recepcionista/citas');
              exit;
         }
 
         // Validación de rol para servicios de peluquería
         if ($this->esServicioPeluqueria((int)$data['servicio_id']) && !$this->esPeluquero((int)$data['empleado_id'])) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Para servicios de peluquería, debes asignar un empleado con rol Peluquero.'];
-            header('Location: /vetsmart/recepcionista/citas');
+            header('Location: ' . BASE . '/recepcionista/citas');
             exit;
         }
 
@@ -348,13 +348,13 @@ class CitaController
                 if ($newStart < $exEnd && $exStart < $newEnd) {
                     $conflictTime = $exStart->format('H:i');
                     $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => "Conflicto: existe una cita que se solapa a las $conflictTime (servicio: $svcName). Por favor reprograme." ];
-                    header('Location: /vetsmart/recepcionista/citas');
+                    header('Location: ' . BASE . '/recepcionista/citas');
                     exit;
                 }
             }
         } catch (Throwable $e) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Error al validar disponibilidad. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/citas');
+            header('Location: ' . BASE . '/recepcionista/citas');
             exit;
         }
 
@@ -365,12 +365,12 @@ class CitaController
             $now = new DateTime('now', $tz);
             if ($dt < $now) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'No se permiten citas en fechas u horas pasadas.'];
-                header('Location: /vetsmart/recepcionista/citas');
+                header('Location: ' . BASE . '/recepcionista/citas');
                 exit;
             }
         } catch (Throwable $e) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Fecha/Hora inválida.'];
-            header('Location: /vetsmart/recepcionista/citas');
+            header('Location: ' . BASE . '/recepcionista/citas');
             exit;
         }
 
@@ -445,7 +445,7 @@ class CitaController
         }
 
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Cita creada exitosamente.'];
-        header('Location: /vetsmart/recepcionista/citas');
+        header('Location: ' . BASE . '/recepcionista/citas');
         exit;
     }
 
@@ -528,7 +528,7 @@ class CitaController
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/citas');
+            header('Location: ' . BASE . '/recepcionista/citas');
             exit;
         }
 
@@ -546,7 +546,7 @@ class CitaController
         // Validación de rol para servicios de peluquería
         if ($this->esServicioPeluqueria((int)$data['servicio_id']) && !$this->esPeluquero((int)$data['empleado_id'])) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Para servicios de peluquería, debes asignar un empleado con rol Peluquero.'];
-            header('Location: /vetsmart/recepcionista/citas');
+            header('Location: ' . BASE . '/recepcionista/citas');
             exit;
         }
         // Normalizar estado permitido
@@ -571,7 +571,7 @@ class CitaController
         ]);
         if ((int)$check->fetchColumn() > 0) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Conflicto: ya existe una cita con esa fecha y hora.'];
-            header('Location: /vetsmart/citas/edit/' . (int)$data['id']);
+            header('Location: ' . BASE . '/citas/edit/' . (int)$data['id']);
             exit;
         }
 
@@ -597,7 +597,7 @@ class CitaController
             ':notas' => $data['notas'],
         ]);
 
-        header('Location: /vetsmart/recepcionista/citas');
+        header('Location: ' . BASE . '/recepcionista/citas');
         exit;
     }
 
@@ -608,7 +608,7 @@ class CitaController
         $stmt = $this->pdo->prepare("DELETE FROM citas WHERE id = :id");
         $stmt->execute([':id' => $id]);
 
-        header('Location: /vetsmart/recepcionista/citas');
+        header('Location: ' . BASE . '/recepcionista/citas');
         exit;
     }
 }

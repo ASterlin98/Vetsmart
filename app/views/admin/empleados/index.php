@@ -13,7 +13,7 @@ $roles = $roles ?? [];
             <!-- Search -->
             <input type="text" id="searchEmpleado" class="form-control" placeholder="🔍 Buscar por nombre o DNI" onkeyup="filtrarEmpleados()">
             <!-- Botón Crear -->
-            <a href="/vetsmart/admin/empleados/crear" class="btn btn-primary">
+            <a href="<?= BASE ?>/admin/empleados/crear" class="btn btn-primary">
                 ➕ Nuevo
             </a>
         </div>
@@ -60,14 +60,14 @@ $roles = $roles ?? [];
                 <?php endif; ?>
               </td>
               <td>
-                <a href="/vetsmart/admin/empleados/<?= $e['id'] ?>/editar" class="btn btn-warning btn-sm">✏️</a>
-                <a href="/vetsmart/admin/empleados/<?= $e['id'] ?>/eliminar" 
+                <a href="<?= BASE ?>/admin/empleados/<?= $e['id'] ?>/editar" class="btn btn-warning btn-sm">✏️</a>
+                <a href="<?= BASE ?>/admin/empleados/<?= $e['id'] ?>/eliminar" 
                    onclick="return confirm('¿Seguro de eliminar este empleado?')"
                    class="btn btn-danger btn-sm">
                   🗑️
                 </a>
                 <?php if (!empty($e['is_blocked']) && $e['is_blocked']): ?>
-                  <a href="/vetsmart/admin/desbloquear_usuario/<?= $e['id'] ?>" class="btn btn-success btn-sm" onclick="return confirm('¿Desbloquear este usuario?')">🔓 Desbloquear</a>
+                  <a href="<?= BASE ?>/admin/desbloquear_usuario/<?= $e['id'] ?>" class="btn btn-success btn-sm" onclick="return confirm('¿Desbloquear este usuario?')">🔓 Desbloquear</a>
                 <?php endif; ?>
               </td>
             </tr>

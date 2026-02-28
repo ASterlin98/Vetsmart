@@ -11,8 +11,7 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
-create database vetsmart;
-USE `vetsmart`;
+
 
 -- --------------------------------------------------------
 
@@ -115,25 +114,7 @@ INSERT INTO `citas` (`id`, `cliente_id`, `mascota_id`, `empleado_id`, `servicio_
 
 -- --------------------------------------------------------
 
---
--- Estructura Stand-in para la vista `citas_peluqueria`
--- (Véase abajo para la vista actual)
---
-CREATE TABLE `citas_peluqueria` (
-`id` int(10) unsigned
-,`cliente_id` int(10) unsigned
-,`mascota_id` int(10) unsigned
-,`peluquero_id` int(10) unsigned
-,`servicio_id` int(10) unsigned
-,`fecha` date
-,`hora` time
-,`estado` enum('pendiente','en_proceso','completado','cancelado')
-,`observaciones` varchar(255)
-,`creado_en` timestamp
-,`actualizado_en` timestamp
-);
 
--- --------------------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `cliente_detalles`
@@ -1175,44 +1156,79 @@ CREATE TABLE `v_roles_permisos_count` (
 );
 
 -- --------------------------------------------------------
-
 --
--- Estructura para la vista `citas_peluqueria`
+-- Vista: citas_peluqueria
 --
-DROP TABLE IF EXISTS `citas_peluqueria`;
+DROP VIEW IF EXISTS `citas_peluqueria`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `citas_peluqueria`  AS SELECT `cpeluq`.`id` AS `id`, `cpeluq`.`cliente_id` AS `cliente_id`, `cpeluq`.`mascota_id` AS `mascota_id`, `cpeluq`.`peluquero_id` AS `peluquero_id`, `cpeluq`.`servicio_id` AS `servicio_id`, `cpeluq`.`fecha` AS `fecha`, `cpeluq`.`hora` AS `hora`, `cpeluq`.`estado` AS `estado`, `cpeluq`.`observaciones` AS `observaciones`, `cpeluq`.`creado_en` AS `creado_en`, `cpeluq`.`actualizado_en` AS `actualizado_en` FROM `cpeluq` ;
+CREATE VIEW `citas_peluqueria` AS
+SELECT 
+  `cpeluq`.`id` AS `id`,
+  `cpeluq`.`cliente_id` AS `cliente_id`,
+  `cpeluq`.`mascota_id` AS `mascota_id`,
+  `cpeluq`.`peluquero_id` AS `peluquero_id`,
+  `cpeluq`.`servicio_id` AS `servicio_id`,
+  `cpeluq`.`fecha` AS `fecha`,
+  `cpeluq`.`hora` AS `hora`,
+  `cpeluq`.`estado` AS `estado`,
+  `cpeluq`.`observaciones` AS `observaciones`,
+  `cpeluq`.`creado_en` AS `creado_en`,
+  `cpeluq`.`actualizado_en` AS `actualizado_en`
+FROM `cpeluq`;
 
 -- --------------------------------------------------------
 
 --
--- Estructura para la vista `rol_permisos`
+-- Vista: rol_permisos
 --
-DROP TABLE IF EXISTS `rol_permisos`;
+DROP VIEW IF EXISTS `rol_permisos`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `rol_permisos`  AS SELECT `role_permissions`.`role_id` AS `role_id`, `role_permissions`.`permission_id` AS `permiso_id` FROM `role_permissions` ;
+CREATE VIEW `rol_permisos` AS
+SELECT 
+  `role_permissions`.`role_id` AS `role_id`,
+  `role_permissions`.`permission_id` AS `permiso_id`
+FROM `role_permissions`;
 
 -- --------------------------------------------------------
 
 --
--- Estructura para la vista `v_roles_permisos`
+-- Vista: v_roles_permisos
 --
-DROP TABLE IF EXISTS `v_roles_permisos`;
+DROP VIEW IF EXISTS `v_roles_permisos`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_roles_permisos`  AS SELECT `r`.`id` AS `role_id`, `r`.`nombre` AS `rol`, `r`.`descripcion` AS `rol_descripcion`, `p`.`modulo` AS `modulo`, `p`.`nombre` AS `permiso`, `p`.`descripcion` AS `permiso_descripcion`, `p`.`accion` AS `accion` FROM ((`roles` `r` join `rol_permisos` `rp` on(`r`.`id` = `rp`.`role_id`)) join `permisos` `p` on(`rp`.`permiso_id` = `p`.`id`)) ORDER BY `r`.`id` ASC, `p`.`modulo` ASC, `p`.`orden` ASC ;
+CREATE VIEW `v_roles_permisos` AS
+SELECT 
+  `r`.`id` AS `role_id`,
+  `r`.`nombre` AS `rol`,
+  `r`.`descripcion` AS `rol_descripcion`,
+  `p`.`modulo` AS `modulo`,
+  `p`.`nombre` AS `permiso`,
+  `p`.`descripcion` AS `permiso_descripcion`,
+  `p`.`accion` AS `accion`
+FROM `roles` `r`
+JOIN `rol_permisos` `rp` ON (`r`.`id` = `rp`.`role_id`)
+JOIN `permisos` `p` ON (`rp`.`permiso_id` = `p`.`id`)
+ORDER BY `r`.`id` ASC, `p`.`modulo` ASC, `p`.`orden` ASC;
 
 -- --------------------------------------------------------
 
 --
--- Estructura para la vista `v_roles_permisos_count`
+-- Vista: v_roles_permisos_count
 --
-DROP TABLE IF EXISTS `v_roles_permisos_count`;
+DROP VIEW IF EXISTS `v_roles_permisos_count`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_roles_permisos_count`  AS SELECT `r`.`id` AS `role_id`, `r`.`nombre` AS `rol`, `r`.`descripcion` AS `rol_descripcion`, count(`rp`.`permiso_id`) AS `total_permisos`, count(distinct `p`.`modulo`) AS `total_modulos` FROM ((`roles` `r` left join `rol_permisos` `rp` on(`r`.`id` = `rp`.`role_id`)) left join `permisos` `p` on(`rp`.`permiso_id` = `p`.`id`)) GROUP BY `r`.`id`, `r`.`nombre`, `r`.`descripcion` ;
-
---
--- Índices para tablas volcadas
---
+CREATE VIEW `v_roles_permisos_count` AS
+SELECT 
+  `r`.`id` AS `role_id`,
+  `r`.`nombre` AS `rol`,
+  `r`.`descripcion` AS `rol_descripcion`,
+  COUNT(`rp`.`permiso_id`) AS `total_permisos`,
+  COUNT(DISTINCT `p`.`modulo`) AS `total_modulos`
+FROM `roles` `r`
+LEFT JOIN `rol_permisos` `rp` ON (`r`.`id` = `rp`.`role_id`)
+LEFT JOIN `permisos` `p` ON (`rp`.`permiso_id` = `p`.`id`)
+GROUP BY 
+  `r`.`id`, `r`.`nombre`, `r`.`descripcion`;
 
 --
 -- Indices de la tabla `atenciones_peluqueria`

@@ -139,12 +139,12 @@ $mascotas = $mascotas ?? [];
                         <td><?= htmlspecialchars($consulta['nombre_veterinario'] ?? 'Sin nombre') ?></td>
                         <td class="text-center">
                           <div class="d-flex justify-content-center gap-1">
-                            <a href="/vetsmart/veterinario/consultas/<?= htmlspecialchars($consulta['id']) ?>/ver"
+                            <a href="<?= BASE ?>/veterinario/consultas/<?= htmlspecialchars($consulta['id']) ?>/ver"
                               class="btn btn-sm btn-outline-primary btn-action btn-ver-consulta"
                               data-id="<?= htmlspecialchars($consulta['id']) ?>" data-bs-toggle="tooltip" title="Ver">
                               <i class="bi bi-eye"></i>
                             </a>
-                            <form action="/vetsmart/veterinario/consultas/<?= htmlspecialchars($consulta['id']) ?>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar esta consulta?');">
+                            <form action="<?= BASE ?>/veterinario/consultas/<?= htmlspecialchars($consulta['id']) ?>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar esta consulta?');">
                               <button type="submit" class="btn btn-sm btn-outline-danger btn-action" data-bs-toggle="tooltip" title="Eliminar">
                                 <i class="bi bi-trash"></i>
                               </button>
@@ -196,11 +196,11 @@ $mascotas = $mascotas ?? [];
                         <td><?= htmlspecialchars($c['estado'] ?? '-') ?></td>
                         <td class="text-center">
                           <div class="d-flex justify-content-center gap-1">
-                            <a href="/vetsmart/veterinario/consultas/crear/<?= htmlspecialchars($c['mascota_id'] ?? '') ?>?cita_id=<?= htmlspecialchars($c['id']) ?>"
+                            <a href="<?= BASE ?>/veterinario/consultas/crear/<?= htmlspecialchars($c['mascota_id'] ?? '') ?>?cita_id=<?= htmlspecialchars($c['id']) ?>"
                               class="btn btn-sm btn-outline-primary btn-action" title="Crear consulta desde esta cita">
                               <i class="bi bi-plus-lg"></i>
                             </a>
-                            <a href="/vetsmart/veterinario/mascotas/<?= htmlspecialchars($c['mascota_id'] ?? '') ?>/historial" class="btn btn-sm btn-outline-info btn-action" title="Ver historial de la mascota">
+                            <a href="<?= BASE ?>/veterinario/mascotas/<?= htmlspecialchars($c['mascota_id'] ?? '') ?>/historial" class="btn btn-sm btn-outline-info btn-action" title="Ver historial de la mascota">
                               <i class="bi bi-eye"></i>
                             </a>
                           </div>
@@ -251,10 +251,10 @@ $mascotas = $mascotas ?? [];
                         <td><?= htmlspecialchars($m['telefono_dueno'] ?? '-') ?></td>
                         <td class="text-center">
                           <div class="d-flex justify-content-center gap-1">
-                            <a href="/vetsmart/veterinario/mascotas/<?= $m['id'] ?>/historial" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Historial">
+                            <a href="<?= BASE ?>/veterinario/mascotas/<?= $m['id'] ?>/historial" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Historial">
                               <i class="bi bi-file-text"></i>
                             </a>
-                            <a href="/vetsmart/veterinario/mascotas/<?= $m['id'] ?>/agendar" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Agendar Cita">
+                            <a href="<?= BASE ?>/veterinario/mascotas/<?= $m['id'] ?>/agendar" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Agendar Cita">
                               <i class="bi bi-calendar-event"></i>
                             </a>
                           </div>
@@ -304,13 +304,13 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.btn-ver-consulta').forEach(btn => {
     btn.addEventListener('click', function (e) {
       e.preventDefault();
-      cargarModalConsulta(`/vetsmart/veterinario/consultas/${this.dataset.id}/ver`);
+      cargarModalConsulta(`<?= BASE ?>/veterinario/consultas/${this.dataset.id}/ver`);
     });
   });
   document.querySelectorAll('.btn-editar-consulta').forEach(btn => {
     btn.addEventListener('click', function (e) {
       e.preventDefault();
-      cargarModalConsulta(`/vetsmart/veterinario/consultas/${this.dataset.id}/editar`);
+      cargarModalConsulta(`<?= BASE ?>/veterinario/consultas/${this.dataset.id}/editar`);
     });
   });
 

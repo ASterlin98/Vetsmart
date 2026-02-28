@@ -16,7 +16,7 @@
     </div>
     
     <div class="d-flex gap-2 flex-column flex-md-row align-items-stretch align-items-md-center w-100 w-md-auto">
-      <form class="d-flex gap-2 align-items-center" action="/vetsmart/recepcionista/agenda" method="get">
+      <form class="d-flex gap-2 align-items-center" action="<?= BASE ?>/recepcionista/agenda" method="get">
         <input type="date" class="form-control" name="fecha" value="<?= htmlspecialchars($fecha) ?>" 
                title="Seleccionar fecha">
         <select class="form-select" name="estado">
@@ -28,11 +28,11 @@
         <button type="submit" class="btn btn-outline-success">
           <i class="fas fa-filter me-1"></i>Filtrar
         </button>
-        <a href="/vetsmart/recepcionista/agenda" class="btn btn-outline-secondary" title="Limpiar filtros">
+        <a href="<?= BASE ?>/recepcionista/agenda" class="btn btn-outline-secondary" title="Limpiar filtros">
           <i class="fas fa-rotate-left"></i>
         </a>
       </form>
-      <a href="/vetsmart/recepcionista/citas/create" class="btn btn-success">
+      <a href="<?= BASE ?>/recepcionista/citas/create" class="btn btn-success">
         <i class="fas fa-plus-circle me-2"></i>Nueva Cita
       </a>
     </div>
@@ -128,7 +128,7 @@
                     <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No hay citas programadas</h5>
                     <p class="text-muted mb-3">No se encontraron citas para la fecha seleccionada.</p>
-                    <a href="/vetsmart/recepcionista/citas/create" class="btn btn-success">
+                    <a href="<?= BASE ?>/recepcionista/citas/create" class="btn btn-success">
                       <i class="fas fa-plus-circle me-2"></i>Programar Nueva Cita
                     </a>
                   </div>
@@ -484,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function verCita(id) {
   try {
-    const res = await fetch(`/vetsmart/recepcionista/citas/ver/${id}`, { cache: 'no-store' });
+    const res = await fetch(`<?= BASE ?>/recepcionista/citas/ver/${id}`, { cache: 'no-store' });
     const text = await res.text();
 
     let data;

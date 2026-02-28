@@ -1,5 +1,5 @@
 <h2 class="mb-4">Listado de Clientes</h2>
-<a href="/vetsmart/admin/clientes/crear" class="btn btn-primary mb-3">➕ Nuevo Cliente</a>
+<a href="<?= BASE ?>/admin/clientes/crear" class="btn btn-primary mb-3">➕ Nuevo Cliente</a>
 
 <?php
     $page = $page ?? 1;
@@ -32,9 +32,9 @@
                     <td><?= htmlspecialchars($c['telefono'] ?? '-') ?></td>
                     <td><?= htmlspecialchars($c['ciudad'] ?? '-') ?></td>
                     <td>
-                        <a href="/vetsmart/admin/clientes/<?= $c['id'] ?>" class="btn btn-sm btn-info">👁️ Ver</a>
-                        <a href="/vetsmart/admin/clientes/<?= $c['id'] ?>/editar" class="btn btn-sm btn-warning">✏️ Editar</a>
-                        <a href="/vetsmart/admin/clientes/<?= $c['id'] ?>/eliminar" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar cliente?')">🗑️ Eliminar</a>
+                        <a href="<?= BASE ?>/admin/clientes/<?= $c['id'] ?>" class="btn btn-sm btn-info">👁️ Ver</a>
+                        <a href="<?= BASE ?>/admin/clientes/<?= $c['id'] ?>/editar" class="btn btn-sm btn-warning">✏️ Editar</a>
+                        <a href="<?= BASE ?>/admin/clientes/<?= $c['id'] ?>/eliminar" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar cliente?')">🗑️ Eliminar</a>
                     </td>
                 </tr>
             <?php endforeach; else: ?>
@@ -47,7 +47,7 @@
 <?php if ($totalPages > 1):
         // Construir base URL sin querystring para enlaces de paginación
         $currentPath = strtok($_SERVER['REQUEST_URI'], '?');
-        $baseUrl = $currentPath ?: '/vetsmart/admin/clientes';
+        $baseUrl = $currentPath ?: '<?= BASE ?>/admin/clientes';
 ?>
     <div class="d-flex justify-content-between align-items-center mt-3">
         <div class="text-muted small">Mostrando <strong><?= $start ?></strong> - <strong><?= min($start + count($clientes) - 1, $total) ?></strong> de <strong><?= $total ?></strong></div>

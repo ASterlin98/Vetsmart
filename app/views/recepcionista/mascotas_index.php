@@ -15,7 +15,7 @@
           <i class="fas fa-search"></i>
         </button>
       </div>
-      <a href="/vetsmart/recepcionista/mascotas/create" class="btn btn-success">
+      <a href="<?= BASE ?>/recepcionista/mascotas/create" class="btn btn-success">
         <i class="fas fa-plus-circle me-2"></i>Nueva Mascota
       </a>
     </div>
@@ -66,7 +66,7 @@
                       ?>
                       <?php if (!empty($foto)): ?>
                         <div class="pet-avatar me-3" title="<?= htmlspecialchars($m['nombre']) ?>">
-                            <img src="/vetsmart/public/assets/uploads/mascotas/<?= htmlspecialchars($foto) ?>" alt="<?= htmlspecialchars($m['nombre']) ?>" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                            <img src="<?= BASE ?>/public/assets/uploads/mascotas/<?= htmlspecialchars($foto) ?>" alt="<?= htmlspecialchars($m['nombre']) ?>" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
                         </div>
                       <?php else: ?>
                         <div class="pet-avatar me-3" title="<?= htmlspecialchars($m['nombre']) ?>" style="background-color:#e5e7eb;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#6b7280;font-weight:600;">
@@ -125,19 +125,19 @@
                   </td>
                   <td class="text-center pe-4">
                     <div class="btn-group btn-group-sm" role="group">
-                      <a href="/vetsmart/recepcionista/mascotas/<?= $m['id'] ?>/historial" 
+                      <a href="<?= BASE ?>/recepcionista/mascotas/<?= $m['id'] ?>/historial" 
                          class="btn btn-outline-info btn-action"
                          data-bs-toggle="tooltip" 
                          title="Ver historial clinico">
                         <i class="fas fa-notes-medical"></i>
                       </a>
-                      <a href="/vetsmart/recepcionista/mascotas/edit/<?= $m['id'] ?>" 
+                      <a href="<?= BASE ?>/recepcionista/mascotas/edit/<?= $m['id'] ?>" 
                          class="btn btn-outline-warning btn-action"
                          data-bs-toggle="tooltip" 
                          title="Editar mascota">
                         <i class="fas fa-edit"></i>
                       </a>
-                      <a href="/vetsmart/recepcionista/mascotas/delete/<?= $m['id'] ?>" 
+                      <a href="<?= BASE ?>/recepcionista/mascotas/delete/<?= $m['id'] ?>" 
                          class="btn btn-outline-danger btn-action"
                          onclick="return confirm('Esta seguro de eliminar esta mascota? Se perdera todos sus datos.')"
                          data-bs-toggle="tooltip" 
@@ -155,7 +155,7 @@
                     <i class="fas fa-paw fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No hay mascotas registradas</h5>
                     <p class="text-muted mb-3">Comience agregando la primera mascota al sistema.</p>
-                    <a href="/vetsmart/recepcionista/mascotas/create" class="btn btn-success">
+                    <a href="<?= BASE ?>/recepcionista/mascotas/create" class="btn btn-success">
                       <i class="fas fa-plus-circle me-2"></i>Registrar Primera Mascota
                     </a>
                   </div>

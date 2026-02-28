@@ -5,7 +5,7 @@ declare(strict_types=1);
 <div class="container py-3">
   <div class="d-flex align-items-center justify-content-between mb-3">
     <h2 class="mb-0">Servicios de Peluquería</h2>
-    <a class="btn btn-outline-primary" href="/vetsmart/peluquero/citas">Volver a Citas</a>
+    <a class="btn btn-outline-primary" href="<?= BASE ?>/peluquero/citas">Volver a Citas</a>
   </div>
 
   <div class="table-responsive">

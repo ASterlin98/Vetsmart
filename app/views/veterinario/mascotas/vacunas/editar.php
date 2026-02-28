@@ -3,7 +3,7 @@
     <h5 class="mb-0">✏️ Editar Vacuna</h5>
   </div>
   <div class="card-body">
-    <form method="POST" action="/vetsmart/veterinario/mascotas/<?= $mascota['id'] ?>/vacunas/<?= $vacuna['id'] ?>/actualizar">
+    <form method="POST" action="<?= BASE ?>/veterinario/mascotas/<?= $mascota['id'] ?>/vacunas/<?= $vacuna['id'] ?>/actualizar">
       
       <div class="mb-3">
         <label for="nombre" class="form-label">Nombre de la Vacuna *</label>
@@ -51,7 +51,7 @@
 
       <div class="mt-4 text-end">
         <button type="submit" class="btn btn-success">💾 Guardar Cambios</button>
-        <a href="/vetsmart/veterinario/mascotas/<?= $mascota['id'] ?>/vacunas" class="btn btn-secondary">Cancelar</a>
+        <a href="<?= BASE ?>/veterinario/mascotas/<?= $mascota['id'] ?>/vacunas" class="btn btn-secondary">Cancelar</a>
       </div>
     </form>
   </div>

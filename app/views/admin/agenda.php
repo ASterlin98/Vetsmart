@@ -53,7 +53,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
     </div>
     <div class="col-md-12 d-flex gap-2">
       <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-      <a href="/vetsmart/admin/agenda" class="btn btn-outline-secondary btn-sm">Reset</a>
+      <a href="<?= BASE ?>/admin/agenda" class="btn btn-outline-secondary btn-sm">Reset</a>
     </div>
   </form>
 
@@ -112,7 +112,7 @@ function exportarExcelConFiltros(event) {
     const hasta = document.querySelector('input[name="hasta"]').value;
 
     // Construir la URL con los parámetros
-    const url = `/vetsmart/admin/agenda/exportarExcel?desde=${desde}&hasta=${hasta}&empleado_id=${empleado}&servicio_id=${servicio}&estado=${estado}`;
+    const url = `<?= BASE ?>/admin/agenda/exportarExcel?desde=${desde}&hasta=${hasta}&empleado_id=${empleado}&servicio_id=${servicio}&estado=${estado}`;
 
     // Redirigir
     window.location.href = url;

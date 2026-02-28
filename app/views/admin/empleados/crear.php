@@ -12,7 +12,7 @@ $roles = $roles ?? [];
     <?php endif; ?>
 
     <div class="card p-3 mt-4">
-      <form id="empleadoForm" method="POST" action="/vetsmart/admin/empleados/guardar">
+      <form id="empleadoForm" method="POST" action="<?= BASE ?>/admin/empleados/guardar">
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label">Nombre</label>
@@ -79,7 +79,7 @@ $roles = $roles ?? [];
 
         <div class="mt-4">
             <button type="submit" class="btn btn-success">💾 Guardar</button>
-            <a href="/vetsmart/admin/empleados" class="btn btn-secondary">❌ Cancelar</a>
+            <a href="<?= BASE ?>/admin/empleados" class="btn btn-secondary">❌ Cancelar</a>
         </div>
       </form>
     </div>

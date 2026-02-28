@@ -17,7 +17,7 @@
 
   <div class="card agendar-card border-0 shadow-sm">
     <div class="card-body p-4">
-      <form method="post" action="/vetsmart/cliente/citas/guardar" class="agendar-form" onsubmit="return validarReagendar(this)">
+      <form method="post" action="<?= BASE ?>/cliente/citas/guardar" class="agendar-form" onsubmit="return validarReagendar(this)">
         <?= CSRF::inputField(); ?>
         
         <div class="row g-4">
@@ -198,7 +198,7 @@
                   <i class="fas fa-calendar-check me-2"></i>
                   Confirmar Cita
                 </button>
-                <a href="/vetsmart/cliente/citas" class="btn btn-outline-secondary btn-lg">
+                <a href="<?= BASE ?>/cliente/citas" class="btn btn-outline-secondary btn-lg">
                   <i class="fas fa-arrow-left me-2"></i>
                   Volver al Listado
                 </a>

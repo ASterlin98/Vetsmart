@@ -11,8 +11,8 @@ $ownerTelefono = $mascota['telefono_dueno'] ?? '';
 $ownerEmail = $mascota['email_dueno'] ?? '';
 $foto = $mascota['foto'] ?? null;
 
-// Base pública (ruta prefix de tu app). Si tu app usa otro prefijo ajústalo.
-$basePublic = '/vetsmart';
+// Base pública (ruta prefix de tu app). Usa la constante BASE definida en index.php.
+$basePublic = defined('BASE') ? BASE : '';
 
 // APP_ROOT fallback (intenta resolver si no está definido)
 $appRoot = defined('APP_ROOT') ? rtrim(APP_ROOT, '/\\') : realpath(__DIR__ . '/../../../..');
@@ -45,7 +45,7 @@ if ($fotoDb !== '') {
             $rel = ltrim(substr($fotoDb, strlen($basePublic)), '/\\'); // ruta relativa a public
             $fotoFsPath = realpath($publicDir . '/' . $rel) ?: null;
         } else {
-            // ej: /uploads/mascotas/xxx.jpg -> URL: /vetsmart/uploads/mascotas/xxx.jpg
+            // ej: /uploads/mascotas/xxx.jpg -> URL: <?= BASE ?>/uploads/mascotas/xxx.jpg
             $fotoUrl = join_url($basePublic, $fotoDb);
             $rel = ltrim($fotoDb, '/\\');
             $fotoFsPath = realpath($publicDir . '/' . $rel) ?: null;
@@ -109,15 +109,15 @@ if ($fotoDb !== '') {
 <body>
 
 <div class="container-fluid py-3">
-  <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
     <div>
       <h3 class="mb-0">Historial clínico</h3>
       <small class="text-muted">Paciente: <strong><?= htmlspecialchars($mascota['nombre'] ?? '-') ?></strong></small>
     </div>
-    <div class="d-flex gap-2">
-      <a href="/vetsmart/veterinario/mascotas/<?= (int)$mascota['id'] ?>/vacunas" class="btn btn-outline-warning">💉 Vacunas</a>
-      <a href="/vetsmart/veterinario/pacientes" class="btn btn-outline-secondary">🔙 Volver</a>
-      <a href="/vetsmart/veterinario/consultas/crear/<?= (int)$mascota['id'] ?>" class="btn btn-success">🩺 Nueva consulta</a>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="<?= BASE ?>/veterinario/mascotas/<?= (int)$mascota['id'] ?>/vacunas" class="btn btn-outline-warning btn-sm">💉 Vacunas</a>
+      <a href="<?= BASE ?>/veterinario/pacientes" class="btn btn-outline-secondary btn-sm">🔙 Volver</a>
+      <a href="<?= BASE ?>/veterinario/consultas/crear/<?= (int)$mascota['id'] ?>" class="btn btn-success btn-sm">🩺 Nueva consulta</a>
     </div>
   </div>
 
@@ -162,7 +162,7 @@ if ($fotoDb !== '') {
         </div>
 
         <div class="mt-3">
-          <form id="fotoForm" action="/vetsmart/veterinario/mascotas/<?= (int)$mascota['id'] ?>/actualizar-foto" method="POST" enctype="multipart/form-data">
+          <form id="fotoForm" action="<?= BASE ?>/veterinario/mascotas/<?= (int)$mascota['id'] ?>/actualizar-foto" method="POST" enctype="multipart/form-data">
             <div class="mb-2">
               <input id="fileInput" type="file" name="foto" accept="image/*" class="form-control form-control-sm">
             </div>
@@ -172,7 +172,7 @@ if ($fotoDb !== '') {
           </form>
 
           <?php if (!empty($fotoUrl)): ?>
-            <form action="/vetsmart/veterinario/mascotas/<?= (int)$mascota['id'] ?>/eliminar-foto" method="POST" onsubmit="return confirm('¿Eliminar la foto actual?');" class="mt-2">
+            <form action="<?= BASE ?>/veterinario/mascotas/<?= (int)$mascota['id'] ?>/eliminar-foto" method="POST" onsubmit="return confirm('¿Eliminar la foto actual?');" class="mt-2">
               <button type="submit" class="btn btn-outline-danger btn-sm w-100">🗑️ Eliminar foto</button>
             </form>
           <?php endif; ?>
@@ -195,8 +195,8 @@ if ($fotoDb !== '') {
                 <div class="d-flex justify-content-between align-items-start">
                   <small class="text-muted"><?= date('Y-m-d H:i', strtotime($n['creado_en'])) ?></small>
                   <div class="ms-auto">
-                    <a href="/vetsmart/veterinario/mascotas/<?= $mascota['id'] ?>/notas/<?= $n['id'] ?>/editar" class="btn btn-sm btn-outline-warning me-1">Editar</a>
-                    <form action="/vetsmart/veterinario/mascotas/<?= $mascota['id'] ?>/notas/<?= $n['id'] ?>/eliminar" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar esta nota?');">
+                    <a href="<?= BASE ?>/veterinario/mascotas/<?= $mascota['id'] ?>/notas/<?= $n['id'] ?>/editar" class="btn btn-sm btn-outline-warning me-1">Editar</a>
+                    <form action="<?= BASE ?>/veterinario/mascotas/<?= $mascota['id'] ?>/notas/<?= $n['id'] ?>/eliminar" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar esta nota?');">
                       <button class="btn btn-sm btn-outline-danger">Eliminar</button>
                     </form>
                   </div>
@@ -250,7 +250,7 @@ if ($fotoDb !== '') {
                       </td>
                       <td style="max-width:320px; white-space:pre-wrap;"><?= nl2br(htmlspecialchars($c['notas'] ?? '')) ?></td>
                       <td>
-                        <a href="/vetsmart/veterinario/consultas/crear/<?= $mascota['id'] ?>?cita=<?= $c['id'] ?>" class="btn btn-sm btn-outline-success mb-1">🩺 Crear Consulta</a>
+                        <a href="<?= BASE ?>/veterinario/consultas/crear/<?= $mascota['id'] ?>?cita=<?= $c['id'] ?>" class="btn btn-sm btn-outline-success mb-1">🩺 Crear Consulta</a>
 
                       </td>
                     </tr>
@@ -265,13 +265,13 @@ if ($fotoDb !== '') {
       <div class="card mt-3">
         <div class="card-header"><strong>Agregar nota rápida</strong></div>
         <div class="card-body">
-          <form action="/vetsmart/veterinario/mascotas/<?= $mascota['id'] ?>/notas/guardar" method="POST">
+          <form action="<?= BASE ?>/veterinario/mascotas/<?= $mascota['id'] ?>/notas/guardar" method="POST">
             <div class="mb-3">
               <textarea name="nota" class="form-control" rows="4" placeholder="Escribe una nota clínica breve..."></textarea>
             </div>
             <div class="d-flex gap-2">
               <button class="btn btn-primary">Guardar nota</button>
-              <a href="/vetsmart/veterinario/mascotas/<?= $mascota['id'] ?>/notas" class="btn btn-outline-secondary">Gestionar notas</a>
+              <a href="<?= BASE ?>/veterinario/mascotas/<?= $mascota['id'] ?>/notas" class="btn btn-outline-secondary">Gestionar notas</a>
             </div>
           </form>
         </div>

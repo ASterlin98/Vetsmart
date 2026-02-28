@@ -3,7 +3,7 @@
 
     <div class="card p-3 mt-4">
         <div class="card-body">
-            <form id="servicioForm" method="POST" action="/vetsmart/admin/servicios/guardar">
+            <form id="servicioForm" method="POST" action="<?= BASE ?>/admin/servicios/guardar">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Nombre</label>
@@ -35,7 +35,7 @@
 
                 <div class="mt-4">
                     <button type="submit" class="btn btn-success shadow-sm">Guardar Servicio</button>
-                    <a href="/vetsmart/admin/servicios" class="btn btn-secondary shadow-sm">Cancelar</a>
+                    <a href="<?= BASE ?>/admin/servicios" class="btn btn-secondary shadow-sm">Cancelar</a>
                 </div>
             </form>
         </div>

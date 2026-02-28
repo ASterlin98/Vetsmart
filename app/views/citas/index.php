@@ -1,6 +1,6 @@
 <h1>Gestión de Citas</h1>
 
-<a href="/vetsmart/recepcionista/citas/create" class="btn btn-primary mb-3">➕ Nueva Cita</a>
+<a href="<?= BASE ?>/recepcionista/citas/create" class="btn btn-primary mb-3">➕ Nueva Cita</a>
 
 <table class="table table-bordered table-hover">
   <thead class="table-success">
@@ -25,7 +25,7 @@
           <td><?= htmlspecialchars($c['servicio']) ?></td>
           <td><?= htmlspecialchars($c['estado']) ?></td>
           <td>
-            <a href="/vetsmart/recepcionista/citas/edit/<?= $c['id'] ?>" class="btn btn-sm btn-warning">Editar</a>
+            <a href="<?= BASE ?>/recepcionista/citas/edit/<?= $c['id'] ?>" class="btn btn-sm btn-warning">Editar</a>
           </td>
         </tr>
       <?php endforeach; ?>

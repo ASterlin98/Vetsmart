@@ -20,9 +20,9 @@
         <?php unset($_SESSION['mensaje']); ?>
       <?php endif; ?>
 <<<<<<< HEAD
-      <form action="/vetsmart/recepcionista/citas/store" method="POST" class="row g-4">
+      <form action="<?= BASE ?>/recepcionista/citas/store" method="POST" class="row g-4">
 =======
-      <form action="/vetsmart/citas/store" method="POST" class="row g-4">
+      <form action="<?= BASE ?>/citas/store" method="POST" class="row g-4">
 >>>>>>> 551a971277bd5d0b94296071273044a14c300280
         <?= CSRF::inputField(); ?>
         
@@ -215,7 +215,7 @@
         <div class="col-12">
           <div class="border-top pt-4">
             <div class="d-flex gap-2 justify-content-end align-items-center form-actions">
-              <a href="/vetsmart/recepcionista/agenda" class="btn btn-outline-secondary btn-cancel" role="button" aria-label="Cancelar y volver a la agenda">
+              <a href="<?= BASE ?>/recepcionista/agenda" class="btn btn-outline-secondary btn-cancel" role="button" aria-label="Cancelar y volver a la agenda">
                 <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>
                 <span class="d-none d-sm-inline">Cancelar</span>
               </a>
@@ -704,7 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewImg = previewDiv.querySelector('img');
 
     if (foto) {
-        previewImg.src = '/vetsmart/public/assets/uploads/clientes/' + foto;
+        previewImg.src = '<?= BASE ?>/public/assets/uploads/clientes/' + foto;
         previewDiv.style.display = 'block';
     } else {
         previewDiv.style.display = 'none';
@@ -721,7 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const response = await fetch(`/vetsmart/api/clientes/${clienteId}/mascotas`);
+      const response = await fetch(`<?= BASE ?>/api/clientes/${clienteId}/mascotas`);
       
       if (!response.ok) throw new Error('Error al cargar mascotas');
       

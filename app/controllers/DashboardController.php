@@ -4,7 +4,7 @@ require_once __DIR__ . '/../core/Controller.php';
 class DashboardController extends Controller {
     public function index() {
         if (empty($_SESSION['user'])) {
-            header("Location: /vetsmart/login");
+            header("Location: ' . BASE . '/login");
             exit;
         }
 

@@ -15,10 +15,10 @@
         </div>
       </div>
       <div class="header-actions d-flex gap-2">
-        <a class="btn btn-primary" href="/vetsmart/reportes/cliente/<?= (int)($cliente['id'] ?? 0) ?>/pdf">
+        <a class="btn btn-primary" href="<?= BASE ?>/reportes/cliente/<?= (int)($cliente['id'] ?? 0) ?>/pdf">
           <i class="fas fa-download me-2"></i>Descargar PDF
         </a>
-        <a class="btn btn-outline-primary" href="/vetsmart/reportes/cliente/<?= (int)($cliente['id'] ?? 0) ?>/pdf/preview" target="_blank" rel="noopener">
+        <a class="btn btn-outline-primary" href="<?= BASE ?>/reportes/cliente/<?= (int)($cliente['id'] ?? 0) ?>/pdf/preview" target="_blank" rel="noopener">
           <i class="fas fa-print me-2"></i>Imprimir
         </a>
       </div>

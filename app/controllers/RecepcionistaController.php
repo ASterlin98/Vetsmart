@@ -17,7 +17,7 @@ class RecepcionistaController extends Controller
     private function verificarSesion(): void
     {
         if (empty($_SESSION['user']) || ( ($_SESSION['user']['role_name'] ?? '') !== 'recepcionista' && ($_SESSION['user']['role'] ?? '') !== 'recepcionista')) {
-            header('Location: /vetsmart/login');
+            header('Location: ' . BASE . '/login');
             exit;
         }
     }
@@ -373,14 +373,14 @@ class RecepcionistaController extends Controller
         $this->verificarSesion();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /vetsmart/recepcionista/clientes/create');
+            header('Location: ' . BASE . '/recepcionista/clientes/create');
             exit;
         }
         // CSRF
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
             $_SESSION['error_cliente'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/clientes/create');
+            header('Location: ' . BASE . '/recepcionista/clientes/create');
             exit;
         }
 
@@ -422,7 +422,7 @@ class RecepcionistaController extends Controller
                     'tipo' => 'danger',
                     'texto' => 'Ya existe un cliente con ese correo o documento.'
                 ];
-                header('Location: /vetsmart/recepcionista/clientes/create');
+                header('Location: ' . BASE . '/recepcionista/clientes/create');
                 exit;
             }
 
@@ -499,7 +499,7 @@ class RecepcionistaController extends Controller
                     'tipo' => 'danger',
                     'texto' => 'El correo o documento ya estan registrados.'
                 ];
-                header('Location: /vetsmart/recepcionista/clientes/create');
+                header('Location: ' . BASE . '/recepcionista/clientes/create');
                 exit;
             }
 
@@ -507,11 +507,11 @@ class RecepcionistaController extends Controller
                 'tipo' => 'danger',
                 'texto' => 'Error interno: ' . $e->getMessage()
             ];
-            header('Location: /vetsmart/recepcionista/clientes/create');
+            header('Location: ' . BASE . '/recepcionista/clientes/create');
             exit;
         }
 
-        header('Location: /vetsmart/recepcionista/clientes');
+        header('Location: ' . BASE . '/recepcionista/clientes');
         exit;
     }
 
@@ -530,7 +530,7 @@ class RecepcionistaController extends Controller
                     'tipo' => 'danger',
                     'texto' => 'Cliente no encontrado.'
                 ];
-                header('Location: /vetsmart/recepcionista/clientes');
+                header('Location: ' . BASE . '/recepcionista/clientes');
                 exit;
             }
 
@@ -544,7 +544,7 @@ class RecepcionistaController extends Controller
                 'tipo' => 'danger',
                 'texto' => 'Error interno: ' . $e->getMessage()
             ];
-            header('Location: /vetsmart/recepcionista/clientes');
+            header('Location: ' . BASE . '/recepcionista/clientes');
             exit;
         }
     }
@@ -556,14 +556,14 @@ class RecepcionistaController extends Controller
         $this->verificarSesion();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST['id'])) {
-            header('Location: /vetsmart/recepcionista/clientes');
+            header('Location: ' . BASE . '/recepcionista/clientes');
             exit;
         }
         // CSRF
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/clientes');
+            header('Location: ' . BASE . '/recepcionista/clientes');
             exit;
         }
 
@@ -581,7 +581,7 @@ class RecepcionistaController extends Controller
             $dup->execute([':email' => $email, ':docusu' => $docusu, ':id' => $id]);
             if ($dup->fetch()) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Correo o documento ya registrado por otro cliente.'];
-                header('Location: /vetsmart/recepcionista/clientes');
+                header('Location: ' . BASE . '/recepcionista/clientes');
                 exit;
             }
             $stmt = $this->pdo->prepare("
@@ -639,7 +639,7 @@ class RecepcionistaController extends Controller
             ];
         }
 
-        header('Location: /vetsmart/recepcionista/clientes');
+        header('Location: ' . BASE . '/recepcionista/clientes');
         exit;
     }
 
@@ -702,7 +702,7 @@ class RecepcionistaController extends Controller
             ];
         }
 
-        header('Location: /vetsmart/recepcionista/clientes');
+        header('Location: ' . BASE . '/recepcionista/clientes');
         exit;
     }
 
@@ -789,7 +789,7 @@ class RecepcionistaController extends Controller
             $token = $_POST['_csrf'] ?? '';
             if (!CSRF::validate($token)) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada. Intenta nuevamente.'];
-                header('Location: /vetsmart/recepcionista/mascotas');
+                header('Location: ' . BASE . '/recepcionista/mascotas');
                 exit;
             }
             // Ruta robusta: actualizar usando la columna de dueño detectada y evitar tildes en placeholders
@@ -845,7 +845,7 @@ class RecepcionistaController extends Controller
                     }
 
                     $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Mascota actualizada correctamente.'];
-                    header('Location: /vetsmart/recepcionista/mascotas');
+                    header('Location: ' . BASE . '/recepcionista/mascotas');
                     exit;
                 }
             } catch (Throwable $eRobustUpdate) { /* continuar con ruta legada */ }
@@ -894,7 +894,7 @@ class RecepcionistaController extends Controller
                     }
 
                     $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Mascota registrada correctamente.'];
-                    header('Location: /vetsmart/recepcionista/mascotas');
+                    header('Location: ' . BASE . '/recepcionista/mascotas');
                     exit;
                 }
             } catch (Throwable $eRobustCreate) { /* continuar con ruta legada */ }
@@ -907,7 +907,7 @@ class RecepcionistaController extends Controller
 
             if (empty($nombre) || empty($dueno_id)) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'El nombre y el dueño son obligatorios.'];
-                header('Location: /vetsmart/recepcionista/mascotas/create');
+                header('Location: ' . BASE . '/recepcionista/mascotas/create');
                 exit;
             }
 
@@ -950,7 +950,7 @@ class RecepcionistaController extends Controller
             }
 
             $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Mascota registrada correctamente.'];
-            header('Location: /vetsmart/recepcionista/mascotas');
+            header('Location: ' . BASE . '/recepcionista/mascotas');
             exit;
         }
     }
@@ -965,7 +965,7 @@ class RecepcionistaController extends Controller
 
         if (!$mascota) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Mascota no encontrada.'];
-            header('Location: /vetsmart/recepcionista/mascotas');
+            header('Location: ' . BASE . '/recepcionista/mascotas');
             exit;
         }
 
@@ -991,7 +991,7 @@ class RecepcionistaController extends Controller
             $token = $_POST['_csrf'] ?? '';
             if (!CSRF::validate($token)) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada. Intenta nuevamente.'];
-                header('Location: /vetsmart/recepcionista/mascotas');
+                header('Location: ' . BASE . '/recepcionista/mascotas');
                 exit;
             }
             $id = (int)($_POST['id'] ?? 0);
@@ -1004,7 +1004,7 @@ class RecepcionistaController extends Controller
 
             if (empty($nombre) || empty($dueno_id)) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'El nombre y el dueño son obligatorios.'];
-                header("Location: /vetsmart/recepcionista/mascotas/edit/{$id}");
+                header("Location: ' . BASE . '/recepcionista/mascotas/edit/{$id}");
                 exit;
             }
 
@@ -1061,7 +1061,7 @@ class RecepcionistaController extends Controller
             }
 
             $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Mascota actualizada correctamente.'];
-            header('Location: /vetsmart/recepcionista/mascotas');
+            header('Location: ' . BASE . '/recepcionista/mascotas');
             exit;
         }
     }
@@ -1088,7 +1088,7 @@ class RecepcionistaController extends Controller
             if ($this->pdo->inTransaction()) { $this->pdo->rollBack(); }
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'No se pudo eliminar la mascota: ' . $e->getMessage()];
         }
-        header('Location: /vetsmart/recepcionista/mascotas');
+        header('Location: ' . BASE . '/recepcionista/mascotas');
         exit;
     }
 
@@ -1108,7 +1108,7 @@ class RecepcionistaController extends Controller
         $mascota = $mascotaModel->getByIdConDueno($id);
         if (!$mascota) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Mascota no encontrada.'];
-            header('Location: /vetsmart/recepcionista/mascotas');
+            header('Location: ' . BASE . '/recepcionista/mascotas');
             exit;
         }
 
@@ -1149,7 +1149,7 @@ class RecepcionistaController extends Controller
         $this->verificarSesion();
         
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /vetsmart/recepcionista/mascotas');
+            header('Location: ' . BASE . '/recepcionista/mascotas');
             exit;
         }
 
@@ -1159,9 +1159,9 @@ class RecepcionistaController extends Controller
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada.'];
             // Redirigir al historial si es posible, sino a mascotas
             if (!empty($_POST['mascota_id'])) {
-                header('Location: /vetsmart/recepcionista/mascotas/' . (int)$_POST['mascota_id'] . '/historial');
+                header('Location: ' . BASE . '/recepcionista/mascotas/' . (int)$_POST['mascota_id'] . '/historial');
             } else {
-                header('Location: /vetsmart/recepcionista/mascotas');
+                header('Location: ' . BASE . '/recepcionista/mascotas');
             }
             exit;
         }
@@ -1185,7 +1185,7 @@ class RecepcionistaController extends Controller
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Datos inválidos.'];
         }
 
-        header('Location: /vetsmart/recepcionista/mascotas/' . $mascotaId . '/historial');
+        header('Location: ' . BASE . '/recepcionista/mascotas/' . $mascotaId . '/historial');
         exit;
     }
 
@@ -1249,7 +1249,7 @@ class RecepcionistaController extends Controller
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/inventario/create');
+            header('Location: ' . BASE . '/recepcionista/inventario/create');
             exit;
         }
         $data = [
@@ -1264,12 +1264,12 @@ class RecepcionistaController extends Controller
         ];
         if ($data['nombre'] === '') {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'El nombre es obligatorio.'];
-            header('Location: /vetsmart/recepcionista/inventario/create');
+            header('Location: ' . BASE . '/recepcionista/inventario/create');
             exit;
         }
         $producto->crear($data);
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Producto creado.'];
-        header('Location: /vetsmart/recepcionista/inventario');
+        header('Location: ' . BASE . '/recepcionista/inventario');
         exit;
     }
 
@@ -1280,7 +1280,7 @@ class RecepcionistaController extends Controller
         $item = $producto->obtener($id);
         if (!$item) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Producto no encontrado.'];
-            header('Location: /vetsmart/recepcionista/inventario');
+            header('Location: ' . BASE . '/recepcionista/inventario');
             exit;
         }
         $content = $this->renderView('recepcionista/inventario_form', [
@@ -1298,7 +1298,7 @@ class RecepcionistaController extends Controller
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/inventario/' . $id . '/edit');
+            header('Location: ' . BASE . '/recepcionista/inventario/' . $id . '/edit');
             exit;
         }
         $data = [
@@ -1313,12 +1313,12 @@ class RecepcionistaController extends Controller
         ];
         if ($data['nombre'] === '') {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'El nombre es obligatorio.'];
-            header('Location: /vetsmart/recepcionista/inventario/' . $id . '/edit');
+            header('Location: ' . BASE . '/recepcionista/inventario/' . $id . '/edit');
             exit;
         }
         $producto->actualizar($id, $data);
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Producto actualizado.'];
-        header('Location: /vetsmart/recepcionista/inventario');
+        header('Location: ' . BASE . '/recepcionista/inventario');
         exit;
     }
 
@@ -1328,7 +1328,7 @@ class RecepcionistaController extends Controller
         $producto = new Producto($this->pdo);
         $producto->eliminar($id);
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Producto eliminado.'];
-        header('Location: /vetsmart/recepcionista/inventario');
+        header('Location: ' . BASE . '/recepcionista/inventario');
         exit;
     }
 
@@ -1339,14 +1339,14 @@ class RecepcionistaController extends Controller
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/inventario');
+            header('Location: ' . BASE . '/recepcionista/inventario');
             exit;
         }
         $tipo = $_POST['tipo'] ?? '';
         $cantidad = (float)($_POST['cantidad'] ?? 0);
         if (!in_array($tipo, ['entrada','salida'], true) || $cantidad <= 0) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Datos de ajuste invalidos.'];
-            header('Location: /vetsmart/recepcionista/inventario');
+            header('Location: ' . BASE . '/recepcionista/inventario');
             exit;
         }
 
@@ -1370,7 +1370,7 @@ class RecepcionistaController extends Controller
         $prod = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$prod) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Producto no encontrado.'];
-            header('Location: /vetsmart/recepcionista/inventario');
+            header('Location: ' . BASE . '/recepcionista/inventario');
             exit;
         }
 
@@ -1392,7 +1392,7 @@ class RecepcionistaController extends Controller
         ]);
 
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Stock actualizado.'];
-        header('Location: /vetsmart/recepcionista/inventario');
+        header('Location: ' . BASE . '/recepcionista/inventario');
         exit;
     }
 
@@ -1424,7 +1424,7 @@ class RecepcionistaController extends Controller
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/ingresos/create');
+            header('Location: ' . BASE . '/recepcionista/ingresos/create');
             exit;
         }
         $data = [
@@ -1446,7 +1446,7 @@ class RecepcionistaController extends Controller
         } elseif ($conceptoSel === 'otro') {
             if ($data['concepto'] === '' || empty($data['notas'])) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Para "Otro" indique concepto y notas.'];
-                header('Location: /vetsmart/recepcionista/ingresos/create');
+                header('Location: ' . BASE . '/recepcionista/ingresos/create');
                 exit;
             }
         }
@@ -1470,12 +1470,12 @@ class RecepcionistaController extends Controller
         }
         if ($data['concepto'] === '' || $data['monto'] <= 0) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Concepto y monto son obligatorios.'];
-            header('Location: /vetsmart/recepcionista/ingresos/create');
+            header('Location: ' . BASE . '/recepcionista/ingresos/create');
             exit;
         }
         $mov->crear($data);
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Movimiento registrado.'];
-        header('Location: /vetsmart/recepcionista/ingresos');
+        header('Location: ' . BASE . '/recepcionista/ingresos');
         exit;
     }
 
@@ -1486,7 +1486,7 @@ class RecepcionistaController extends Controller
         $item = $mov->obtener($id);
         if (!$item) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Movimiento no encontrado.'];
-            header('Location: /vetsmart/recepcionista/ingresos');
+            header('Location: ' . BASE . '/recepcionista/ingresos');
             exit;
         }
         $conceptosIngreso = $mov->conceptos('ingreso');
@@ -1511,7 +1511,7 @@ class RecepcionistaController extends Controller
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesion expirada. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/ingresos/' . $id . '/edit');
+            header('Location: ' . BASE . '/recepcionista/ingresos/' . $id . '/edit');
             exit;
         }
         $data = [
@@ -1531,7 +1531,7 @@ class RecepcionistaController extends Controller
         } elseif ($conceptoSel === 'otro') {
             if ($data['concepto'] === '' || empty($data['notas'])) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Para "Otro" indique concepto y notas.'];
-                header('Location: /vetsmart/recepcionista/ingresos/' . $id . '/edit');
+                header('Location: ' . BASE . '/recepcionista/ingresos/' . $id . '/edit');
                 exit;
             }
         }
@@ -1553,12 +1553,12 @@ class RecepcionistaController extends Controller
         }
         if ($data['concepto'] === '' || $data['monto'] <= 0) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Concepto y monto son obligatorios.'];
-            header('Location: /vetsmart/recepcionista/ingresos/' . $id . '/edit');
+            header('Location: ' . BASE . '/recepcionista/ingresos/' . $id . '/edit');
             exit;
         }
         $mov->actualizar($id, $data);
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Movimiento actualizado.'];
-        header('Location: /vetsmart/recepcionista/ingresos');
+        header('Location: ' . BASE . '/recepcionista/ingresos');
         exit;
     }
 
@@ -1568,7 +1568,7 @@ class RecepcionistaController extends Controller
         $mov = new Movimiento($this->pdo);
         $mov->eliminar($id);
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Movimiento eliminado.'];
-        header('Location: /vetsmart/recepcionista/ingresos');
+        header('Location: ' . BASE . '/recepcionista/ingresos');
         exit;
     }
 
@@ -1606,7 +1606,7 @@ class RecepcionistaController extends Controller
         } catch (Throwable $e) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Error creando tabla: ' . $e->getMessage()];
         }
-        header('Location: /vetsmart/recepcionista/ingresos');
+        header('Location: ' . BASE . '/recepcionista/ingresos');
         exit;
     }
 
@@ -1637,7 +1637,7 @@ class RecepcionistaController extends Controller
             $_SESSION['error'] = "No se pudo eliminar el cliente: " . $e->getMessage();
         }
 
-        header('Location: /vetsmart/recepcionista/clientes');
+        header('Location: ' . BASE . '/recepcionista/clientes');
         exit;
     }
 
@@ -1695,7 +1695,7 @@ class RecepcionistaController extends Controller
         $mascota = $mascotaModel->getById($id);
         if (!$mascota) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Mascota no encontrada.'];
-            header('Location: /vetsmart/recepcionista/mascotas');
+            header('Location: ' . BASE . '/recepcionista/mascotas');
             exit;
         }
         $content = $this->renderView('recepcionista/mascota_show', [ 'mascota' => $mascota ]);
@@ -1710,7 +1710,7 @@ class RecepcionistaController extends Controller
         $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$cliente) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Cliente no encontrado.'];
-            header('Location: /vetsmart/recepcionista/clientes');
+            header('Location: ' . BASE . '/recepcionista/clientes');
             exit;
         }
         $content = $this->renderView('recepcionista/cliente_show', [ 'cliente' => $cliente ]);
@@ -1756,28 +1756,28 @@ class RecepcionistaController extends Controller
     {
         $this->verificarSesion();
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /vetsmart/recepcionista/reportes');
+            header('Location: ' . BASE . '/recepcionista/reportes');
             exit;
         }
         // CSRF opcional
         $token = $_POST['_csrf'] ?? '';
         if (class_exists('CSRF') && !CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Sesión expirada. Intenta nuevamente.'];
-            header('Location: /vetsmart/recepcionista/reportes');
+            header('Location: ' . BASE . '/recepcionista/reportes');
             exit;
         }
 
         $mascotaId = (int)($_POST['mascota_id'] ?? 0);
         if ($mascotaId <= 0 || empty($_FILES['archivo'])) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Selecciona mascota y archivo.'];
-            header('Location: /vetsmart/recepcionista/reportes');
+            header('Location: ' . BASE . '/recepcionista/reportes');
             exit;
         }
 
         $file = $_FILES['archivo'];
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Error al subir el archivo.'];
-            header('Location: /vetsmart/recepcionista/reportes');
+            header('Location: ' . BASE . '/recepcionista/reportes');
             exit;
         }
 
@@ -1785,7 +1785,7 @@ class RecepcionistaController extends Controller
         $maxBytes = 5 * 1024 * 1024; // 5MB
         if (($file['size'] ?? 0) > $maxBytes) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Archivo demasiado grande (máx 5MB).'];
-            header('Location: /vetsmart/recepcionista/reportes');
+            header('Location: ' . BASE . '/recepcionista/reportes');
             exit;
         }
 
@@ -1804,7 +1804,7 @@ class RecepcionistaController extends Controller
         }
         if ($ext === '' || (!in_array($ext, array_values($allowed), true) && !array_key_exists($mime, $allowed))) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Tipo de archivo no permitido.'];
-            header('Location: /vetsmart/recepcionista/reportes');
+            header('Location: ' . BASE . '/recepcionista/reportes');
             exit;
         }
 
@@ -1815,12 +1815,12 @@ class RecepcionistaController extends Controller
         $dest = $dir . '/' . $filename;
         if (!@move_uploaded_file($file['tmp_name'], $dest)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'No se pudo guardar el archivo.'];
-            header('Location: /vetsmart/recepcionista/reportes');
+            header('Location: ' . BASE . '/recepcionista/reportes');
             exit;
         }
 
         $_SESSION['mensaje'] = ['tipo' => 'success', 'texto' => 'Archivo cargado correctamente.'];
-        header('Location: /vetsmart/recepcionista/reportes');
+        header('Location: ' . BASE . '/recepcionista/reportes');
         exit;
     }
 

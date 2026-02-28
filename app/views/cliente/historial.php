@@ -15,7 +15,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <a class="btn btn-primary" href="/vetsmart/cliente/historial/exportar<?= ($qs ?? '') ? ('?' . $qs) : '' ?>">
+        <a class="btn btn-primary" href="<?= BASE ?>/cliente/historial/exportar<?= ($qs ?? '') ? ('?' . $qs) : '' ?>">
           <i class="fas fa-download me-2"></i>Exportar
         </a>
       </div>
@@ -30,7 +30,7 @@
           <i class="fas fa-filter me-2 text-primary"></i>
           Filtros de Búsqueda
         </h6>
-        <form method="get" action="/vetsmart/cliente/historial" class="row g-3 align-items-end">
+        <form method="get" action="<?= BASE ?>/cliente/historial" class="row g-3 align-items-end">
           <div class="col-md-3">
             <label class="form-label small">Desde</label>
             <input type="date" name="desde" class="form-control" value="<?= htmlspecialchars($filtros['desde'] ?? '') ?>">
@@ -55,7 +55,7 @@
               <button class="btn btn-primary w-100" type="submit">
                 <i class="fas fa-search me-1"></i>Filtrar
               </button>
-              <a class="btn btn-outline-secondary" href="/vetsmart/cliente/historial" title="Limpiar filtros">
+              <a class="btn btn-outline-secondary" href="<?= BASE ?>/cliente/historial" title="Limpiar filtros">
                 <i class="fas fa-undo"></i>
               </a>
             </div>
@@ -152,7 +152,7 @@
             <h5 class="text-muted">No hay registros clínicos</h5>
             <p class="text-muted">No se encontraron historiales médicos para mostrar.</p>
             <?php if (isset($filtros) && array_filter($filtros)): ?>
-              <a href="/vetsmart/cliente/historial" class="btn btn-primary mt-2">
+              <a href="<?= BASE ?>/cliente/historial" class="btn btn-primary mt-2">
                 <i class="fas fa-undo me-2"></i>Limpiar filtros
               </a>
             <?php endif; ?>

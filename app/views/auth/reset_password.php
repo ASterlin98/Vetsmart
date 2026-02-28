@@ -13,7 +13,7 @@
       Restablecer contraseña
     </h2>
 
-    <form method="POST" action="/vetsmart/auth/updatePassword" class="space-y-4">
+    <form method="POST" action="<?= BASE ?>/auth/updatePassword" class="space-y-4">
         <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
 
         <div>
@@ -35,7 +35,7 @@
     </form>
 
     <p class="mt-6 text-center text-sm">
-      <a href="/vetsmart/auth/login" class="text-blue-600 hover:underline">
+      <a href="<?= BASE ?>/auth/login" class="text-blue-600 hover:underline">
         Volver al login
       </a>
     </p>

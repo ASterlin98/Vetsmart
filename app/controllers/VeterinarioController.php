@@ -40,7 +40,7 @@ class VeterinarioController extends Controller
 
         $userId = $_SESSION['user']['id'] ?? null;
         if (!$userId) {
-            header('Location: /vetsmart/login'); exit;
+            header('Location: ' . BASE . '/login'); exit;
         }
 
         // Mostrar solo mascotas que este empleado haya atendido o tenga citas asignadas.
@@ -242,7 +242,7 @@ public function guardarCita()
                 exit;
             } else {
                 $_SESSION['flash_error'] = 'No se pueden agendar citas en fechas/horas pasadas.';
-                header('Location: /vetsmart/veterinario/mascotas/' . (int)$mascota_id . '/agendar');
+                header('Location: ' . BASE . '/veterinario/mascotas/' . (int)$mascota_id . '/agendar');
                 exit;
             }
         }
@@ -313,7 +313,7 @@ public function guardarCita()
             exit;
         } else {
             $_SESSION['flash_success'] = "Cita creada correctamente.";
-            header("Location: /vetsmart/veterinario/mis-citas");
+            header("Location: ' . BASE . '/veterinario/mis-citas");
             exit;
         }
 
@@ -325,7 +325,7 @@ public function guardarCita()
             exit;
         } else {
             $_SESSION['flash_error'] = "Error: " . $e->getMessage();
-            header("Location: /vetsmart/veterinario/mis-citas");
+            header("Location: ' . BASE . '/veterinario/mis-citas");
             exit;
         }
     }
@@ -636,7 +636,7 @@ public function listarCitasJson()
     {
         $vetId = $_SESSION['user']['id'] ?? null;
         if (!$vetId) {
-            header('Location: /vetsmart/login');
+            header('Location: ' . BASE . '/login');
             exit;
         }
 
@@ -677,7 +677,7 @@ public function listarCitasJson()
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $vacunaModel = new Vacuna($this->db);
             $vacunaModel->crear($_POST);
-            header("Location: /vetsmart/veterinario/mascotas/{$_POST['mascota_id']}/vacunas");
+            header("Location: ' . BASE . '/veterinario/mascotas/{$_POST['mascota_id']}/vacunas");
             exit;
         }
     }
@@ -685,7 +685,7 @@ public function listarCitasJson()
     public function eliminarVacuna($id, $mascota_id) {
         $vacunaModel = new Vacuna($this->db);
         $vacunaModel->eliminar($id);
-        header("Location: /vetsmart/veterinario/mascotas/{$mascota_id}/vacunas");
+        header("Location: ' . BASE . '/veterinario/mascotas/{$mascota_id}/vacunas");
         exit;
     }
 
@@ -715,7 +715,7 @@ public function listarCitasJson()
                 'proxima_dosis' => $_POST['proxima'] ?? null,
                 'descripcion' => $_POST['descripcion']
             ]);
-            header("Location: /vetsmart/veterinario/mascotas/$idMascota/vacunas");
+            header("Location: ' . BASE . '/veterinario/mascotas/$idMascota/vacunas");
             exit;
         }
     }
@@ -751,7 +751,7 @@ public function listarCitasJson()
     $hasta = $_POST['hasta'] ?? '';
 
     if (empty($desde) || empty($hasta)) {
-        header('Location: /vetsmart/veterinario/reportes?error=seleccione_fechas');
+        header('Location: ' . BASE . '/veterinario/reportes?error=seleccione_fechas');
         exit;
     }
 
@@ -832,7 +832,7 @@ public function guardarNotaRapida($mascotaId) {
 
     if (!$notaTexto || !$veterinarioId) {
         $_SESSION['flash_error'] = 'Nota vacía o usuario no identificado.';
-        header("Location: /vetsmart/veterinario/mascotas/$mascotaId/historial");
+        header("Location: ' . BASE . '/veterinario/mascotas/$mascotaId/historial");
         exit;
     }
 
@@ -845,7 +845,7 @@ public function guardarNotaRapida($mascotaId) {
         $_SESSION['flash_error'] = 'Error guardando la nota (revisa logs).';
     }
 
-    header("Location: /vetsmart/veterinario/mascotas/$mascotaId/historial");
+    header("Location: ' . BASE . '/veterinario/mascotas/$mascotaId/historial");
     exit;
 }
 
@@ -859,7 +859,7 @@ public function editarNotaRapida($mascotaId, $notaId) {
 
     if (!$nota) {
         $_SESSION['flash_error'] = 'Nota no encontrada.';
-        header("Location: /vetsmart/veterinario/mascotas/{$mascotaId}/historial");
+        header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
         exit;
     }
 
@@ -871,7 +871,7 @@ public function editarNotaRapida($mascotaId, $notaId) {
 
 public function actualizarNotaRapida($mascotaId, $notaId) {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        header("Location: /vetsmart/veterinario/mascotas/{$mascotaId}/historial");
+        header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
         exit;
     }
 
@@ -879,7 +879,7 @@ public function actualizarNotaRapida($mascotaId, $notaId) {
 
     if ($notaTexto === '') {
         $_SESSION['flash_error'] = 'La nota no puede quedar vacía.';
-        header("Location: /vetsmart/veterinario/mascotas/{$mascotaId}/historial");
+        header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
         exit;
     }
 
@@ -891,14 +891,14 @@ public function actualizarNotaRapida($mascotaId, $notaId) {
         $_SESSION['flash_error'] = 'Error actualizando la nota (revisa logs).';
     }
 
-    header("Location: /vetsmart/veterinario/mascotas/{$mascotaId}/historial");
+    header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
     exit;
 }
 
 public function eliminarNotaRapida($idMascota, $idNota)
 {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        header('Location: ' . BASE . '/veterinario/mascotas/' . (int)$idMascota . '/historial');
         exit;
     }
 
@@ -918,21 +918,21 @@ public function eliminarNotaRapida($idMascota, $idNota)
         $_SESSION['flash_error'] = 'Error al eliminar la nota (revisa logs).';
     }
 
-    header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+    header('Location: ' . BASE . '/veterinario/mascotas/' . (int)$idMascota . '/historial');
     exit;
 }
 
 
 public function guardarEdicionNotaRapida($mascotaId, $notaId) {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        header("Location: /vetsmart/veterinario/mascotas/{$mascotaId}/historial");
+        header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
         exit;
     }
 
     $notaTexto = trim($_POST['nota'] ?? '');
     if ($notaTexto === '') {
         $_SESSION['flash_error'] = 'La nota no puede quedar vacía.';
-        header("Location: /vetsmart/veterinario/mascotas/{$mascotaId}/historial");
+        header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
         exit;
     }
 
@@ -944,7 +944,7 @@ public function guardarEdicionNotaRapida($mascotaId, $notaId) {
         $_SESSION['flash_error'] = 'Error al guardar la edición (revisa logs).';
     }
 
-    header("Location: /vetsmart/veterinario/mascotas/{$mascotaId}/historial");
+    header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
     exit;
 }
 
@@ -980,13 +980,13 @@ public function editarConsulta($id)
 public function actualizarFoto($idMascota)
 {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        header('Location: ' . BASE . '/veterinario/mascotas/' . (int)$idMascota . '/historial');
         exit;
     }
 
     if (empty($_FILES['foto'])) {
         $_SESSION['flash_error'] = 'No se detectó archivo.';
-        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        header('Location: ' . BASE . '/veterinario/mascotas/' . (int)$idMascota . '/historial');
         exit;
     }
 
@@ -1003,7 +1003,7 @@ public function actualizarFoto($idMascota)
             case UPLOAD_ERR_NO_FILE: $msg = 'No se seleccionó archivo.'; break;
         }
         $_SESSION['flash_error'] = $msg;
-        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        header('Location: ' . BASE . '/veterinario/mascotas/' . (int)$idMascota . '/historial');
         exit;
     }
 
@@ -1011,7 +1011,7 @@ public function actualizarFoto($idMascota)
     $maxBytes = 2 * 1024 * 1024; // 2MB - ajusta si quieres más
     if ($file['size'] > $maxBytes) {
         $_SESSION['flash_error'] = 'Imagen demasiado grande (máx 2MB).';
-        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        header('Location: ' . BASE . '/veterinario/mascotas/' . (int)$idMascota . '/historial');
         exit;
     }
 
@@ -1026,7 +1026,7 @@ public function actualizarFoto($idMascota)
     ];
     if (!array_key_exists($mime, $allowed)) {
         $_SESSION['flash_error'] = 'Tipo de archivo no permitido. Usa JPG, PNG o WEBP.';
-        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        header('Location: ' . BASE . '/veterinario/mascotas/' . (int)$idMascota . '/historial');
         exit;
     }
 
@@ -1035,7 +1035,7 @@ public function actualizarFoto($idMascota)
     if (!is_dir($uploadsDir)) {
         if (!mkdir($uploadsDir, 0755, true)) {
             $_SESSION['flash_error'] = 'No se pudo crear la carpeta de uploads.';
-            header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+            header('Location: ' . BASE . '/veterinario/mascotas/' . (int)$idMascota . '/historial');
             exit;
         }
     }
@@ -1049,7 +1049,7 @@ public function actualizarFoto($idMascota)
         $_SESSION['flash_error'] = 'No se pudo mover el archivo subido.';
         // logging para debugging
         error_log('move_uploaded_file falló. tmp: ' . $file['tmp_name'] . ' dest: ' . $dest);
-        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        header('Location: ' . BASE . '/veterinario/mascotas/' . (int)$idMascota . '/historial');
         exit;
     }
 
@@ -1075,7 +1075,7 @@ public function actualizarFoto($idMascota)
     $upd->execute([':foto' => $publicPath, ':id' => (int)$idMascota]);
 
     $_SESSION['flash_success'] = 'Foto actualizada correctamente.';
-    header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+    header('Location: ' . BASE . '/veterinario/mascotas/' . (int)$idMascota . '/historial');
     exit;
 }
 
@@ -1083,7 +1083,7 @@ public function actualizarFoto($idMascota)
 public function eliminarFoto($idMascota)
 {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+        header('Location: ' . BASE . '/veterinario/mascotas/' . (int)$idMascota . '/historial');
         exit;
     }
 
@@ -1105,7 +1105,7 @@ public function eliminarFoto($idMascota)
     $upd->execute([(int)$idMascota]);
 
     $_SESSION['flash_success'] = 'Foto eliminada.';
-    header('Location: /vetsmart/veterinario/mascotas/' . (int)$idMascota . '/historial');
+    header('Location: ' . BASE . '/veterinario/mascotas/' . (int)$idMascota . '/historial');
     exit;
 }
 

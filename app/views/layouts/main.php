@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>VetSmart — Iniciar sesión</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/vetsmart/public/assets/css/responsive.css">
+  <link rel="stylesheet" href="<?= BASE ?>/public/assets/css/responsive.css">
   <style>
     :root {
       --bg-light: #f4f6f9;
@@ -199,6 +199,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/vetsmart/public/assets/js/responsive.js"></script>
+  <script src="<?= BASE ?>/public/assets/js/responsive.js"></script>
 </body>
 </html>

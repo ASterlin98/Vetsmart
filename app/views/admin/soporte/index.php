@@ -1,12 +1,12 @@
 <div class="container-fluid px-4">
     <h1 class="mt-4">Centro de Soporte</h1>
     <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="/vetsmart/admin/dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE ?>/admin/dashboard">Dashboard</a></li>
         <li class="breadcrumb-item active">Soporte</li>
     </ol>
 
     <div class="mb-4">
-        <a href="/vetsmart/admin/reportesSoporte" class="btn btn-primary">
+        <a href="<?= BASE ?>/admin/reportesSoporte" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i>
             Crear Nuevo Ticket
         </a>
@@ -56,7 +56,7 @@
                                     <td><?= htmlspecialchars($ticket['prioridad']) ?></td>
                                     <td><?= date('d/m/Y H:i', strtotime($ticket['actualizado_en'])) ?></td>
                                     <td>
-                                        <a href="/vetsmart/admin/soporte/<?= $ticket['id'] ?>" class="btn btn-sm btn-info">
+                                        <a href="<?= BASE ?>/admin/soporte/<?= $ticket['id'] ?>" class="btn btn-sm btn-info">
                                             Ver
                                         </a>
                                     </td>

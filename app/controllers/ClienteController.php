@@ -16,7 +16,7 @@ class ClienteController
     private function verificarSesion(): void
     {
         if (empty($_SESSION['user']) || (($_SESSION['user']['role_name'] ?? '') !== 'cliente' && (string)($_SESSION['user']['role'] ?? '') !== 'cliente')) {
-            header('Location: /vetsmart/login');
+            header('Location: ' . BASE . '/login');
             exit;
         }
     }
@@ -125,13 +125,13 @@ class ClienteController
     {
         $this->verificarSesion();
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /vetsmart/cliente/perfil');
+            header('Location: ' . BASE . '/cliente/perfil');
             exit;
         }
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'SesiÃƒÂ³n expirada. Intenta nuevamente.'];
-            header('Location: /vetsmart/cliente/perfil');
+            header('Location: ' . BASE . '/cliente/perfil');
             exit;
         }
 
@@ -152,7 +152,7 @@ class ClienteController
             $chk->execute([':e' => $email, ':id' => $id]);
             if ($chk->fetch()) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'El correo ya estÃƒÂ¡ registrado por otro usuario.'];
-                header('Location: /vetsmart/cliente/perfil');
+                header('Location: ' . BASE . '/cliente/perfil');
                 exit;
             }
         } catch (Throwable $e) {
@@ -175,23 +175,23 @@ class ClienteController
             $tmp = (string)($_FILES['foto']['tmp_name'] ?? '');
             if (($_FILES['foto']['size'] ?? 0) > $maxSize) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'La imagen excede 2MB.'];
-                header('Location: /vetsmart/cliente/perfil');
+                header('Location: ' . BASE . '/cliente/perfil');
                 exit;
             }
             $info = @getimagesize($tmp);
             if ($info === false) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Archivo de imagen invÃƒÂ¡lido.'];
-                header('Location: /vetsmart/cliente/perfil'); exit;
+                header('Location: ' . BASE . '/cliente/perfil'); exit;
             }
             $mime = (string)($info['mime'] ?? '');
             if (!in_array($mime, ['image/jpeg','image/png'], true)) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Formato no permitido. Usa JPG o PNG.'];
-                header('Location: /vetsmart/cliente/perfil'); exit;
+                header('Location: ' . BASE . '/cliente/perfil'); exit;
             }
             $w = (int)($info[0] ?? 0); $h = (int)($info[1] ?? 0);
             if ($w > 2000 || $h > 2000) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'La imagen supera 2000x2000 pÃƒÂ­xeles.'];
-                header('Location: /vetsmart/cliente/perfil'); exit;
+                header('Location: ' . BASE . '/cliente/perfil'); exit;
             }
             $ext = strtolower((string)pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
             $uploadDir = APP_ROOT . '/public/assets/uploads/clientes';
@@ -227,7 +227,7 @@ class ClienteController
             $old = APP_ROOT . '/public/assets/uploads/clientes/' . basename((string)$prevFoto);
             if (@is_file($old)) { @unlink($old); }
         }
-        header('Location: /vetsmart/cliente/perfil');
+        header('Location: ' . BASE . '/cliente/perfil');
         exit;
     }
 
@@ -319,7 +319,7 @@ class ClienteController
             if (@is_file($old)) { @unlink($old); }
         }
 
-        $url = '/vetsmart/public/assets/uploads/clientes/' . rawurlencode($fotoNombre);
+        $url = BASE . '/assets/uploads/clientes/' . rawurlencode($fotoNombre);
         echo json_encode(['success' => true, 'url' => $url]);
     }
 
@@ -342,12 +342,12 @@ class ClienteController
     {
         $this->verificarSesion();
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /vetsmart/cliente/mascotas'); exit;
+            header('Location: ' . BASE . '/cliente/mascotas'); exit;
         }
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'SesiÃƒÂ³n expirada.'];
-            header('Location: /vetsmart/cliente/mascotas'); exit;
+            header('Location: ' . BASE . '/cliente/mascotas'); exit;
         }
         $clienteId = (int)($_SESSION['user']['id'] ?? 0);
         $nombre = trim((string)($_POST['nombre'] ?? ''));
@@ -361,22 +361,22 @@ class ClienteController
             $tmp = (string)($_FILES['foto']['tmp_name'] ?? '');
             if (($_FILES['foto']['size'] ?? 0) > $maxSize) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'La imagen excede 2MB.'];
-                header('Location: /vetsmart/cliente/mascotas'); exit;
+                header('Location: ' . BASE . '/cliente/mascotas'); exit;
             }
             $info = @getimagesize($tmp);
             if ($info === false) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Archivo de imagen invÃƒÂ¡lido.'];
-                header('Location: /vetsmart/cliente/mascotas'); exit;
+                header('Location: ' . BASE . '/cliente/mascotas'); exit;
             }
             $mime = (string)($info['mime'] ?? '');
             if (!in_array($mime, ['image/jpeg','image/png'], true)) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Formato no permitido. Usa JPG o PNG.'];
-                header('Location: /vetsmart/cliente/mascotas'); exit;
+                header('Location: ' . BASE . '/cliente/mascotas'); exit;
             }
             $w = (int)($info[0] ?? 0); $h = (int)($info[1] ?? 0);
             if ($w > 2000 || $h > 2000) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'La imagen supera 2000x2000 pÃƒÂ­xeles.'];
-                header('Location: /vetsmart/cliente/mascotas'); exit;
+                header('Location: ' . BASE . '/cliente/mascotas'); exit;
             }
             $ext = strtolower((string)pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
             $dir = APP_ROOT . '/public/assets/uploads/mascotas';
@@ -404,16 +404,16 @@ class ClienteController
             if ($this->pdo->inTransaction()) {$this->pdo->rollBack();}
             $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'Error al registrar mascota.'];
         }
-        header('Location: /vetsmart/cliente/mascotas');
+        header('Location: ' . BASE . '/cliente/mascotas');
         exit;
     }
 
     public function editarMascota(): void
     {
         $this->verificarSesion();
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { header('Location: /vetsmart/cliente/mascotas'); exit; }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { header('Location: ' . BASE . '/cliente/mascotas'); exit; }
         $token = $_POST['_csrf'] ?? '';
-        if (!CSRF::validate($token)) { $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'SesiÃƒÂ³n expirada.']; header('Location: /vetsmart/cliente/mascotas'); exit; }
+        if (!CSRF::validate($token)) { $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'SesiÃƒÂ³n expirada.']; header('Location: ' . BASE . '/cliente/mascotas'); exit; }
         $clienteId = (int)($_SESSION['user']['id'] ?? 0);
         $id = (int)($_POST['id'] ?? 0);
         $nombre = trim((string)($_POST['nombre'] ?? ''));
@@ -427,7 +427,7 @@ class ClienteController
         $m = $owner->fetch(PDO::FETCH_ASSOC);
         if (!$m || (int)$m['dueno_id'] !== $clienteId) {
             $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Mascota no encontrada.'];
-            header('Location: /vetsmart/cliente/mascotas'); exit;
+            header('Location: ' . BASE . '/cliente/mascotas'); exit;
         }
         $fotoNombre = $m['foto'] ?? null;
         if (!empty($_FILES['foto']['name'] ?? '')) {
@@ -435,22 +435,22 @@ class ClienteController
             $tmp = (string)($_FILES['foto']['tmp_name'] ?? '');
             if (($_FILES['foto']['size'] ?? 0) > $maxSize) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'La imagen excede 2MB.'];
-                header('Location: /vetsmart/cliente/mascotas'); exit;
+                header('Location: ' . BASE . '/cliente/mascotas'); exit;
             }
             $info = @getimagesize($tmp);
             if ($info === false) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Archivo de imagen invÃƒÂ¡lido.'];
-                header('Location: /vetsmart/cliente/mascotas'); exit;
+                header('Location: ' . BASE . '/cliente/mascotas'); exit;
             }
             $mime = (string)($info['mime'] ?? '');
             if (!in_array($mime, ['image/jpeg','image/png'], true)) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Formato no permitido. Usa JPG o PNG.'];
-                header('Location: /vetsmart/cliente/mascotas'); exit;
+                header('Location: ' . BASE . '/cliente/mascotas'); exit;
             }
             $w = (int)($info[0] ?? 0); $h = (int)($info[1] ?? 0);
             if ($w > 2000 || $h > 2000) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'La imagen supera 2000x2000 pÃƒÂ­xeles.'];
-                header('Location: /vetsmart/cliente/mascotas'); exit;
+                header('Location: ' . BASE . '/cliente/mascotas'); exit;
             }
             $ext = strtolower((string)pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
             $dir = APP_ROOT . '/public/assets/uploads/mascotas';
@@ -468,22 +468,22 @@ class ClienteController
             if (@is_file($old)) { @unlink($old); }
         }
         $_SESSION['mensaje'] = $ok ? ['tipo'=>'success','texto'=>'Mascota actualizada.'] : ['tipo'=>'danger','texto'=>'No se pudo actualizar.'];
-        header('Location: /vetsmart/cliente/mascotas');
+        header('Location: ' . BASE . '/cliente/mascotas');
         exit;
     }
 
     public function eliminarMascota(): void
     {
         $this->verificarSesion();
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { header('Location: /vetsmart/cliente/mascotas'); exit; }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { header('Location: ' . BASE . '/cliente/mascotas'); exit; }
         $token = $_POST['_csrf'] ?? '';
-        if (!CSRF::validate($token)) { $_SESSION['mensaje']=['tipo'=>'danger','texto'=>'SesiÃƒÂ³n expirada.']; header('Location: /vetsmart/cliente/mascotas'); exit; }
+        if (!CSRF::validate($token)) { $_SESSION['mensaje']=['tipo'=>'danger','texto'=>'SesiÃƒÂ³n expirada.']; header('Location: ' . BASE . '/cliente/mascotas'); exit; }
         $clienteId = (int)($_SESSION['user']['id'] ?? 0);
         $id = (int)($_POST['id'] ?? 0);
         $del = $this->pdo->prepare('DELETE FROM mascotas WHERE id = :id AND dueno_id = :d');
         $ok = $del->execute([':id'=>$id, ':d'=>$clienteId]);
         $_SESSION['mensaje'] = $ok ? ['tipo'=>'success','texto'=>'Mascota eliminada.'] : ['tipo'=>'danger','texto'=>'No se pudo eliminar.'];
-        header('Location: /vetsmart/cliente/mascotas');
+        header('Location: ' . BASE . '/cliente/mascotas');
         exit;
     }
 
@@ -496,7 +496,7 @@ class ClienteController
             $token = $_POST['_csrf'] ?? '';
             if (!CSRF::validate($token)) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'SesiÃƒÂ³n expirada.'];
-                header('Location: /vetsmart/cliente/citas'); exit;
+                header('Location: ' . BASE . '/cliente/citas'); exit;
             }
             $accion = $_POST['accion'] ?? '';
             if ($accion === 'cancelar') {
@@ -504,7 +504,7 @@ class ClienteController
                 $st = $this->pdo->prepare("UPDATE citas SET estado='cancelada' WHERE id=:id AND cliente_id=:cid AND estado='pendiente'");
                 $ok = $st->execute([':id'=>$citaId, ':cid'=>$clienteId]);
                 $_SESSION['mensaje'] = $ok ? ['tipo'=>'success','texto'=>'Cita cancelada.'] : ['tipo'=>'danger','texto'=>'No se pudo cancelar la cita.'];
-                header('Location: /vetsmart/cliente/citas'); exit;
+                header('Location: ' . BASE . '/cliente/citas'); exit;
             }
         }
 
@@ -561,11 +561,11 @@ class ClienteController
     public function guardarCita(): void
     {
         $this->verificarSesion();
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') { header('Location: /vetsmart/cliente/citas/agendar'); exit; }
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') { header('Location: ' . BASE . '/cliente/citas/agendar'); exit; }
         $token = $_POST['_csrf'] ?? '';
         if (!CSRF::validate($token)) {
             $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'SesiÃƒÂ³n expirada.'];
-            header('Location: /vetsmart/cliente/citas/agendar'); exit;
+            header('Location: ' . BASE . '/cliente/citas/agendar'); exit;
         }
         $clienteId = (int)($_SESSION['user']['id'] ?? 0);
         $mascotaId = (int)($_POST['mascota_id'] ?? 0);
@@ -577,14 +577,14 @@ class ClienteController
         // Validaciones bÃƒÂ¡sicas
         if ($mascotaId <= 0 || $servicioId <= 0 || $fecha === '') {
             $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Completa todos los campos requeridos.'];
-            header('Location: /vetsmart/cliente/citas/agendar'); exit;
+            header('Location: ' . BASE . '/cliente/citas/agendar'); exit;
         }
         // Verificar pertenencia de mascota
         $stm = $this->pdo->prepare('SELECT COUNT(*) FROM mascotas WHERE id = :m AND dueno_id = :d');
         $stm->execute([':m'=>$mascotaId, ':d'=>$clienteId]);
         if ((int)$stm->fetchColumn() === 0) {
             $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Mascota invÃƒÂ¡lida.'];
-            header('Location: /vetsmart/cliente/citas/agendar'); exit;
+            header('Location: ' . BASE . '/cliente/citas/agendar'); exit;
         }
         // Validar que la fecha no esté en el pasado (con timezone de Colombia)
         try {
@@ -593,11 +593,11 @@ class ClienteController
             $now = new DateTime('now', $tz);
             if ($dt < $now) {
                 $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'No se permiten agendar citas en fechas u horas pasadas.'];
-                header('Location: /vetsmart/cliente/citas/agendar'); exit;
+                header('Location: ' . BASE . '/cliente/citas/agendar'); exit;
             }
         } catch (Throwable $e) {
             $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Fecha/Hora inválida.'];
-            header('Location: /vetsmart/cliente/citas/agendar'); exit;
+            header('Location: ' . BASE . '/cliente/citas/agendar'); exit;
         }
 
         // Anti-duplicados / solapamiento con duración del servicio
@@ -633,7 +633,7 @@ class ClienteController
                     if ($newStart < $exEnd && $exStart < $newEnd) {
                         $conflictTime = $exStart->format('H:i');
                         $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>"Conflicto: el empleado ya tiene una cita a las $conflictTime ($svcName). Elige otro horario."];
-                        header('Location: /vetsmart/cliente/citas/agendar'); exit;
+                        header('Location: ' . BASE . '/cliente/citas/agendar'); exit;
                     }
                 }
             }
@@ -659,12 +659,12 @@ class ClienteController
                 if ($newStart < $exEnd && $exStart < $newEnd) {
                     $conflictTime = $exStart->format('H:i');
                     $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>"Conflicto: tu mascota ya tiene una cita a las $conflictTime ($svcName). Elige otro horario."];
-                    header('Location: /vetsmart/cliente/citas/agendar'); exit;
+                    header('Location: ' . BASE . '/cliente/citas/agendar'); exit;
                 }
             }
         } catch (Throwable $e) {
             $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Error al validar disponibilidad. Intenta nuevamente.'];
-            header('Location: /vetsmart/cliente/citas/agendar'); exit;
+            header('Location: ' . BASE . '/cliente/citas/agendar'); exit;
         }
 
         $sql = "INSERT INTO citas (fecha, cliente_id, mascota_id, empleado_id, servicio_id, estado, notas, creado_por)
@@ -680,7 +680,7 @@ class ClienteController
             ':creado_por'=>$clienteId,
         ]);
         $_SESSION['mensaje'] = ['tipo'=>'success','texto'=>'Cita agendada correctamente.'];
-        header('Location: /vetsmart/cliente/citas');
+        header('Location: ' . BASE . '/cliente/citas');
         exit;
     }
 
@@ -688,9 +688,9 @@ class ClienteController
     public function reagendar(): void
     {
         $this->verificarSesion();
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') { header('Location: /vetsmart/cliente/citas'); exit; }
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') { header('Location: ' . BASE . '/cliente/citas'); exit; }
         $token = $_POST['_csrf'] ?? '';
-        if (!CSRF::validate($token)) { $_SESSION['mensaje']=['tipo'=>'danger','texto'=>'SesiÃƒÂ³n expirada.']; header('Location: /vetsmart/cliente/citas'); exit; }
+        if (!CSRF::validate($token)) { $_SESSION['mensaje']=['tipo'=>'danger','texto'=>'SesiÃƒÂ³n expirada.']; header('Location: ' . BASE . '/cliente/citas'); exit; }
         $clienteId = (int)($_SESSION['user']['id'] ?? 0);
         $id = (int)($_POST['id'] ?? 0);
         $nuevaFecha = trim((string)($_POST['fecha'] ?? ''));
@@ -699,11 +699,11 @@ class ClienteController
         $q = $this->pdo->prepare("SELECT id, empleado_id, mascota_id, estado FROM citas WHERE id = :id AND cliente_id = :cid");
         $q->execute([':id'=>$id, ':cid'=>$clienteId]);
         $c = $q->fetch(PDO::FETCH_ASSOC);
-        if (!$c) { $_SESSION['mensaje']=['tipo'=>'danger','texto'=>'Cita no encontrada.']; header('Location: /vetsmart/cliente/citas'); exit; }
+        if (!$c) { $_SESSION['mensaje']=['tipo'=>'danger','texto'=>'Cita no encontrada.']; header('Location: ' . BASE . '/cliente/citas'); exit; }
         if (!in_array(strtolower((string)$c['estado']), ['pendiente','confirmada'], true)) {
-            $_SESSION['mensaje']=['tipo'=>'danger','texto'=>'No se puede reagendar esta cita.']; header('Location: /vetsmart/cliente/citas'); exit;
+            $_SESSION['mensaje']=['tipo'=>'danger','texto'=>'No se puede reagendar esta cita.']; header('Location: ' . BASE . '/cliente/citas'); exit;
         }
-        if ($nuevaFecha === '') { $_SESSION['mensaje']=['tipo'=>'danger','texto'=>'Fecha/hora invÃƒÂ¡lida.']; header('Location: /vetsmart/cliente/citas'); exit; }
+        if ($nuevaFecha === '') { $_SESSION['mensaje']=['tipo'=>'danger','texto'=>'Fecha/hora invÃƒÂ¡lida.']; header('Location: ' . BASE . '/cliente/citas'); exit; }
 
         // Anti-duplicados
         $check = $this->pdo->prepare(
@@ -721,13 +721,13 @@ class ClienteController
         ]);
         if ((int)$check->fetchColumn() > 0) {
             $_SESSION['mensaje'] = ['tipo'=>'danger','texto'=>'Ya existe una cita a esa hora (mascota o empleado).'];
-            header('Location: /vetsmart/cliente/citas'); exit;
+            header('Location: ' . BASE . '/cliente/citas'); exit;
         }
 
         $up = $this->pdo->prepare("UPDATE citas SET fecha = :f, fecha_actualizacion = NOW(), actualizado_por = :u WHERE id = :id AND cliente_id = :cid");
         $ok = $up->execute([':f'=>$nuevaFecha, ':u'=>$clienteId, ':id'=>$id, ':cid'=>$clienteId]);
         $_SESSION['mensaje'] = $ok ? ['tipo'=>'success','texto'=>'Cita reagendada correctamente.'] : ['tipo'=>'danger','texto'=>'No se pudo reagendar.'];
-        header('Location: /vetsmart/cliente/citas');
+        header('Location: ' . BASE . '/cliente/citas');
         exit;
     }
 

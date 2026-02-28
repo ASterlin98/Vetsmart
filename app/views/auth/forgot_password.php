@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen flex items-center justify-center"
-      style="background-image: url('/vetsmart/public/assets/css/img4.jpg'); background-size: cover; background-position: center;">
+      style="background-image: url('<?= BASE ?>/public/assets/css/img4.jpg'); background-size: cover; background-position: center;">
 
   <div>
     <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
@@ -28,7 +28,7 @@
     <?php endif; ?>
 
     <!-- Formulario -->
-    <form method="POST" action="/vetsmart/auth/sendResetLink" class="space-y-4">
+    <form method="POST" action="<?= BASE ?>/auth/sendResetLink" class="space-y-4">
       <div>
         <label for="email" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
         <input type="email" name="email" id="email" required 
@@ -42,7 +42,7 @@
     </form>
 
     <p class="mt-6 text-center text-sm">
-      <a href="/vetsmart/auth/login" class="text-blue-600 hover:underline">
+      <a href="<?= BASE ?>/auth/login" class="text-blue-600 hover:underline">
         Volver al login
       </a>
     </p>

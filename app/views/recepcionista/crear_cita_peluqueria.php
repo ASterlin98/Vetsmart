@@ -5,14 +5,14 @@ declare(strict_types=1);
 <div class="container py-3">
   <div class="d-flex align-items-center justify-content-between mb-3">
     <h2 class="mb-0">Agendar Cita de Peluquería</h2>
-    <a href="/vetsmart/recepcionista/agenda" class="btn btn-outline-secondary">Volver a Agenda</a>
+    <a href="<?= BASE ?>/recepcionista/agenda" class="btn btn-outline-secondary">Volver a Agenda</a>
   </div>
 
   <?php if (!empty($_SESSION['mensaje'])): $m = $_SESSION['mensaje']; unset($_SESSION['mensaje']); ?>
     <div class="alert alert-<?= htmlspecialchars($m['tipo'] ?? 'info') ?>"><?= htmlspecialchars($m['texto'] ?? '') ?></div>
   <?php endif; ?>
 
-  <form method="post" action="/vetsmart/recepcionista/citas-peluqueria/store" class="card p-3 shadow-sm border-0">
+  <form method="post" action="<?= BASE ?>/recepcionista/citas-peluqueria/store" class="card p-3 shadow-sm border-0">
     <?= CSRF::inputField() ?>
     <div class="row g-3">
       <div class="col-md-3">

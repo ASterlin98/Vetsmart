@@ -31,7 +31,7 @@ $empleados = $empleados ?? [];
                                 <td><?= htmlspecialchars($e['telefono'] ?? '-') ?></td>
                                 <td><?= htmlspecialchars($e['docusu'] ?? '-') ?></td>
                                 <td>
-                                    <a href="/vetsmart/admin/desbloquear_usuario/<?= $e['id'] ?>" class="btn btn-success btn-sm" onclick="return confirm('¿Desbloquear este usuario?')">🔓 Desbloquear</a>
+                                    <a href="<?= BASE ?>/admin/desbloquear_usuario/<?= $e['id'] ?>" class="btn btn-success btn-sm" onclick="return confirm('¿Desbloquear este usuario?')">🔓 Desbloquear</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

@@ -17,7 +17,7 @@
   <!-- Main Form -->
   <div class="card border-0 shadow-sm">
     <div class="card-body p-4">
-      <form action="/vetsmart/citas/update" method="POST">
+      <form action="<?= BASE ?>/citas/update" method="POST">
         <?= CSRF::inputField(); ?>
         <input type="hidden" name="id" value="<?= htmlspecialchars($cita['id']) ?>">
 
@@ -148,7 +148,7 @@
         <!-- Form Actions -->
         <div class="form-actions border-top pt-4">
           <div class="d-flex gap-2 justify-content-end">
-            <a href="/vetsmart/recepcionista/citas" class="btn btn-outline-secondary">
+            <a href="<?= BASE ?>/recepcionista/citas" class="btn btn-outline-secondary">
               <i class="fas fa-arrow-left me-1"></i>Volver
             </a>
             <button type="submit" class="btn btn-success px-4">
@@ -360,7 +360,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     try {
-      const response = await fetch(`/vetsmart/api/clientes/${clienteId}/mascotas`);
+      const response = await fetch(`<?= BASE ?>/api/clientes/${clienteId}/mascotas`);
       
       if (!response.ok) {
         throw new Error('Error al cargar mascotas');

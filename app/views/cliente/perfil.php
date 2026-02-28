@@ -1,7 +1,7 @@
 <?php $n = trim((string)($cliente["nombre"] ?? "")); $a = trim((string)($cliente["apellido"] ?? "")); $ini = mb_strtoupper(mb_substr($n,0,1).mb_substr($a,0,1)); ?><?php
 // $cliente: array con datos y 'foto' si existe en tabla perfil
 $foto = $cliente['foto'] ?? null;
-$fotoUrl = $foto ? "/vetsmart/public/assets/uploads/clientes/" . rawurlencode($foto) : null;
+$fotoUrl = $foto ? "<?= BASE ?>/public/assets/uploads/clientes/" . rawurlencode($foto) : null;
 // Token CSRF para la subida AJAX
 $csrfToken = CSRF::generateToken();
 ?>
@@ -67,7 +67,7 @@ $csrfToken = CSRF::generateToken();
             </div>
           <?php endif; ?>
 
-          <form method="post" action="/vetsmart/cliente/perfil/actualizar" enctype="multipart/form-data" id="perfilForm">
+          <form method="post" action="<?= BASE ?>/cliente/perfil/actualizar" enctype="multipart/form-data" id="perfilForm">
             <?= CSRF::inputField(); ?>
 
             <h5 class="card-title mb-4 text-primary"><i class="fas fa-info-circle me-2"></i>Información Personal</h5>
@@ -160,7 +160,7 @@ function subirFotoInstantanea(input) {
   document.getElementById('avatar-overlay').style.display = 'none';
   document.getElementById('avatar-loading').style.display = 'flex';
 
-  fetch('/vetsmart/cliente/perfil/foto', {
+  fetch('<?= BASE ?>/cliente/perfil/foto', {
     method: 'POST',
     body: formData,
     headers: {

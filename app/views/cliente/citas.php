@@ -22,7 +22,7 @@
           <?php endif; ?>
         </div>
       </div>
-      <a href="/vetsmart/cliente/citas/agendar" class="btn btn-primary btn-lg">
+      <a href="<?= BASE ?>/cliente/citas/agendar" class="btn btn-primary btn-lg">
         <i class="fas fa-plus me-2"></i>Agendar Nueva Cita
       </a>
     </div>
@@ -104,7 +104,7 @@
                 <!-- Reagendar Form -->
                 <div class="action-section mb-3">
                   <div class="reagendar-form">
-                    <form method="post" action="/vetsmart/cliente/citas/reagendar" class="reagendar-form-inner">
+                    <form method="post" action="<?= BASE ?>/cliente/citas/reagendar" class="reagendar-form-inner">
                       <?= CSRF::inputField(); ?>
                       <input type="hidden" name="id" value="<?= (int)$c['id'] ?>" />
                       <div class="input-group">
@@ -120,7 +120,7 @@
 
                 <!-- Cancel Button -->
                 <div class="action-section">
-                  <form method="post" action="/vetsmart/cliente/citas" 
+                  <form method="post" action="<?= BASE ?>/cliente/citas" 
                         class="cancel-form" 
                         onsubmit="return confirmCancelation(event, this)">
                     <?= CSRF::inputField(); ?>
@@ -151,7 +151,7 @@
         <p class="empty-description mb-4">
           Cuando programes una cita, aparecerá listada aquí junto con todas sus opciones de gestión.
         </p>
-        <a href="/vetsmart/cliente/citas/agendar" class="btn btn-primary btn-lg">
+        <a href="<?= BASE ?>/cliente/citas/agendar" class="btn btn-primary btn-lg">
           <i class="fas fa-plus me-2"></i>Agendar Mi Primera Cita
         </a>
       </div>

@@ -8,7 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .auth-page {
-      background-image: url('/vetsmart/public/assets/css/img2.jpg');
+      background-image: url('<?= BASE ?>/public/assets/css/img2.jpg');
       background-size: cover;
       background-position: center;
       background-attachment: scroll;
@@ -48,7 +48,7 @@
       </div>
     <?php endif; ?>
 
-    <form method="post" action="/vetsmart/login" autocomplete="off" class="space-y-4">
+    <form method="post" action="<?= BASE ?>/login" autocomplete="off" class="space-y-4">
       <?= \CSRF::inputField() ?>
 
       <div>
@@ -70,14 +70,14 @@
     </form>
 
     <p class="mt-5 sm:mt-6 text-center text-sm">
-      <a href="/vetsmart/auth/forgot" class="text-blue-600 hover:underline">
+      <a href="<?= BASE ?>/auth/forgot" class="text-blue-600 hover:underline">
         ¿Olvidaste tu contraseña?
       </a>
     </p>
 
     <p class="mt-2 text-center text-sm">
       ¿No tienes cuenta?
-      <a href="/vetsmart/auth/register" class="text-green-600 font-semibold hover:underline">
+      <a href="<?= BASE ?>/auth/register" class="text-green-600 font-semibold hover:underline">
         Regístrate como cliente
       </a>
     </p>

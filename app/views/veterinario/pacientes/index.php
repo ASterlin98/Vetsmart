@@ -61,7 +61,7 @@ $mascotas = array_slice($mascotas, $inicio, $porPagina);
     </div>
 
     <div class="d-flex gap-2">
-      <form method="GET" action="/vetsmart/veterinario/pacientes" class="d-flex align-items-center">
+      <form method="GET" action="<?= BASE ?>/veterinario/pacientes" class="d-flex align-items-center">
         <div class="input-group">
           <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
           <input id="searchInput" name="q" value="<?= htmlspecialchars($q, ENT_QUOTES, 'UTF-8') ?>" type="search" class="form-control" placeholder="Buscar por nombre, especie, raza o dueño...">
@@ -69,7 +69,7 @@ $mascotas = array_slice($mascotas, $inicio, $porPagina);
         </div>
       </form>
 
-      <a href="/vetsmart/veterinario/mis-citas" class="btn btn-primary d-flex align-items-center">
+      <a href="<?= BASE ?>/veterinario/mis-citas" class="btn btn-primary d-flex align-items-center">
         <i class="bi bi-calendar-event me-2"></i> Ir a mi calendario
       </a>
     </div>
@@ -118,7 +118,7 @@ $mascotas = array_slice($mascotas, $inicio, $porPagina);
                     <td><?= htmlspecialchars(trim(($m['nombre_dueno'] ?? '') . ' ' . ($m['apellido_dueno'] ?? '')), ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= htmlspecialchars($m['telefono_dueno'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                     <td class="text-end">
-                      <a class="btn btn-sm btn-outline-primary" href="/vetsmart/veterinario/mascotas/<?= htmlspecialchars($m['id'], ENT_QUOTES, 'UTF-8') ?>/historial">
+                      <a class="btn btn-sm btn-outline-primary" href="<?= BASE ?>/veterinario/mascotas/<?= htmlspecialchars($m['id'], ENT_QUOTES, 'UTF-8') ?>/historial">
                         <i class="bi bi-journal-text me-1"></i> Ver historial
                       </a>
                     </td>
@@ -169,7 +169,7 @@ $mascotas = array_slice($mascotas, $inicio, $porPagina);
                     </div>
 
                     <div class="text-end">
-                      <a class="btn btn-sm btn-outline-primary" href="/vetsmart/veterinario/mascotas/<?= htmlspecialchars($m['id'], ENT_QUOTES, 'UTF-8') ?>/historial">
+                      <a class="btn btn-sm btn-outline-primary" href="<?= BASE ?>/veterinario/mascotas/<?= htmlspecialchars($m['id'], ENT_QUOTES, 'UTF-8') ?>/historial">
                         <i class="bi bi-journal-text"></i>
                       </a>
                     </div>

@@ -629,7 +629,7 @@
     </div>
 
     <div class="flex items-center gap-2">
-        <a href="/vetsmart/logout" class="btn btn-light btn-sm shadow-sm hover:bg-gray-200 transition">
+        <a href="<?= BASE ?>/logout" class="btn btn-light btn-sm shadow-sm hover:bg-gray-200 transition">
             Cerrar Sesión
         </a>
     </div>

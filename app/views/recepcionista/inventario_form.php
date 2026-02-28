@@ -1,6 +1,6 @@
 <div class="container-fluid">
   <h1 class="h4 mb-3"><i class="fas fa-box text-success me-2"></i><?= $accion==='editar'?'Editar':'Nuevo' ?> producto</h1>
-  <form action="<?= $accion==='editar'? '/vetsmart/recepcionista/inventario/' . (int)$item['id'] . '/update' : '/vetsmart/recepcionista/inventario/store' ?>" method="post" class="card p-3 shadow-sm">
+  <form action="<?= $accion==='editar'? '<?= BASE ?>/recepcionista/inventario/' . (int)$item['id'] . '/update' : '<?= BASE ?>/recepcionista/inventario/store' ?>" method="post" class="card p-3 shadow-sm">
     <?= CSRF::inputField(); ?>
     <div class="row g-3">
       <div class="col-md-6">
@@ -37,7 +37,7 @@
       </div>
     </div>
     <div class="text-end mt-3">
-      <a href="/vetsmart/recepcionista/inventario" class="btn btn-outline-secondary">Cancelar</a>
+      <a href="<?= BASE ?>/recepcionista/inventario" class="btn btn-outline-secondary">Cancelar</a>
       <button class="btn btn-success" type="submit"><i class="fas fa-save me-1"></i>Guardar</button>
     </div>
   </form>

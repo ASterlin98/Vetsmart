@@ -20,7 +20,7 @@
   <!-- Main Form -->
   <div class="card border-0 shadow-sm">
     <div class="card-body p-4">
-      <form action="/vetsmart/recepcionista/clientes/store" method="POST" enctype="multipart/form-data" id="formCliente">
+      <form action="<?= BASE ?>/recepcionista/clientes/store" method="POST" enctype="multipart/form-data" id="formCliente">
         <?= CSRF::inputField(); ?>
         
         <!-- Client Information Section -->
@@ -127,7 +127,7 @@
         <!-- Form Actions -->
         <div class="form-actions border-top pt-4">
           <div class="d-flex gap-2 justify-content-end">
-            <a href="/vetsmart/recepcionista/clientes" class="btn btn-outline-secondary">
+            <a href="<?= BASE ?>/recepcionista/clientes" class="btn btn-outline-secondary">
               <i class="fas fa-arrow-left me-1"></i>Cancelar
             </a>
             <button type="submit" class="btn btn-success px-4">

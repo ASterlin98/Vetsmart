@@ -13,7 +13,7 @@
   <div class="row g-3 mb-4">
     <!-- Citas de hoy -->
     <div class="col-xl-3 col-md-6">
-      <a href="/vetsmart/recepcionista/agenda?fecha=<?= date('Y-m-d') ?>" class="text-decoration-none">
+      <a href="<?= BASE ?>/recepcionista/agenda?fecha=<?= date('Y-m-d') ?>" class="text-decoration-none">
         <div class="card stat-card border-0">
           <div class="card-body text-center p-4">
             <div class="stat-icon mb-3">
@@ -29,7 +29,7 @@
 
     <!-- Citas pendientes -->
     <div class="col-xl-3 col-md-6">
-      <a href="/vetsmart/recepcionista/agenda?fecha=<?= date('Y-m-d') ?>&estado=pendiente" class="text-decoration-none">
+      <a href="<?= BASE ?>/recepcionista/agenda?fecha=<?= date('Y-m-d') ?>&estado=pendiente" class="text-decoration-none">
         <div class="card stat-card border-0">
           <div class="card-body text-center p-4">
             <div class="stat-icon mb-3">
@@ -136,25 +136,25 @@
             <i class="fas fa-bolt text-warning me-2"></i>Accesos Rápidos
           </h6>
           <div class="d-grid gap-2">
-            <a href="/vetsmart/recepcionista/agenda" class="btn btn-outline-success btn-lg d-flex align-items-center justify-content-between py-3">
+            <a href="<?= BASE ?>/recepcionista/agenda" class="btn btn-outline-success btn-lg d-flex align-items-center justify-content-between py-3">
               <span>
                 <i class="fas fa-calendar-alt me-2"></i>Ver Agenda
               </span>
               <i class="fas fa-arrow-right"></i>
             </a>
-            <a href="/vetsmart/recepcionista/clientes" class="btn btn-outline-primary btn-lg d-flex align-items-center justify-content-between py-3">
+            <a href="<?= BASE ?>/recepcionista/clientes" class="btn btn-outline-primary btn-lg d-flex align-items-center justify-content-between py-3">
               <span>
                 <i class="fas fa-users me-2"></i>Ver Clientes
               </span>
               <i class="fas fa-arrow-right"></i>
             </a>
-            <a href="/vetsmart/recepcionista/mascotas" class="btn btn-outline-info btn-lg d-flex align-items-center justify-content-between py-3">
+            <a href="<?= BASE ?>/recepcionista/mascotas" class="btn btn-outline-info btn-lg d-flex align-items-center justify-content-between py-3">
               <span>
                 <i class="fas fa-paw me-2"></i>Ver Mascotas
               </span>
               <i class="fas fa-arrow-right"></i>
             </a>
-            <a href="/vetsmart/recepcionista/citas/create" class="btn btn-outline-warning btn-lg d-flex align-items-center justify-content-between py-3">
+            <a href="<?= BASE ?>/recepcionista/citas/create" class="btn btn-outline-warning btn-lg d-flex align-items-center justify-content-between py-3">
               <span>
                 <i class="fas fa-plus-circle me-2"></i>Nueva Cita
               </span>
@@ -173,7 +173,7 @@
             <h6 class="card-title mb-0">
               <i class="fas fa-calendar-day text-success me-2"></i>Próximas Citas (Veterinarios & Peluqueros)
             </h6>
-            <a href="/vetsmart/recepcionista/agenda" class="btn btn-sm btn-outline-success">
+            <a href="<?= BASE ?>/recepcionista/agenda" class="btn btn-sm btn-outline-success">
               <i class="fas fa-external-link-alt me-1"></i>Ver Agenda Completa
             </a>
           </div>
@@ -204,7 +204,7 @@
                   </div>
                   <div class="appointment-status">
                     <?php $estadoRaw = strtolower($p['estado'] ?? 'pendiente'); ?>
-                    <a href="/vetsmart/recepcionista/agenda?fecha=<?= urlencode($p['fecha'] ?? date('Y-m-d')) ?>&estado=<?= urlencode($estadoRaw) ?>" class="status-badge status-<?= htmlspecialchars($estadoRaw) ?> text-decoration-none">
+                    <a href="<?= BASE ?>/recepcionista/agenda?fecha=<?= urlencode($p['fecha'] ?? date('Y-m-d')) ?>&estado=<?= urlencode($estadoRaw) ?>" class="status-badge status-<?= htmlspecialchars($estadoRaw) ?> text-decoration-none">
                       <?= htmlspecialchars(ucfirst($p['estado'] ?? 'Pendiente')) ?>
                     </a>
                   </div>

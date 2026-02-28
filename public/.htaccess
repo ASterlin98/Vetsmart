@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /vetsmart/
+  RewriteBase /
 
   # Redirige todo lo que no sea archivo o carpeta real hacia index.php
   RewriteCond %{REQUEST_FILENAME} !-f

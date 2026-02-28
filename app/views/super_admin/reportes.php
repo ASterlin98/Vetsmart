@@ -20,7 +20,7 @@ function format_currency($number) {
             Filtrar por Rango de Fechas
         </div>
         <div class="card-body">
-            <form method="GET" action="/vetsmart/super_admin/reportes" class="row g-3 align-items-center">
+            <form method="GET" action="<?= BASE ?>/super_admin/reportes" class="row g-3 align-items-center">
                 <div class="col-auto">
                     <label for="desde" class="form-label">Desde:</label>
                     <input type="date" id="desde" name="desde" value="<?= htmlspecialchars($desde) ?>" class="form-control">
@@ -31,7 +31,7 @@ function format_currency($number) {
                 </div>
                 <div class="col-auto mt-4">
                     <button type="submit" class="btn btn-primary">Filtrar</button>
-                    <a href="/vetsmart/super_admin/exportarReportes?desde=<?= htmlspecialchars($desde) ?>&hasta=<?= htmlspecialchars($hasta) ?>" class="btn btn-success" target="_blank">
+                    <a href="<?= BASE ?>/super_admin/exportarReportes?desde=<?= htmlspecialchars($desde) ?>&hasta=<?= htmlspecialchars($hasta) ?>" class="btn btn-success" target="_blank">
                         <i class="fas fa-file-excel me-1"></i>
                         Exportar a Excel
                     </a>

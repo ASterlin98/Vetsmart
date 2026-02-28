@@ -3,7 +3,7 @@
 
     <div class="card p-3 mt-4">
         <div class="card-body">
-            <form id="servicioForm" method="POST" action="/vetsmart/admin/servicios/<?= htmlspecialchars($servicio['id']) ?>/actualizar">
+            <form id="servicioForm" method="POST" action="<?= BASE ?>/admin/servicios/<?= htmlspecialchars($servicio['id']) ?>/actualizar">
                 <input type="hidden" name="id" value="<?= htmlspecialchars($servicio['id']) ?>">
 
                 <div class="row g-3">
@@ -37,7 +37,7 @@
 
                 <div class="mt-4">
                     <button type="submit" class="btn btn-success shadow-sm">Actualizar Servicio</button>
-                    <a href="/vetsmart/admin/servicios" class="btn btn-secondary shadow-sm">Cancelar</a>
+                    <a href="<?= BASE ?>/admin/servicios" class="btn btn-secondary shadow-sm">Cancelar</a>
                 </div>
             </form>
         </div>

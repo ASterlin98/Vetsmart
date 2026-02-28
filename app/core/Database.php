@@ -5,21 +5,15 @@ class Database {
     private $pdo;
 
     private function __construct() {
-        // Valores de Render o locales
-        $dbHost = getenv("DB_HOST") ?: "127.0.0.1";
+        // Valores desde .env (o fallback locales)
+        $dbHost = getenv("DB_HOST") ?: "localhost";
         $dbPort = getenv("DB_PORT") ?: "3306";
-        $dbName = getenv("DB_NAME") ?: "vetsmart";
-        $dbUser = getenv("DB_USER") ?: "root";
-        $dbPass = getenv("DB_PASS") ?: "";
+        $dbName = getenv("DB_NAME") ?: "u113289098_vetsmart";
+        $dbUser = getenv("DB_USER") ?: "u113289098_vetsmart";
+        $dbPass = getenv("DB_PASS") ?: "Vetsmar12345";
 
-        // Configuración para PostgreSQL (Render)
-        if ($dbPort == "5432" || strpos($dbHost, 'render.com') !== false || strpos($dbHost, 'dpg-') !== false) {
-            // Se agrega sslmode=require para cumplir con los requisitos de Render
-            $dsn = "pgsql:host=$dbHost;port=$dbPort;dbname=$dbName;sslmode=require";
-        } else {
-            // Configuración para MySQL (Local)
-            $dsn = "mysql:host=$dbHost;port=$dbPort;dbname=$dbName;charset=utf8mb4";
-        }
+        // Configuración estricta para MySQL (Hostinger)
+        $dsn = "mysql:host=$dbHost;port=$dbPort;dbname=$dbName;charset=utf8mb4";
 
         $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -30,9 +24,8 @@ class Database {
         try {
             $this->pdo = new PDO($dsn, $dbUser, $dbPass, $options);
         } catch (PDOException $e) {
-            // Es importante registrar el error en los logs de Render para depuración
             error_log("DB connection error: " . $e->getMessage());
-            die("Error de conexión a la base de datos.");
+            die("Error de conexión a la base de datos: " . $e->getMessage() . "<br>Asegúrate de que la BD y usuario existan y que el host sea correcto.");
         }
     }
 

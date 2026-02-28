@@ -9,7 +9,7 @@ class Router
     protected array $routes;
     protected $pdo;
 
-    public function __construct(string $basePath = '/vetsmart', $pdo = null)
+    public function __construct(string $basePath = '', $pdo = null)
     {
         $this->basePath = $basePath;
         $this->pdo = $pdo;
