@@ -16,7 +16,7 @@ class PasswordController extends Controller
 
         if (empty($email)) {
             $_SESSION['error'] = "Debes ingresar tu correo";
-            header("Location: ' . BASE . '/password/forgot");
+            header("Location: " . BASE . "/password/forgot");
             exit;
         }
 
@@ -24,7 +24,7 @@ class PasswordController extends Controller
 
         if (!$usuario) {
             $_SESSION['error'] = "No existe un usuario con ese correo";
-            header("Location: ' . BASE . '/password/forgot");
+            header("Location: " . BASE . "/password/forgot");
             exit;
         }
 
