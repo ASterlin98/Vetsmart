@@ -1299,17 +1299,25 @@ public function actualizarMascota(int $cliente_id, int $mascota_id)
             'notas'   => $notas
         ]);
 
+<<<<<<< HEAD
         if ($success) {
             $_SESSION['flash_success'] = 'Mascota actualizada correctamente.';
         } else {
             $_SESSION['flash_error'] = 'No se realizaron cambios o la mascota no existe.';
         }
         
+=======
+        $_SESSION['flash_success'] = 'Mascota actualizada correctamente.';
+>>>>>>> 3406cd171fda0d586c6292702c0902e685ca97f0
         header("Location: " . BASE . "/admin/clientes/{$cliente_id}");
         exit;
     } catch (Exception $e) {
         error_log("actualizarMascota error: " . $e->getMessage());
+<<<<<<< HEAD
         $_SESSION['flash_error'] = 'Error actualizando mascota: ' . $e->getMessage();
+=======
+        $_SESSION['flash_error'] = 'Error actualizando mascota. Revisa logs.';
+>>>>>>> 3406cd171fda0d586c6292702c0902e685ca97f0
         header("Location: " . BASE . "/admin/clientes/{$cliente_id}/mascotas/{$mascota_id}/editar");
         exit;
     }
