@@ -1004,7 +1004,7 @@ class RecepcionistaController extends Controller
 
             if (empty($nombre) || empty($dueno_id)) {
                 $_SESSION['mensaje'] = ['tipo' => 'danger', 'texto' => 'El nombre y el dueño son obligatorios.'];
-                header("Location: ' . BASE . '/recepcionista/mascotas/edit/{$id}");
+                header("Location: " . BASE . "/recepcionista/mascotas/edit/{$id}");
                 exit;
             }
 

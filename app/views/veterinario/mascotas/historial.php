@@ -45,7 +45,7 @@ if ($fotoDb !== '') {
             $rel = ltrim(substr($fotoDb, strlen($basePublic)), '/\\'); // ruta relativa a public
             $fotoFsPath = realpath($publicDir . '/' . $rel) ?: null;
         } else {
-            // ej: /uploads/mascotas/xxx.jpg -> URL: <?= BASE ?>/uploads/mascotas/xxx.jpg
+            // ej: /uploads/mascotas/xxx.jpg -> URL: [BASE]/uploads/mascotas/xxx.jpg
             $fotoUrl = join_url($basePublic, $fotoDb);
             $rel = ltrim($fotoDb, '/\\');
             $fotoFsPath = realpath($publicDir . '/' . $rel) ?: null;

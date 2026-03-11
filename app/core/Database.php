@@ -10,7 +10,7 @@ class Database {
         $dbPort = getenv("DB_PORT") ?: "3306";
         $dbName = getenv("DB_NAME") ?: "u113289098_vetsmart";
         $dbUser = getenv("DB_USER") ?: "u113289098_vetsmart";
-        $dbPass = getenv("DB_PASS") ?: "Vetsmar12345";
+        $dbPass = getenv("DB_PASS") ?: "Vetsmart12345";
 
         // Configuración estricta para MySQL (Hostinger)
         $dsn = "mysql:host=$dbHost;port=$dbPort;dbname=$dbName;charset=utf8mb4";

@@ -313,7 +313,7 @@ public function guardarCita()
             exit;
         } else {
             $_SESSION['flash_success'] = "Cita creada correctamente.";
-            header("Location: ' . BASE . '/veterinario/mis-citas");
+            header("Location: " . BASE . "/veterinario/mis-citas");
             exit;
         }
 
@@ -325,7 +325,7 @@ public function guardarCita()
             exit;
         } else {
             $_SESSION['flash_error'] = "Error: " . $e->getMessage();
-            header("Location: ' . BASE . '/veterinario/mis-citas");
+            header("Location: " . BASE . "/veterinario/mis-citas");
             exit;
         }
     }
@@ -677,7 +677,7 @@ public function listarCitasJson()
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $vacunaModel = new Vacuna($this->db);
             $vacunaModel->crear($_POST);
-            header("Location: ' . BASE . '/veterinario/mascotas/{$_POST['mascota_id']}/vacunas");
+            header("Location: " . BASE . "/veterinario/mascotas/{$_POST['mascota_id']}/vacunas");
             exit;
         }
     }
@@ -685,7 +685,7 @@ public function listarCitasJson()
     public function eliminarVacuna($id, $mascota_id) {
         $vacunaModel = new Vacuna($this->db);
         $vacunaModel->eliminar($id);
-        header("Location: ' . BASE . '/veterinario/mascotas/{$mascota_id}/vacunas");
+        header("Location: " . BASE . "/veterinario/mascotas/{$mascota_id}/vacunas");
         exit;
     }
 
@@ -715,7 +715,7 @@ public function listarCitasJson()
                 'proxima_dosis' => $_POST['proxima'] ?? null,
                 'descripcion' => $_POST['descripcion']
             ]);
-            header("Location: ' . BASE . '/veterinario/mascotas/$idMascota/vacunas");
+            header("Location: " . BASE . "/veterinario/mascotas/$idMascota/vacunas");
             exit;
         }
     }
@@ -832,7 +832,7 @@ public function guardarNotaRapida($mascotaId) {
 
     if (!$notaTexto || !$veterinarioId) {
         $_SESSION['flash_error'] = 'Nota vacía o usuario no identificado.';
-        header("Location: ' . BASE . '/veterinario/mascotas/$mascotaId/historial");
+        header("Location: " . BASE . "/veterinario/mascotas/$mascotaId/historial");
         exit;
     }
 
@@ -845,7 +845,7 @@ public function guardarNotaRapida($mascotaId) {
         $_SESSION['flash_error'] = 'Error guardando la nota (revisa logs).';
     }
 
-    header("Location: ' . BASE . '/veterinario/mascotas/$mascotaId/historial");
+    header("Location: " . BASE . "/veterinario/mascotas/$mascotaId/historial");
     exit;
 }
 
@@ -859,7 +859,7 @@ public function editarNotaRapida($mascotaId, $notaId) {
 
     if (!$nota) {
         $_SESSION['flash_error'] = 'Nota no encontrada.';
-        header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
+        header("Location: " . BASE . "/veterinario/mascotas/{$mascotaId}/historial");
         exit;
     }
 
@@ -871,7 +871,7 @@ public function editarNotaRapida($mascotaId, $notaId) {
 
 public function actualizarNotaRapida($mascotaId, $notaId) {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
+        header("Location: " . BASE . "/veterinario/mascotas/{$mascotaId}/historial");
         exit;
     }
 
@@ -879,7 +879,7 @@ public function actualizarNotaRapida($mascotaId, $notaId) {
 
     if ($notaTexto === '') {
         $_SESSION['flash_error'] = 'La nota no puede quedar vacía.';
-        header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
+        header("Location: " . BASE . "/veterinario/mascotas/{$mascotaId}/historial");
         exit;
     }
 
@@ -891,7 +891,7 @@ public function actualizarNotaRapida($mascotaId, $notaId) {
         $_SESSION['flash_error'] = 'Error actualizando la nota (revisa logs).';
     }
 
-    header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
+    header("Location: " . BASE . "/veterinario/mascotas/{$mascotaId}/historial");
     exit;
 }
 
@@ -925,14 +925,14 @@ public function eliminarNotaRapida($idMascota, $idNota)
 
 public function guardarEdicionNotaRapida($mascotaId, $notaId) {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
+        header("Location: " . BASE . "/veterinario/mascotas/{$mascotaId}/historial");
         exit;
     }
 
     $notaTexto = trim($_POST['nota'] ?? '');
     if ($notaTexto === '') {
         $_SESSION['flash_error'] = 'La nota no puede quedar vacía.';
-        header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
+        header("Location: " . BASE . "/veterinario/mascotas/{$mascotaId}/historial");
         exit;
     }
 
@@ -944,7 +944,7 @@ public function guardarEdicionNotaRapida($mascotaId, $notaId) {
         $_SESSION['flash_error'] = 'Error al guardar la edición (revisa logs).';
     }
 
-    header("Location: ' . BASE . '/veterinario/mascotas/{$mascotaId}/historial");
+    header("Location: " . BASE . "/veterinario/mascotas/{$mascotaId}/historial");
     exit;
 }
 

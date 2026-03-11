@@ -174,7 +174,12 @@ class Router
             $callArgs = [];
             foreach ($methodRef->getParameters() as $paramRef) {
                 $pname = $paramRef->getName();
-                if (isset($params[$pname])) {
+                
+                // Si el parámetro se llama $params y es de tipo array, le pasamos todo el array de coincidencias
+                $type = $paramRef->getType();
+                if ($pname === 'params' && ($type === null || ($type instanceof ReflectionNamedType && $type->getName() === 'array'))) {
+                    $callArgs[] = $params;
+                } elseif (isset($params[$pname])) {
                     $callArgs[] = $params[$pname];
                 } elseif ($paramRef->isOptional()) {
                     $callArgs[] = $paramRef->getDefaultValue();

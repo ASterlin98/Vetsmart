@@ -115,7 +115,7 @@ public function guardar() {
 
             try {
                 $this->clienteModel->actualizar($id, $_POST);
-                header("Location: ' . BASE . '/admin/clientes");
+                header("Location: " . BASE . "/admin/clientes");
             } catch (Exception $e) {
                 error_log('ClientesController::actualizar error: ' . $e->getMessage());
                 $cliente = $this->clienteModel->getById($id);
@@ -139,7 +139,7 @@ public function guardar() {
 
     public function guardarMascota($idCliente) {
         $this->mascotaModel->crear($idCliente, $_POST);
-        header("Location: ' . BASE . '/admin/clientes/$idCliente");
+        header("Location: " . BASE . "/admin/clientes/$idCliente");
     }
 
     public function editarMascota($idCliente, $idMascota) {
@@ -149,13 +149,13 @@ public function guardar() {
 
     public function eliminarMascota($idCliente, $idMascota) {
         $this->mascotaModel->eliminar($idMascota);
-        header("Location: ' . BASE . '/admin/clientes/$idCliente");
+        header("Location: " . BASE . "/admin/clientes/$idCliente");
     }
 
     public function actualizarMascota($idCliente, $idMascota) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $this->mascotaModel->actualizar($idMascota, $_POST);
-        header("Location: ' . BASE . '/admin/clientes");
+        header("Location: " . BASE . "/admin/clientes");
         exit;
     } else {
         http_response_code(405);

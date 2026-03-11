@@ -1,5 +1,9 @@
-<?php
+```php
 // app/views/layouts/main_recepcionista.php
+// ...
+?>
+<script>const BASE = "<?= BASE ?>";</script>
+<?php
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 $roleName = $_SESSION['user']['role_name'] ?? '';

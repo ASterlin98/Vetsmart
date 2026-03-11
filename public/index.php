@@ -1,4 +1,8 @@
-<?php declare(strict_types=1);
+<?phpdeclare(strict_types = 1)
+;
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 session_start();
 
 define('APP_ROOT', dirname(__DIR__) . '/app');
@@ -60,7 +64,7 @@ require_once APP_ROOT . '/controllers/SoporteController.php';
 
 // Detectar base path (subcarpeta donde vive la app)
 // Detectar basePath dinámico a partir del .env
-$appBaseUrl = getenv('APP_BASE_URL') ?: 'http://localhost/vetsmart';
+$appBaseUrl = $_ENV['APP_BASE_URL'] ?? (getenv('APP_BASE_URL') ?: 'http://localhost/vetsmart');
 $basePath = parse_url($appBaseUrl, PHP_URL_PATH) ?: '';
 $basePath = (strpos($_SERVER['HTTP_HOST'], 'render.com') !== false) ? '' : rtrim($basePath, '/');
 define('BASE', $basePath); // Para usar en las vistas
@@ -87,7 +91,7 @@ $authController = new AuthController(); // si tu AuthController requiere $pdo,  
 $callPreferred = function ($obj, array $methods) {
     foreach ($methods as $m) {
         if (method_exists($obj, $m)) {
-            return $obj->{$m}();
+            return $obj->{ $m}();
         }
     }
     // si ninguno existe, lanzar excepcion leve para debug
@@ -188,8 +192,8 @@ try {
     }
 
     /* ---------------------------
-       DASHBOARD segun rol
-       --------------------------- */
+     DASHBOARD segun rol
+     --------------------------- */
     if ($path === '/dashboard') {
         if (empty($_SESSION['user'])) {
             header('Location: ' . $basePath . '/login');
@@ -278,19 +282,18 @@ try {
         (new PeluqueroController($pdo))->clientesIndex();
         exit;
     }
-    
-    // Reportes Peluquero
+
     if ($path === '/peluquero/reportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         (new PeluqueroController($pdo))->reportesIndex();
         exit;
     }
-    
+
     // Agendar cita de peluquería (formulario)
     if ($path === '/peluquero/agenda/agendar' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         (new PeluqueroController($pdo))->agendarCita();
         exit;
     }
-    
+
     // Guardar cita de peluquería
     if ($path === '/peluquero/guardar-cita-peluqueria' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         (new PeluqueroController($pdo))->guardarCitaPeluqueria();
@@ -692,18 +695,14 @@ try {
         $controller->guardarCita();
         exit;
     }
-
-if ($path === '/admin/soporte' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $ctrl = new AdminController($pdo);
-    $ctrl->soporte();
-    exit;
-}
-
-if (preg_match('#^/admin/soporte/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $ctrl = new AdminController($pdo);
-    $ctrl->verTicket($matches[1]);
-    exit;
-}
+    if ($path === '/admin/soporte' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $ctrl = new AdminController($pdo);
+        $ctrl->soporte();
+        exit;    }
+    if (preg_match('#^/admin/soporte/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $ctrl = new AdminController($pdo);
+        $ctrl->verTicket($matches[1]);
+        exit;    }
 
     if ($path === '/veterinario/citas/actualizar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $controller = new VeterinarioController($pdo);
@@ -768,7 +767,8 @@ if (preg_match('#^/admin/soporte/(\d+)$#', $path, $matches) && $_SERVER['REQUEST
             $mascotaModel = new Mascota($pdo);
             if (method_exists($mascotaModel, 'getByDueno')) {
                 $data = $mascotaModel->getByDueno($clienteId);
-            } else {
+            }
+            else {
                 $stmt = $pdo->prepare("
                     SELECT id, nombre
                     FROM mascotas
@@ -783,7 +783,8 @@ if (preg_match('#^/admin/soporte/(\d+)$#', $path, $matches) && $_SERVER['REQUEST
 
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode($data);
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             header('Content-Type: application/json; charset=utf-8', true, 500);
             echo json_encode(['error' => 'Error DB', 'msg' => $e->getMessage()]);
         }
@@ -806,417 +807,280 @@ if (preg_match('#^/admin/soporte/(\d+)$#', $path, $matches) && $_SERVER['REQUEST
         exit;
     }
 
-    // Admin - Agenda
-if ($path === '/admin/agenda' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $ctrl = new AdminController($pdo);
-    $ctrl->agenda();
-    exit;
-}
-if ($path === '/admin/agenda/listar' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $ctrl = new AdminController($pdo);
-    $ctrl->listarAgenda();
-    exit;
-}
-if ($path === '/admin/agenda/estadisticas' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $ctrl = new AdminController($pdo);
-    $ctrl->estadisticasAgendaJson();
-    exit;
-}
-if ($path === '/admin/agenda/exportarExcel' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $ctrl = new AdminController($pdo);
-    $ctrl->exportarExcel();   //  este  debe existir en tu AdminController
-    exit;
-}
-
-// ==================== FINANZAS ====================
-if ($path === '/admin/finanzas' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $ctrl = new AdminController($pdo);
-    $ctrl->finanzasIndex();
-    exit;
-}
-
-if ($path === '/admin/finanzas/exportarExcel' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $ctrl = new AdminController($pdo);
-    $ctrl->exportarFinanzasExcel(); //  crea este  en AdminController
-    exit;
-}
-// ==================== REPORTES ====================
-if ($path === '/admin/reportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $ctrl = new AdminController($pdo);
-    $ctrl->reportesIndex();
-    exit;
-}
-
-if ($path === '/admin/reportes/exportarExcel' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $ctrl = new AdminController($pdo);
-    $ctrl->exportarReportesExcel(); //  crea este    en AdminController
-    exit;
-}
-
-if ($path === '/admin/reportesSoporte' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $ctrl = new AdminController($pdo);
-    $ctrl->reportesSoporte();
-    exit;
-}
-
-if ($path === '/admin/guardarTicket' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $ctrl = new AdminController($pdo);
-    $ctrl->guardarTicket();
-    exit;
-}
-
-// ==================== EMPLEADOS ====================
-if ($path === '/admin/empleados' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    require_once APP_ROOT . '/controllers/AdminController.php';
-    $controller = new AdminController($pdo);
-    // tu  se llama empleadosIndex()
-    $controller->empleadosIndex();
-    exit;
-}
-
-// Mostrar usuarios bloqueados (admin)
-if ($path === '/admin/locked_users' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    require_once APP_ROOT . '/controllers/AdminController.php';
-    $controller = new AdminController($pdo);
-    $controller->lockedUsers();
-    exit;
-}
-
-// Desbloquear usuario (admin)
-if (preg_match('#^/admin/desbloquear_usuario/(\d+)$#', $path, $m)) {
-    require_once APP_ROOT . '/controllers/AdminController.php';
-    $controller = new AdminController($pdo);
-    $controller->desbloquearUsuario($m[1]);
-    exit;
-}
-
-if ($path === '/admin/empleados/crear' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    require_once APP_ROOT . '/controllers/AdminController.php';
-    $controller = new AdminController($pdo);
-    // tu  se llama crearEmpleado()
-    $controller->crearEmpleado();
-    exit;
-}
-
-if ($path === '/admin/empleados/guardar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once APP_ROOT . '/controllers/AdminController.php';
-    $controller = new AdminController($pdo);
-    // tu  se llama guardarEmpleado()
-    $controller->guardarEmpleado();
-    exit;
-}
-
-if (preg_match('#^/admin/empleados/(\d+)/editar$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    require_once APP_ROOT . '/controllers/AdminController.php';
-    $controller = new AdminController($pdo);
-    // tu  se llama editarEmpleado($id)
-    $controller->editarEmpleado($m[1]);
-    exit;
-}
-
-if (preg_match('#^/admin/empleados/(\d+)/actualizar$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once APP_ROOT . '/controllers/AdminController.php';
-    $controller = new AdminController($pdo);
-    // tu  se llama actualizarEmpleado($id)
-    $controller->actualizarEmpleado($m[1]);
-    exit;
-}
-
-if (preg_match('#^/admin/empleados/(\d+)/eliminar$#', $path, $m)) {
-    require_once APP_ROOT . '/controllers/AdminController.php';
-    $controller = new AdminController($pdo);
-    // tu  se llama eliminarEmpleado($id)
-    $controller->eliminarEmpleado($m[1]);
-    exit;
-}
-
-// ==================== HORARIOS ====================
-if ($path === '/admin/horarios' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new AdminController($pdo);
-    $controller->horariosIndex();
-    exit;
-}
-
-/* ------- SEMANALES ------- */
-// Guardar
-if ($path === '/admin/horarios/guardar-semana' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new AdminController($pdo);
-    $controller->guardarHorarioSemana();
-    exit;
-}
-// Editar
-if (preg_match('#^/admin/horarios/(\d+)/editar-semana$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new AdminController($pdo);
-    $controller->editarSemana($m[1]);
-    exit;
-}
-// Actualizar
-if (preg_match('#^/admin/horarios/(\d+)/actualizar-horario-semana$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new AdminController($pdo);
-    $controller->actualizarHorarioSemana((int)$m[1]);
-    exit;
-}
-// Eliminar
-if (preg_match('#^/admin/horarios/(\d+)/eliminar-semana$#', $path, $m)) {
-    $controller = new AdminController($pdo);
-    $controller->eliminarSemana((int)$m[1]);
-    exit;
-}
-
-/* ------- TURNOS EXTRA ------- */
-// Guardar
-if ($path === '/admin/horarios/guardar-turno' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new AdminController($pdo);
-    $controller->guardarTurno();
-    exit;
-}
-// Editar
-if (preg_match('#^/admin/horarios/(\d+)/editar-turno$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new AdminController($pdo);
-    $controller->editarTurno($m[1]);
-    exit;
-}
-// Actualizar
-if (preg_match('#^/admin/horarios/(\d+)/actualizar-turno$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new AdminController($pdo);
-    $controller->actualizarTurno((int)$m[1]);
-    exit;
-}
-// Eliminar
-if (preg_match('#^/admin/horarios/(\d+)/eliminar-turno$#', $path, $m)) {
-    $controller = new AdminController($pdo);
-    $controller->eliminarTurno((int)$m[1]);
-    exit;
-}
-
-/* ------- SOLICITUDES ------- */
-// Guardar
-if ($path === '/admin/horarios/guardar-solicitud' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new AdminController($pdo);
-    $controller->guardarSolicitud();
-    exit;
-}
-// Editar
-if (preg_match('#^/admin/horarios/(\d+)/editar-solicitud$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new AdminController($pdo);
-    $controller->editarSolicitud($m[1]);
-    exit;
-}
-// Actualizar
-if (preg_match('#^/admin/horarios/(\d+)/actualizar-solicitud$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new AdminController($pdo);
-    $controller->actualizarSolicitud((int)$m[1]);
-    exit;
-}
-// Eliminar
-if (preg_match('#^/admin/horarios/(\d+)/eliminar-solicitud$#', $path, $m)) {
-    $controller = new AdminController($pdo);
-    $controller->eliminarSolicitud((int)$m[1]);
-    exit;
-}
-
-if ($path === '/api/disponibilidad-veterinario' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new VeterinarioController($pdo);
-    $controller->disponibilidadVeterinario();
-    exit;
-}
-
-// API para obtener detalles de una cita
-if (preg_match('#^/api/citas/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new ApiController($pdo);
-    $controller->getCitaDetalles($matches[1]);
-    exit;
-}
-
-if ($path === '/super_admin/dashboard' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    require_once APP_ROOT . '/controllers/SuperAdminController.php';
-    $controller = new SuperAdminController($pdo);
-    $controller->dashboard();
-    exit;
-}
-
-// ==================== SUPER ADMIN: GESTION DE ROLES (ahora manejado por API) ====================
-
-// ==================== SUPER ADMIN: CONFIGURACION GLOBAL ====================
-if ($path === '/super_admin/configuracion' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new SuperAdminController($pdo);
-    $controller->configuracion();
-    exit;
-}
-
-if ($path === '/super_admin/actualizarConfiguracion' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new SuperAdminController($pdo);
-    $controller->actualizarConfiguracion();
-    exit;
-}
-
-// ==================== SUPER ADMIN: REPORTES ====================
-if ($path === '/super_admin/reportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new SuperAdminController($pdo);
-    $controller->reportes();
-    exit;
-}
-
-if ($path === '/super_admin/exportarReportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new SuperAdminController($pdo);
-    $controller->exportarReportes();
-    exit;
-}
+    // Admin - Agenda    if ($path === '/admin/agenda' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $ctrl = new AdminController($pdo);
+        $ctrl->agenda();
+        exit;    }    if ($path === '/admin/agenda/listar' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $ctrl = new AdminController($pdo);
+        $ctrl->listarAgenda();
+        exit;    }    if ($path === '/admin/agenda/estadisticas' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $ctrl = new AdminController($pdo);
+        $ctrl->estadisticasAgendaJson();
+        exit;    }    if ($path === '/admin/agenda/exportarExcel' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $ctrl = new AdminController($pdo);
+        $ctrl->exportarExcel(); //  este  debe existir en tu AdminController
+        exit;    }
+    // ==================== FINANZAS ====================    if ($path === '/admin/finanzas' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $ctrl = new AdminController($pdo);
+        $ctrl->finanzasIndex();
+        exit;    }
+    if ($path === '/admin/finanzas/exportarExcel' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $ctrl = new AdminController($pdo);
+        $ctrl->exportarFinanzasExcel(); //  crea este  en AdminController
+        exit;    }    // ==================== REPORTES ====================    if ($path === '/admin/reportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $ctrl = new AdminController($pdo);
+        $ctrl->reportesIndex();
+        exit;    }
+    if ($path === '/admin/reportes/exportarExcel' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $ctrl = new AdminController($pdo);
+        $ctrl->exportarReportesExcel(); //  crea este    en AdminController
+        exit;    }
+    if ($path === '/admin/reportesSoporte' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $ctrl = new AdminController($pdo);
+        $ctrl->reportesSoporte();
+        exit;    }
+    if ($path === '/admin/guardarTicket' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $ctrl = new AdminController($pdo);
+        $ctrl->guardarTicket();
+        exit;    }
+    // ==================== EMPLEADOS ====================    if ($path === '/admin/empleados' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        require_once APP_ROOT . '/controllers/AdminController.php';
+        $controller = new AdminController($pdo);
+        // tu  se llama empleadosIndex()
+        $controller->empleadosIndex();
+        exit;    }
+    // Mostrar usuarios bloqueados (admin)    if ($path === '/admin/locked_users' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        require_once APP_ROOT . '/controllers/AdminController.php';
+        $controller = new AdminController($pdo);
+        $controller->lockedUsers();
+        exit;    }
+    // Desbloquear usuario (admin)    if (preg_match('#^/admin/desbloquear_usuario/(\d+)$#', $path, $m)) {
+        require_once APP_ROOT . '/controllers/AdminController.php';
+        $controller = new AdminController($pdo);
+        $controller->desbloquearUsuario($m[1]);
+        exit;    }
+    if ($path === '/admin/empleados/crear' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        require_once APP_ROOT . '/controllers/AdminController.php';
+        $controller = new AdminController($pdo);
+        // tu  se llama crearEmpleado()
+        $controller->crearEmpleado();
+        exit;    }
+    if ($path === '/admin/empleados/guardar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        require_once APP_ROOT . '/controllers/AdminController.php';
+        $controller = new AdminController($pdo);
+        // tu  se llama guardarEmpleado()
+        $controller->guardarEmpleado();
+        exit;    }
+    if (preg_match('#^/admin/empleados/(\d+)/editar$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        require_once APP_ROOT . '/controllers/AdminController.php';
+        $controller = new AdminController($pdo);
+        // tu  se llama editarEmpleado($id)
+        $controller->editarEmpleado($m[1]);
+        exit;    }
+    if (preg_match('#^/admin/empleados/(\d+)/actualizar$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        require_once APP_ROOT . '/controllers/AdminController.php';
+        $controller = new AdminController($pdo);
+        // tu  se llama actualizarEmpleado($id)
+        $controller->actualizarEmpleado($m[1]);
+        exit;    }
+    if (preg_match('#^/admin/empleados/(\d+)/eliminar$#', $path, $m)) {
+        require_once APP_ROOT . '/controllers/AdminController.php';
+        $controller = new AdminController($pdo);
+        // tu  se llama eliminarEmpleado($id)
+        $controller->eliminarEmpleado($m[1]);
+        exit;    }
+    // ==================== HORARIOS ====================    if ($path === '/admin/horarios' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $controller = new AdminController($pdo);
+        $controller->horariosIndex();
+        exit;    }
+    /* ------- SEMANALES ------- */    // Guardar    if ($path === '/admin/horarios/guardar-semana' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller = new AdminController($pdo);
+        $controller->guardarHorarioSemana();
+        exit;    }    // Editar    if (preg_match('#^/admin/horarios/(\d+)/editar-semana$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $controller = new AdminController($pdo);
+        $controller->editarSemana($m[1]);
+        exit;    }    // Actualizar    if (preg_match('#^/admin/horarios/(\d+)/actualizar-horario-semana$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller = new AdminController($pdo);
+        $controller->actualizarHorarioSemana((int)$m[1]);
+        exit;    }    // Eliminar    if (preg_match('#^/admin/horarios/(\d+)/eliminar-semana$#', $path, $m)) {
+        $controller = new AdminController($pdo);
+        $controller->eliminarSemana((int)$m[1]);
+        exit;    }
+    /* ------- TURNOS EXTRA ------- */    // Guardar    if ($path === '/admin/horarios/guardar-turno' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller = new AdminController($pdo);
+        $controller->guardarTurno();
+        exit;    }    // Editar    if (preg_match('#^/admin/horarios/(\d+)/editar-turno$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $controller = new AdminController($pdo);
+        $controller->editarTurno($m[1]);
+        exit;    }    // Actualizar    if (preg_match('#^/admin/horarios/(\d+)/actualizar-turno$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller = new AdminController($pdo);
+        $controller->actualizarTurno((int)$m[1]);
+        exit;    }    // Eliminar    if (preg_match('#^/admin/horarios/(\d+)/eliminar-turno$#', $path, $m)) {
+        $controller = new AdminController($pdo);
+        $controller->eliminarTurno((int)$m[1]);
+        exit;    }
+    /* ------- SOLICITUDES ------- */    // Guardar    if ($path === '/admin/horarios/guardar-solicitud' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller = new AdminController($pdo);
+        $controller->guardarSolicitud();
+        exit;    }    // Editar    if (preg_match('#^/admin/horarios/(\d+)/editar-solicitud$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $controller = new AdminController($pdo);
+        $controller->editarSolicitud($m[1]);
+        exit;    }    // Actualizar    if (preg_match('#^/admin/horarios/(\d+)/actualizar-solicitud$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller = new AdminController($pdo);
+        $controller->actualizarSolicitud((int)$m[1]);
+        exit;    }    // Eliminar    if (preg_match('#^/admin/horarios/(\d+)/eliminar-solicitud$#', $path, $m)) {
+        $controller = new AdminController($pdo);
+        $controller->eliminarSolicitud((int)$m[1]);
+        exit;    }
+    if ($path === '/api/disponibilidad-veterinario' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $controller = new VeterinarioController($pdo);
+        $controller->disponibilidadVeterinario();
+        exit;    }
+    // API para obtener detalles de una cita    if (preg_match('#^/api/citas/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $controller = new ApiController($pdo);
+        $controller->getCitaDetalles($matches[1]);
+        exit;    }
+    if ($path === '/super_admin/dashboard' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        require_once APP_ROOT . '/controllers/SuperAdminController.php';
+        $controller = new SuperAdminController($pdo);
+        $controller->dashboard();
+        exit;    }
+    // ==================== SUPER ADMIN: GESTION DE ROLES (ahora manejado por API) ====================
+    // ==================== SUPER ADMIN: CONFIGURACION GLOBAL ====================    if ($path === '/super_admin/configuracion' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $controller = new SuperAdminController($pdo);
+        $controller->configuracion();
+        exit;    }
+    if ($path === '/super_admin/actualizarConfiguracion' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller = new SuperAdminController($pdo);
+        $controller->actualizarConfiguracion();
+        exit;    }
+    // ==================== SUPER ADMIN: REPORTES ====================    if ($path === '/super_admin/reportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $controller = new SuperAdminController($pdo);
+        $controller->reportes();
+        exit;    }
+    if ($path === '/super_admin/exportarReportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $controller = new SuperAdminController($pdo);
+        $controller->exportarReportes();
+        exit;    }
 
 
+    // ==================== CENTRO DE SOPORTE ====================    if ($path === '/soporte' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $controller = new SoporteController($pdo);
+        $controller->index();
+        exit;    }    if ($path === '/soporte/crear' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $controller = new SoporteController($pdo);
+        $controller->crear();
+        exit;    }    if ($path === '/soporte/guardar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller = new SoporteController($pdo);
+        $controller->guardar();
+        exit;    }    if (preg_match('#^/soporte/ver/(\d+)$#', $path, $matches)) {
+        $controller = new SoporteController($pdo);
+        $controller->ver($matches[1]);
+        exit;    }    if ($path === '/soporte/responder' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller = new SoporteController($pdo);
+        $controller->responder();
+        exit;    }    if ($path === '/soporte/actualizarMeta' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller = new SoporteController($pdo);
+        $controller->actualizarMeta();
+        exit;    }
 
-// ==================== CENTRO DE SOPORTE ====================
-if ($path === '/soporte' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new SoporteController($pdo);
-    $controller->index();
-    exit;
-}
-if ($path === '/soporte/crear' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controller = new SoporteController($pdo);
-    $controller->crear();
-    exit;
-}
-if ($path === '/soporte/guardar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new SoporteController($pdo);
-    $controller->guardar();
-    exit;
-}
-if (preg_match('#^/soporte/ver/(\d+)$#', $path, $matches)) {
-    $controller = new SoporteController($pdo);
-    $controller->ver($matches[1]);
-    exit;
-}
-if ($path === '/soporte/responder' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new SoporteController($pdo);
-    $controller->responder();
-    exit;
-}
-if ($path === '/soporte/actualizarMeta' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new SoporteController($pdo);
-    $controller->actualizarMeta();
-    exit;
-}
+    // ==================== API: DISPONIBILIDAD ====================    if ($path === '/api/disponibilidad' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $empleadoId = $_GET['empleado_id'] ?? null;
+            $fecha = $_GET['fecha'] ?? null;
+            $hora = $_GET['hora'] ?? null;
 
+            if (!$empleadoId || !$fecha || !$hora) {
+                echo json_encode(['disponible' => false, 'msg' => 'Parametros incompletos']);
+                exit;
+            }
 
-// ==================== API: DISPONIBILIDAD ====================
-if ($path === '/api/disponibilidad' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    header('Content-Type: application/json; charset=utf-8');
-    try {
-        $empleadoId = $_GET['empleado_id'] ?? null;
-        $fecha      = $_GET['fecha'] ?? null;
-        $hora       = $_GET['hora'] ?? null;
-
-        if (!$empleadoId || !$fecha || !$hora) {
-            echo json_encode(['disponible' => false, 'msg' => 'Parametros incompletos']);
-            exit;
-        }
-
-        // : verificar si el empleado tiene horario ese  y hora
-        $stmt = $pdo->prepare("
+            // : verificar si el empleado tiene horario ese  y hora
+            $stmt = $pdo->prepare("
             SELECT COUNT(*) 
             FROM horarios_semana
             WHERE empleado_id = :eid
               AND dia = DAYOFWEEK(:fecha) - 1
               AND :hora BETWEEN hora_inicio AND hora_fin
         ");
-        $stmt->execute([
-            ':eid'   => $empleadoId,
-            ':fecha' => $fecha,
-            ':hora'  => $hora
-        ]);
-        $enHorario = $stmt->fetchColumn() > 0;
+            $stmt->execute([
+                ':eid' => $empleadoId,
+                ':fecha' => $fecha,
+                ':hora' => $hora
+            ]);
+            $enHorario = $stmt->fetchColumn() > 0;
 
-        // Verificar si tiene turno que bloquee
-        $stmt = $pdo->prepare("
+            // Verificar si tiene turno que bloquee
+            $stmt = $pdo->prepare("
             SELECT COUNT(*)
             FROM turnos_empleado
             WHERE empleado_id = :eid
               AND :fechaHora BETWEEN inicio AND fin
         ");
-        $stmt->execute([
-            ':eid'       => $empleadoId,
-            ':fechaHora' => $fecha . ' ' . $hora
-        ]);
-        $enTurno = $stmt->fetchColumn() > 0;
+            $stmt->execute([
+                ':eid' => $empleadoId,
+                ':fechaHora' => $fecha . ' ' . $hora
+            ]);
+            $enTurno = $stmt->fetchColumn() > 0;
 
-        // Verificar si hay solicitud (permiso, vacaciones, incapacidad)
-        $stmt = $pdo->prepare("
+            // Verificar si hay solicitud (permiso, vacaciones, incapacidad)
+            $stmt = $pdo->prepare("
             SELECT COUNT(*)
             FROM solicitudes
             WHERE usuario_id = :eid
               AND :fecha BETWEEN fecha_inicio AND fecha_fin
         ");
-        $stmt->execute([
-            ':eid'   => $empleadoId,
-            ':fecha' => $fecha
-        ]);
-        $enSolicitud = $stmt->fetchColumn() > 0;
+            $stmt->execute([
+                ':eid' => $empleadoId,
+                ':fecha' => $fecha
+            ]);
+            $enSolicitud = $stmt->fetchColumn() > 0;
 
-        $disponible = $enHorario && !$enTurno && !$enSolicitud;
+            $disponible = $enHorario && !$enTurno && !$enSolicitud;
 
-        echo json_encode([
-            'disponible' => $disponible,
-            'enHorario'  => $enHorario,
-            'enTurno'    => $enTurno,
-            'enSolicitud'=> $enSolicitud
-        ]);
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['error' => $e->getMessage()]);
-    }
-    exit;
-}
-// ==================== RECEPCIONISTA ====================
+            echo json_encode([
+                'disponible' => $disponible,
+                'enHorario' => $enHorario,
+                'enTurno' => $enTurno,
+                'enSolicitud' => $enSolicitud
+            ]);
+        }
+        catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        exit;    }    // ==================== RECEPCIONISTA ====================
+    if ($path === '/dashboard') {
+        $controller = new RecepcionistaController($pdo);
+        $controller->dashboard();
+        exit;    }
+    // Alias expli­cito al dashboard del recepcionista    if ($path === '/recepcionista/dashboard') {
+        (new RecepcionistaController($pdo))->dashboard();
+        exit;    }
+    if ($path === '/recepcionista/agenda') {
+        $controller = new RecepcionistaController($pdo);
+        $controller->agenda();
+        exit;    }    // Módulo de reportes (Recepcionista)    if ($path === '/recepcionista/reportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        (new RecepcionistaController($pdo))->reportes();
+        exit;    }    if ($path === '/recepcionista/reportes/upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        (new RecepcionistaController($pdo))->reportesUpload();
+        exit;    }
+    // Descarga de historial clínico por mascota (PDF)    if (preg_match('#^/reportes/mascota/(\\d+)/pdf$#', (string)$path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        (new ReportesController($pdo))->mascotaPdf(['id' => (int)$m[1]]);
+        exit;    }    if (preg_match('#^/reportes/mascota/(\\d+)/pdf/preview$#', (string)$path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        (new ReportesController($pdo))->mascotaPdfPreview(['id' => (int)$m[1]]);
+        exit;    }
+    if ($path === '/recepcionista/citas') {
+        $controller = new RecepcionistaController($pdo);
+        $controller->citas();
+        exit;    }
 
-if ($path === '/vetsmart/dashboard') {
-    $controller = new RecepcionistaController($pdo);
-    $controller->dashboard();
-    exit;
-}
+    if ($path === '/recepcionista/agenda/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        session_start();
+        $usuarioId = $_SESSION['user']['id'] ?? null;
 
-// Alias expli­cito al dashboard del recepcionista
-if ($path === '/recepcionista/dashboard') {
-    (new RecepcionistaController($pdo))->dashboard();
-    exit;
-}
-
-if ($path === '/recepcionista/agenda') {
-    $controller = new RecepcionistaController($pdo);
-    $controller->agenda();
-    exit;
-}
-// Módulo de reportes (Recepcionista)
-if ($path === '/recepcionista/reportes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    (new RecepcionistaController($pdo))->reportes();
-    exit;
-}
-if ($path === '/recepcionista/reportes/upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    (new RecepcionistaController($pdo))->reportesUpload();
-    exit;
-}
-
-// Descarga de historial clínico por mascota (PDF)
-if (preg_match('#^/reportes/mascota/(\\d+)/pdf$#', (string)$path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    (new ReportesController($pdo))->mascotaPdf(['id' => (int)$m[1]]);
-    exit;
-}
-if (preg_match('#^/reportes/mascota/(\\d+)/pdf/preview$#', (string)$path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    (new ReportesController($pdo))->mascotaPdfPreview(['id' => (int)$m[1]]);
-    exit;
-}
-
-if ($path === '/recepcionista/citas') {
-    $controller = new RecepcionistaController($pdo);
-    $controller->citas();
-    exit;
-}
-
-
-if ($path === '/recepcionista/agenda/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    session_start();
-    $usuarioId = $_SESSION['user']['id'] ?? null;
-
-    $stmt = $pdo->prepare("
+        $stmt = $pdo->prepare("
         UPDATE citas
         SET estado = :estado,
             actualizado_por = :usuario_id,
@@ -1224,30 +1088,29 @@ if ($path === '/recepcionista/agenda/update' && $_SERVER['REQUEST_METHOD'] === '
         WHERE id = :id
     ");
 
-    $stmt->execute([
-        ':estado' => $_POST['estado'],
-        ':usuario_id' => $usuarioId,
-        ':id' => $_POST['id']
-    ]);
+        $stmt->execute([
+            ':estado' => $_POST['estado'],
+            ':usuario_id' => $usuarioId,
+            ':id' => $_POST['id']
+        ]);
 
-    header('Location: /vetsmart/recepcionista/agenda');
-    exit;
-}
-    // Ruta: /recepcionista/citas/ver/{id} -> devuelve JSON con detalle de la cita
-if (preg_match('#^/recepcionista/citas/ver/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    try {
-        $id = (int)$matches[1];
+        header('Location: ' . BASE . '/recepcionista/agenda');
+        exit;    }
+    // Ruta: /recepcionista/citas/ver/{id} -> devuelve JSON con detalle de la cita    if (preg_match('#^/recepcionista/citas/ver/(\d+)$#', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        try {
+            $id = (int)$matches[1];
 
-        //  de  (opcional)
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        if (empty($_SESSION['user'])) {
-            http_response_code(401);
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode(['error' => 'no_auth', 'msg' => 'Usuario no autenticado']);
-            exit;
-        }
+            //  de  (opcional)
+            if (session_status() === PHP_SESSION_NONE)
+                session_start();
+            if (empty($_SESSION['user'])) {
+                http_response_code(401);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['error' => 'no_auth', 'msg' => 'Usuario no autenticado']);
+                exit;
+            }
 
-        $stmt = $pdo->prepare("
+            $stmt = $pdo->prepare("
             SELECT 
                 c.id,
                 c.fecha,
@@ -1269,242 +1132,152 @@ if (preg_match('#^/recepcionista/citas/ver/(\d+)$#', $path, $matches) && $_SERVE
             WHERE c.id = :id
             LIMIT 1
         ");
-        $stmt->execute([':id' => $id]);
-        $cita = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->execute([':id' => $id]);
+            $cita = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        header('Content-Type: application/json; charset=utf-8');
-        if (!$cita) {
-            http_response_code(404);
-            echo json_encode(['error' => 'not_found', 'msg' => 'Cita no encontrada']);
+            header('Content-Type: application/json; charset=utf-8');
+            if (!$cita) {
+                http_response_code(404);
+                echo json_encode(['error' => 'not_found', 'msg' => 'Cita no encontrada']);
+                exit;
+            }
+
+            // devolver la cita como JSON
+            echo json_encode($cita);
             exit;
+
         }
+        catch (Throwable $e) {
+            // registrar error en logs y devolver JSON con mensaje ( en dev)
+            error_log("Error al obtener detalle cita: " . $e->getMessage());
+            http_response_code(500);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['error' => 'server_error', 'msg' => $e->getMessage()]);
+            exit;
+        }    }    // === CITAS (Recepcionista) ===    if (preg_match('#^/citas/delete/(\d+)$#', $path, $matches)) {
+        $ctrl = new CitaController($pdo);
+        $ctrl->delete((int)$matches[1]);
+        exit;    }
+    if (preg_match('#^/citas/edit/(\d+)$#', $path, $matches)) {
+        $ctrl = new CitaController($pdo);
+        $ctrl->edit((int)$matches[1]);
+        exit;    }
+    if ($path === '/citas/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $ctrl = new CitaController($pdo);
+        $ctrl->update();
+        exit;    }
+    if ($path === '/recepcionista/citas/create') {
+        $ctrl = new CitaController($pdo);
+        $ctrl->create();
+        exit;    }
 
-        // devolver la cita como JSON
-        echo json_encode($cita);
-        exit;
-
-    } catch (Throwable $e) {
-        // registrar error en logs y devolver JSON con mensaje ( en dev)
-        error_log("Error al obtener detalle cita: " . $e->getMessage());
-        http_response_code(500);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['error' => 'server_error', 'msg' => $e->getMessage()]);
-        exit;
-    }
-}
-// === CITAS (Recepcionista) ===
-if (preg_match('#^/citas/delete/(\d+)$#', $path, $matches)) {
-    $ctrl = new CitaController($pdo);
-    $ctrl->delete((int)$matches[1]);
-    exit;
-}
-
-if (preg_match('#^/citas/edit/(\d+)$#', $path, $matches)) {
-    $ctrl = new CitaController($pdo);
-    $ctrl->edit((int)$matches[1]);
-    exit;
-}
-
-if ($path === '/citas/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $ctrl = new CitaController($pdo);
-    $ctrl->update();
-    exit;
-}
-
-if ($path === '/recepcionista/citas/create') {
-    $ctrl = new CitaController($pdo);
-    $ctrl->create();
-    exit;
-}
-
-
-if ($path === '/citas/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $ctrl = new CitaController($pdo);
-    $ctrl->store();
-    exit;
-}
-
-// Peluquería (Recepcionista)
-if ($path === '/recepcionista/citas-peluqueria/create' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    (new CitaController($pdo))->createPeluqueria();
-    exit;
-}
-if ($path === '/recepcionista/citas-peluqueria/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    (new CitaController($pdo))->guardarCitaPeluqueria();
-    exit;
-}
-
-if ($path === '/recepcionista/clientes') {
-    $ctrl = new RecepcionistaController($pdo);
-    $ctrl->clientes();
-    exit;
-}
-// Ver perfil de cliente
-if (preg_match('#^/recepcionista/clientes/ver/(\\d+)$#', $path, $matches)) {
-    (new RecepcionistaController($pdo))->verCliente((int)$matches[1]);
-    exit;
-}
-if ($path === '/recepcionista/clientes/create') {
-    $controller = new RecepcionistaController($pdo);
-    $controller->createCliente();
-    exit;
-}
-
-if ($path === '/recepcionista/clientes/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new RecepcionistaController($pdo);
-    $controller->storeCliente();
-    exit;
-}
-
-//Editar cliente
-// Mostrar formulario de edicion de cliente
-if (preg_match('#^/recepcionista/clientes/edit/(\d+)$#', $path, $matches)) {
-    (new RecepcionistaController($pdo))->editCliente((int)$matches[1]);
-    exit;
-}
-
-// Guardar cambios del cliente
-if ($path === '/recepcionista/clientes/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    (new RecepcionistaController($pdo))->updateCliente();
-    exit;
-}
-//  Eliminar cliente
-if (preg_match('#^/recepcionista/clientes/delete/(\d+)$#', $path, $matches)) {
-    $controller = new RecepcionistaController($pdo);
-    $controller->deleteCliente((int)$matches[1]);
-    exit;
-}
-//Eliminar cliente en cascada con mascotas
-if (preg_match('#^/recepcionista/clientes/(\d+)/eliminar$#', $path, $m)) {
-    $controller = new RecepcionistaController($pdo);
-    $controller->eliminarCliente((int)$m[1]);
-    exit;
-}
-
-//Modulo de Gestion de Mascotas
-if ($path === '/recepcionista/mascotas') {
-    $controller = new RecepcionistaController($pdo);
-    $controller->mascotas();
-    exit;
-}
-// Ver perfil de mascota
-if (preg_match('#^/recepcionista/mascotas/ver/(\\d+)$#', $path, $matches)) {
-    (new RecepcionistaController($pdo))->verMascota((int)$matches[1]);
-    exit;
-}
-// Ver historial  (solo lectura) por mascota
-if (preg_match('#^/recepcionista/mascotas/(\d+)/historial$#', $path, $matches)) {
-    (new RecepcionistaController($pdo))->historialMascota((int)$matches[1]);
-    exit;
-}
-// Crear mascota
-if ($path === '/recepcionista/mascotas/create') {
-    (new RecepcionistaController($pdo))->crearMascota();
-    exit;
-}
-
-// Guardar mascota
-if ($path === '/recepcionista/mascotas/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    (new RecepcionistaController($pdo))->guardarMascota();
-    exit;
-}
-
-// Editar mascota
-if (preg_match('#^/recepcionista/mascotas/edit/(\d+)$#', $path, $matches)) {
-    (new RecepcionistaController($pdo))->editarMascota((int)$matches[1]);
-    exit;
-}
-
-// Actualizar mascota
-if ($path === '/recepcionista/mascotas/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    (new RecepcionistaController($pdo))->actualizarMascota();
-    exit;
-}
-
-// Eliminar mascota
-if (preg_match('#^/recepcionista/mascotas/delete/(\d+)$#', $path, $matches)) {
-    (new RecepcionistaController($pdo))->eliminarMascota((int)$matches[1]);
-    exit;
-}
+    if ($path === '/citas/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $ctrl = new CitaController($pdo);
+        $ctrl->store();
+        exit;    }
+    // Peluquería (Recepcionista)    if ($path === '/recepcionista/citas-peluqueria/create' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        (new CitaController($pdo))->createPeluqueria();
+        exit;    }    if ($path === '/recepcionista/citas-peluqueria/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        (new CitaController($pdo))->guardarCitaPeluqueria();
+        exit;    }
+    if ($path === '/recepcionista/clientes') {
+        $ctrl = new RecepcionistaController($pdo);
+        $ctrl->clientes();
+        exit;    }    // Ver perfil de cliente    if (preg_match('#^/recepcionista/clientes/ver/(\\d+)$#', $path, $matches)) {
+        (new RecepcionistaController($pdo))->verCliente((int)$matches[1]);
+        exit;    }    if ($path === '/recepcionista/clientes/create') {
+        $controller = new RecepcionistaController($pdo);
+        $controller->createCliente();
+        exit;    }
+    if ($path === '/recepcionista/clientes/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller = new RecepcionistaController($pdo);
+        $controller->storeCliente();
+        exit;    }
+    //Editar cliente
+// Mostrar formulario de edicion de cliente    if (preg_match('#^/recepcionista/clientes/edit/(\d+)$#', $path, $matches)) {
+        (new RecepcionistaController($pdo))->editCliente((int)$matches[1]);
+        exit;    }
+    // Guardar cambios del cliente    if ($path === '/recepcionista/clientes/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        (new RecepcionistaController($pdo))->updateCliente();
+        exit;    }    //  Eliminar cliente    if (preg_match('#^/recepcionista/clientes/delete/(\d+)$#', $path, $matches)) {
+        $controller = new RecepcionistaController($pdo);
+        $controller->deleteCliente((int)$matches[1]);
+        exit;    }    //Eliminar cliente en cascada con mascotas    if (preg_match('#^/recepcionista/clientes/(\d+)/eliminar$#', $path, $m)) {
+        $controller = new RecepcionistaController($pdo);
+        $controller->eliminarCliente((int)$m[1]);
+        exit;    }
+    //Modulo de Gestion de Mascotas    if ($path === '/recepcionista/mascotas') {
+        $controller = new RecepcionistaController($pdo);
+        $controller->mascotas();
+        exit;    }    // Ver perfil de mascota    if (preg_match('#^/recepcionista/mascotas/ver/(\\d+)$#', $path, $matches)) {
+        (new RecepcionistaController($pdo))->verMascota((int)$matches[1]);
+        exit;    }    // Ver historial  (solo lectura) por mascota    if (preg_match('#^/recepcionista/mascotas/(\d+)/historial$#', $path, $matches)) {
+        (new RecepcionistaController($pdo))->historialMascota((int)$matches[1]);
+        exit;    }    // Crear mascota    if ($path === '/recepcionista/mascotas/create') {
+        (new RecepcionistaController($pdo))->crearMascota();
+        exit;    }
+    // Guardar mascota    if ($path === '/recepcionista/mascotas/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        (new RecepcionistaController($pdo))->guardarMascota();
+        exit;    }
+    // Editar mascota    if (preg_match('#^/recepcionista/mascotas/edit/(\d+)$#', $path, $matches)) {
+        (new RecepcionistaController($pdo))->editarMascota((int)$matches[1]);
+        exit;    }
+    // Actualizar mascota    if ($path === '/recepcionista/mascotas/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        (new RecepcionistaController($pdo))->actualizarMascota();
+        exit;    }
+    // Eliminar mascota    if (preg_match('#^/recepcionista/mascotas/delete/(\d+)$#', $path, $matches)) {
+        (new RecepcionistaController($pdo))->eliminarMascota((int)$matches[1]);
+        exit;    }
 
 
 
 
-
-if ($path === '/recepcionista/reportes/delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    (new RecepcionistaController($pdo))->eliminarArchivoReporte();
-    exit;
-}
-
-if ($path === '/recepcionista/ingresos') {
-    $controller = new RecepcionistaController($pdo);
-    $controller->ingresos();
-    exit;
-}
-
-if ($path === '/recepcionista/inventario') {
-    $controller = new RecepcionistaController($pdo);
-    $controller->inventario();
-    exit;
-}
-if ($path === '/recepcionista/inventario/create' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    (new RecepcionistaController($pdo))->inventarioCreate();
-    exit;
-}
-if ($path === '/recepcionista/inventario/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    (new RecepcionistaController($pdo))->inventarioStore();
-    exit;
-}
-if (preg_match('#^/recepcionista/inventario/(\d+)/edit$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    (new RecepcionistaController($pdo))->inventarioEdit((int)$m[1]);
-    exit;
-}
-if (preg_match('#^/recepcionista/inventario/(\d+)/update$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    (new RecepcionistaController($pdo))->inventarioUpdate((int)$m[1]);
-    exit;
-}
-if (preg_match('#^/recepcionista/inventario/(\d+)/delete$#', $path, $m)) {
-    (new RecepcionistaController($pdo))->inventarioDelete((int)$m[1]);
-    exit;
-}
-if (preg_match('#^/recepcionista/inventario/(\d+)/ajustar$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
-(new RecepcionistaController($pdo))->inventarioAjustar((int)$m[1]);
-exit;
-}
-
-// CRUD Ingresos/Egresos (Recepcionista)
-if ($path === '/recepcionista/ingresos/create' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    (new RecepcionistaController($pdo))->ingresosCreate();
-    exit;
-}
-if ($path === '/recepcionista/ingresos/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    (new RecepcionistaController($pdo))->ingresosStore();
-    exit;
-}
-if (preg_match('#^/recepcionista/ingresos/(\d+)/edit$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    (new RecepcionistaController($pdo))->ingresosEdit((int)$m[1]);
-    exit;
-}
-if (preg_match('#^/recepcionista/ingresos/(\d+)/update$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    (new RecepcionistaController($pdo))->ingresosUpdate((int)$m[1]);
-    exit;
-}
-if (preg_match('#^/recepcionista/ingresos/(\d+)/delete$#', $path, $m)) {
-    (new RecepcionistaController($pdo))->ingresosDelete((int)$m[1]);
-    exit;
-}
+    if ($path === '/recepcionista/reportes/delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        (new RecepcionistaController($pdo))->eliminarArchivoReporte();
+        exit;    }
+    if ($path === '/recepcionista/ingresos') {
+        $controller = new RecepcionistaController($pdo);
+        $controller->ingresos();
+        exit;    }
+    if ($path === '/recepcionista/inventario') {
+        $controller = new RecepcionistaController($pdo);
+        $controller->inventario();
+        exit;    }    if ($path === '/recepcionista/inventario/create' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        (new RecepcionistaController($pdo))->inventarioCreate();
+        exit;    }    if ($path === '/recepcionista/inventario/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        (new RecepcionistaController($pdo))->inventarioStore();
+        exit;    }    if (preg_match('#^/recepcionista/inventario/(\d+)/edit$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        (new RecepcionistaController($pdo))->inventarioEdit((int)$m[1]);
+        exit;    }    if (preg_match('#^/recepcionista/inventario/(\d+)/update$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        (new RecepcionistaController($pdo))->inventarioUpdate((int)$m[1]);
+        exit;    }    if (preg_match('#^/recepcionista/inventario/(\d+)/delete$#', $path, $m)) {
+        (new RecepcionistaController($pdo))->inventarioDelete((int)$m[1]);
+        exit;    }    if (preg_match('#^/recepcionista/inventario/(\d+)/ajustar$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {        (new RecepcionistaController($pdo))->inventarioAjustar((int)$m[1]);        exit;    }
+    // CRUD Ingresos/Egresos (Recepcionista)    if ($path === '/recepcionista/ingresos/create' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        (new RecepcionistaController($pdo))->ingresosCreate();
+        exit;    }    if ($path === '/recepcionista/ingresos/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        (new RecepcionistaController($pdo))->ingresosStore();
+        exit;    }    if (preg_match('#^/recepcionista/ingresos/(\d+)/edit$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        (new RecepcionistaController($pdo))->ingresosEdit((int)$m[1]);
+        exit;    }    if (preg_match('#^/recepcionista/ingresos/(\d+)/update$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        (new RecepcionistaController($pdo))->ingresosUpdate((int)$m[1]);
+        exit;    }    if (preg_match('#^/recepcionista/ingresos/(\d+)/delete$#', $path, $m)) {
+        (new RecepcionistaController($pdo))->ingresosDelete((int)$m[1]);
+        exit;    }
 
 
     // Si nada coincide -> 404
     http_response_code(404);
     echo "Pagina no encontrada. <a href='{$basePath}/auth/login'>Ir a login</a>";
-}catch (Throwable $ex) {
+}
+catch (Throwable $ex) {
     // Falla segura: registrar y mostrar mensaje amigable en dev
     error_log("Router error: " . $ex->getMessage());
     http_response_code(500);
     if (ini_get('display_errors')) {
         echo "<h2>Error interno</h2><pre>" . htmlspecialchars($ex->getMessage()) . "</pre>";
-    } else {
+    }
+    else {
         echo "Error interno. Revisa logs.";
     }
     exit;
